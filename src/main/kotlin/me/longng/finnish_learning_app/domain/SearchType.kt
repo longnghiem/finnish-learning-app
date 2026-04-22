@@ -1,4 +1,6 @@
 package me.longng.finnish_learning_app.domain
 
-class SearchType {
+enum class SearchType {
+    VERB,
+    SENTENCE,
 }
