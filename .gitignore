@@ -42,3 +42,6 @@ out/
 
 **/application-dev.properties
 .env
+
+# jOOQ generated sources
+build/generated-sources/

@@ -14,6 +14,13 @@
 - **Testing**: JUnit 5, Testcontainers (PostgreSQL)
 
 ## Run commands
+
+- To run the application
 ```
 ./gradlew bootRun 
+```
+
+- To generate jOOQ classes under `build/generated-sources/jooq`
+```
+./gradlew generateJooq
 ```
