@@ -12,3 +12,8 @@
 - **API Documentation**: SpringDoc OpenAPI / Swagger
 - **Build Tool**: Gradle 8.x
 - **Testing**: JUnit 5, Testcontainers (PostgreSQL)
+
+## Run commands
+```
+./gradlew bootRun 
+```

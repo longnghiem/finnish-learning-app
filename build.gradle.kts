@@ -1,8 +1,8 @@
 plugins {
-	kotlin("jvm") version "2.2.21"
-	kotlin("plugin.spring") version "2.2.21"
-	id("org.springframework.boot") version "4.0.5"
-	id("io.spring.dependency-management") version "1.1.7"
+	alias(libs.plugins.kotlin.jvm)
+	alias(libs.plugins.kotlin.spring)
+	alias(libs.plugins.spring.boot)
+	alias(libs.plugins.spring.dependency.management)
 }
 
 group = "me.longng"
@@ -19,26 +19,26 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-flyway")
-	implementation("org.springframework.boot:spring-boot-starter-jooq")
-	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	implementation("org.flywaydb:flyway-database-postgresql")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2")
-	implementation("tools.jackson.module:jackson-module-kotlin")
-	runtimeOnly("org.postgresql:postgresql:42.7.2")
-	testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-jooq-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-	testImplementation("org.springframework.boot:spring-boot-testcontainers")
-	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-	testImplementation("org.testcontainers:testcontainers-junit-jupiter")
-	testImplementation("org.testcontainers:testcontainers-postgresql")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	implementation(libs.spring.boot.starter.flyway)
+	implementation(libs.spring.boot.starter.jooq)
+	implementation(libs.spring.boot.starter.security)
+	implementation(libs.spring.boot.starter.validation)
+	implementation(libs.spring.boot.starter.webmvc)
+	implementation(libs.flyway.database.postgresql)
+	implementation(libs.kotlin.reflect)
+	implementation(libs.springdoc.openapi.starter.webmvc.ui)
+	implementation(libs.jackson.module.kotlin)
+	runtimeOnly(libs.postgresql)
+	testImplementation(libs.spring.boot.starter.flyway.test)
+	testImplementation(libs.spring.boot.starter.jooq.test)
+	testImplementation(libs.spring.boot.starter.security.test)
+	testImplementation(libs.spring.boot.starter.validation.test)
+	testImplementation(libs.spring.boot.starter.webmvc.test)
+	testImplementation(libs.spring.boot.testcontainers)
+	testImplementation(libs.kotlin.test.junit5)
+	testImplementation(libs.testcontainers.junit.jupiter)
+	testImplementation(libs.testcontainers.postgresql)
+	testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 kotlin {
@@ -49,4 +49,15 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+	val envFile = file(".env")
+	if (envFile.exists()) {
+		envFile.readLines()
+			.filter { it.isNotBlank() && !it.startsWith("#") }
+			.map { it.split("=", limit = 2) }
+			.filter { it.size == 2 }
+			.forEach { (key, value) -> environment(key, value) }
+	}
 }
