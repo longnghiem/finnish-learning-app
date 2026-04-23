@@ -1,1 +1,1 @@
-rootProject.name = "finnish-learning-app"
+rootProject.name = "finnish-learning-backend"
