@@ -1,4 +1,4 @@
-# Finnish Learning App
+# Finnish Learning Backend
 
 A Spring Boot backend for managing Finnish vocabulary flashcards.
 
