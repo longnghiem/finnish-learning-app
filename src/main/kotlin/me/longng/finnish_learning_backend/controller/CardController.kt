@@ -102,6 +102,7 @@ class CardController(private val cardService: CardService) {
     fun getCardById(@PathVariable id: Int): CardResponse =
         CardResponse.from(cardService.getCardById(id))
 
+    // TODO: Support pagination
     /**
      * Queries cards with optional filters. All filters are combined with AND.
      * `searchType` and `searchTerm` must be provided together.
