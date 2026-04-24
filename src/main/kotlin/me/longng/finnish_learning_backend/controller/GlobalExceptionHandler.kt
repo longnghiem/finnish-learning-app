@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.multipart.support.MissingServletRequestPartException
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -53,6 +54,12 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException::class)
     fun handleMissingParam(ex: MissingServletRequestParameterException): ResponseEntity<ErrorResponse> {
         logger.warn("Missing request parameter: {}", ex.message)
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.message)
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException::class)
+    fun handleMissingPart(ex: MissingServletRequestPartException): ResponseEntity<ErrorResponse> {
+        logger.warn("Missing request part: {}", ex.message)
         return buildResponse(HttpStatus.BAD_REQUEST, ex.message)
     }
 

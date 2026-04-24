@@ -52,6 +52,7 @@ dependencies {
 	testImplementation(libs.testcontainers.junit.jupiter)
 	testImplementation(libs.testcontainers.postgresql)
 	testRuntimeOnly(libs.junit.platform.launcher)
+	testImplementation(libs.mockito.kotlin)
 }
 
 // Load .env at configuration time for JOOQ codegen
@@ -90,7 +91,7 @@ jooq {
 						isDaos          = false
 					}
 					target.apply {
-						packageName = "me.longng.finnish_learning_app.persistence.generated"
+						packageName = "me.longng.finnish_learning_backend.persistence.generated"
 						directory   = "${layout.buildDirectory.get()}/generated-sources/jooq"
 					}
 				}

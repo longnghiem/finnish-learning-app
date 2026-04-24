@@ -3,6 +3,7 @@ kotlin = "2.2.21"
 spring-boot = "4.0.5"
 spring-dependency-management = "1.1.7"
 springdoc = "3.0.2"
+mockito-kotlin = "5.4.0"
 postgresql = "42.7.2"
 jooq-codegen = "10.1"
 
@@ -44,6 +45,9 @@ testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgr
 
 # JUnit
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+# Mockito
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

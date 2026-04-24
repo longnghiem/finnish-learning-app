@@ -29,6 +29,7 @@ class CardService(
         require(name.isNotBlank()) { "Card name must not be blank" }
         require(exampleSentence.isNotBlank()) { "Card example must not be blank" }
         require(translation.isNotBlank()) { "Card translation must not be blank" }
+        require(!image.isEmpty) { "Card image must not be empty" }
         topicRepository.findById(topicId) ?: throw TopicNotFoundException(topicId)
 
         val imageFileName = imageStorageService.store(image)
