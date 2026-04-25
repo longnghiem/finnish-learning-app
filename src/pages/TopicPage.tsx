@@ -1,12 +1,13 @@
 import {useParams} from "react-router-dom";
 import {useAuth} from "../auth/useAuth.ts";
-import {useCards, useTopics} from "../hooks";
+import {useCards, useDeleteCard, useTopics} from "../hooks";
 import {useEffect, useState} from "react";
 import type {SearchType} from "../types";
 import {ProgressDots} from "../components/ProgressDots.tsx";
 import {SearchBar} from "../components/SearchBar.tsx";
 import {Flashcard} from "../components/Flashcard.tsx";
 import {CardModal} from "../components/CardModal.tsx";
+import {ConfirmModal} from "../components/ConfirmModal.tsx";
 
 /**
  * Topic Page — the core flashcard viewing experience.
@@ -68,6 +69,10 @@ export function TopicPage() {
 
     // --- Modal state ---
     const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    // --- Delete mutation ---
+    const deleteCard = useDeleteCard();
 
     const flashcardArea = isLoading ? (
         <div className="flex items-center justify-center py-20">
@@ -159,7 +164,7 @@ export function TopicPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => console.log("open delete modal")}
+                                onClick={() => setShowDeleteConfirm(true)}
                                 className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
                             >
                                 Delete
@@ -176,6 +181,23 @@ export function TopicPage() {
                     topicId={numericTopicId}
                     card={modalMode === "edit" ? currentCard : undefined}
                     onClose={() => setModalMode(null)}
+                />
+            )}
+
+            {/* Delete confirmation modal */}
+            {showDeleteConfirm && currentCard && (
+                <ConfirmModal
+                    message="Are you sure you want to delete this card? This action cannot be undone."
+                    onConfirm={() => {
+                        deleteCard.mutate(currentCard.id, {
+                            onSuccess: () => {
+                                setShowDeleteConfirm(false);
+                                setCurrentIndex((prev) => Math.max(0, prev - 1));
+                            },
+                        });
+                    }}
+                    onCancel={() => setShowDeleteConfirm(false)}
+                    isLoading={deleteCard.isPending}
                 />
             )}
         </div>
