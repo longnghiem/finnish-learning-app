@@ -158,17 +158,33 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
 
           <div>
             <label style={lbl}>Image{mode === 'edit' ? <span style={{ fontWeight: 400, opacity: 0.6, textTransform: 'none', letterSpacing: 0 }}> (optional)</span> : ''}</label>
+            {/* Hidden native file input */}
             <input
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/gif,image/webp"
               onChange={e => setImageFile(e.target.files?.[0] ?? null)}
-              style={{ display: 'block', width: '100%', fontSize: '0.875rem', color: th.textSub }}
+              style={{ display: 'none' }}
             />
+            {/* Styled trigger button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                borderRadius: '8px', border: `1px dashed ${th.borderInput}`,
+                background: th.surfaceAlt, color: th.textSub,
+                padding: '9px 14px', fontSize: '0.875rem', fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit', width: '100%',
+              }}
+            >
+              <span style={{ fontSize: '1rem' }}>📎</span>
+              {imageFile ? imageFile.name : 'Choose image…'}
+            </button>
             {fieldErrors.image && <p style={{ marginTop: '4px', fontSize: '0.75rem', color: th.red }}>{fieldErrors.image}</p>}
             {previewUrl && (
-              <div style={{ marginTop: '8px', borderRadius: '10px', overflow: 'hidden', height: '90px', border: `1px solid ${th.border}` }}>
-                <img src={previewUrl} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }} />
+              <div style={{ marginTop: '10px', borderRadius: '10px', overflow: 'hidden', border: `1px solid ${th.border}`, background: th.surface, display: 'flex', justifyContent: 'center' }}>
+                <img src={previewUrl} alt="preview" style={{ display: 'block', width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '360px' }} />
               </div>
             )}
           </div>
