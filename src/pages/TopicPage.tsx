@@ -69,24 +69,15 @@ export function TopicPage() {
     // --- Modal state ---
     const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
 
-    // --- Loading / Error states ---
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center py-20">
-                <p className="text-lg text-gray-500">Loading cards...</p>
-            </div>
-        );
-    }
-
-    if (isError) {
-        return (
-            <div className="flex items-center justify-center py-20">
-                <p className="text-lg text-red-500">Failed to load cards.</p>
-            </div>
-        );
-    }
-
-    const flashcardArea = total === 0 ? (
+    const flashcardArea = isLoading ? (
+        <div className="flex items-center justify-center py-20">
+            <p className="text-lg text-gray-500">Loading cards...</p>
+        </div>
+    ) : isError ? (
+        <div className="flex items-center justify-center py-20">
+            <p className="text-lg text-red-500">Failed to load cards.</p>
+        </div>
+    ) : total === 0 ? (
         <div className="py-16 text-center">
             <p className="text-lg text-gray-500">
                 No cards found!
