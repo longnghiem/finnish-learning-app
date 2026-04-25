@@ -6,7 +6,21 @@ import type {SearchType} from "../types";
 import {ProgressDots} from "../components/ProgressDots.tsx";
 import {SearchBar} from "../components/SearchBar.tsx";
 import {Flashcard} from "../components/Flashcard.tsx";
+import {CardModal} from "../components/CardModal.tsx";
 
+/**
+ * Topic Page — the core flashcard viewing experience.
+ *
+ * Displays flashcards for a single topic with:
+ * - Flip animation (click to reveal Finnish word + example sentence)
+ * - Prev / Next navigation
+ * - Progress dots
+ * - Debounced search bar (Word or Sentence mode)
+ * - Auth-gated Create / Edit / Delete buttons
+ *
+ * Reads `topicId` from the URL via `useParams`. Resets to the first card
+ * whenever the card list changes (e.g. after a search).
+ */
 export function TopicPage() {
     const {topicId} = useParams<{topicId: string}>()
     const numericTopicId = Number(topicId);
@@ -52,6 +66,9 @@ export function TopicPage() {
     const canGoPrev = currentIndex > 0;
     const canGoNext = currentIndex < total - 1;
 
+    // --- Modal state ---
+    const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
+
     // --- Loading / Error states ---
     if (isLoading) {
         return (
@@ -72,7 +89,7 @@ export function TopicPage() {
     const flashcardArea = total === 0 ? (
         <div className="py-16 text-center">
             <p className="text-lg text-gray-500">
-                No cards yet — create the first one!
+                No cards found!
             </p>
         </div>
     ) : (
@@ -135,7 +152,7 @@ export function TopicPage() {
                 <div className="mt-8 flex items-center justify-center gap-3">
                     <button
                         type="button"
-                        onClick={() => console.log("open create modal")}
+                        onClick={() => setModalMode("create")}
                         className="rounded-md bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-600"
                     >
                         Create Card
@@ -144,7 +161,7 @@ export function TopicPage() {
                         <>
                             <button
                                 type="button"
-                                onClick={() => console.log("open edit modal")}
+                                onClick={() => setModalMode("edit")}
                                 className="rounded-md bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600"
                             >
                                 Edit
@@ -159,6 +176,16 @@ export function TopicPage() {
                         </>
                     )}
                 </div>
+            )}
+
+            {/* Card create/edit modal */}
+            {modalMode && (
+                <CardModal
+                    mode={modalMode}
+                    topicId={numericTopicId}
+                    card={modalMode === "edit" ? currentCard : undefined}
+                    onClose={() => setModalMode(null)}
+                />
             )}
         </div>
     );

@@ -1,3 +1,4 @@
+import "react-quizlet-flashcard/dist/index.css";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {AuthProvider} from "./auth/AuthProvider.tsx";
