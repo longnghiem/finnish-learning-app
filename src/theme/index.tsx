@@ -46,15 +46,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const th = dark ? T.dark : T.light
 
   useEffect(() => {
-    document.body.style.background = th.bg
-    document.body.style.color = th.text
+    const root = document.documentElement
+    if (dark) {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
     localStorage.setItem('theme', dark ? 'dark' : 'light')
-  }, [dark, th])
+  }, [dark])
 
   return (
-    <ThemeContext.Provider value={{ th, dark, toggleDark: () => setDark(d => !d) }}>
-      {children}
-    </ThemeContext.Provider>
+      <ThemeContext.Provider value={{ th, dark, toggleDark: () => setDark(d => !d) }}>
+        {children}
+      </ThemeContext.Provider>
   )
 }
 
