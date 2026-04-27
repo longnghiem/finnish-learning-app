@@ -1,6 +1,5 @@
-import type { SearchType } from '../types'
-import { useTheme } from '../theme/index.tsx'
-import { useLang } from '../lang/index.tsx'
+import type {SearchType} from '../types'
+import {useLang} from '../lang'
 
 interface SearchBarProps {
   searchType: SearchType
@@ -9,32 +8,27 @@ interface SearchBarProps {
   onSearchTermChange: (term: string) => void
 }
 
+const toggleClassNames = (active: boolean) =>
+  `rounded-lg px-4 py-[7px] text-[0.8rem] font-bold border-none cursor-pointer font-[inherit] transition-colors duration-150 ${
+    active ? 'bg-amber text-nav-btn-text' : 'bg-surface-alt text-text-sub'
+  }`
+
 export function SearchBar({ searchType, searchTerm, onSearchTypeChange, onSearchTermChange }: SearchBarProps) {
-  const { th } = useTheme()
   const { L } = useLang()
 
-  const activeBtn: React.CSSProperties = {
-    borderRadius: '8px', background: th.amber, color: '#2f3d56',
-    padding: '7px 16px', fontSize: '0.8rem', fontWeight: 700,
-    border: 'none', cursor: 'pointer', fontFamily: 'inherit', transition: 'background 150ms',
-  }
-  const inactiveBtn: React.CSSProperties = {
-    ...activeBtn, background: th.surfaceAlt, color: th.textSub,
-  }
-
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+    <div className="flex items-center gap-2.5">
+      <div className="flex gap-1 shrink-0">
         <button
           type="button"
-          style={searchType === 'VERB' ? activeBtn : inactiveBtn}
+          className={toggleClassNames(searchType === 'VERB')}
           onClick={() => onSearchTypeChange('VERB')}
         >
           {L.word}
         </button>
         <button
           type="button"
-          style={searchType === 'SENTENCE' ? activeBtn : inactiveBtn}
+          className={toggleClassNames(searchType === 'SENTENCE')}
           onClick={() => onSearchTypeChange('SENTENCE')}
         >
           {L.sentence}
@@ -45,14 +39,8 @@ export function SearchBar({ searchType, searchTerm, onSearchTypeChange, onSearch
         value={searchTerm}
         onChange={e => onSearchTermChange(e.target.value)}
         placeholder={searchType === 'VERB' ? L.searchByWord : L.searchBySentence}
-        style={{
-          flex: 1, borderRadius: '8px', border: `1px solid ${th.borderInput}`,
-          background: th.surface, color: th.text,
-          padding: '8px 14px', fontSize: '0.875rem', fontFamily: 'inherit', outline: 'none',
-          transition: 'border-color 150ms, box-shadow 150ms',
-        }}
-        onFocus={e => { e.target.style.borderColor = th.accent; e.target.style.boxShadow = `0 0 0 2px ${th.accent}33` }}
-        onBlur={e => { e.target.style.borderColor = th.borderInput; e.target.style.boxShadow = 'none' }}
+        className="flex-1 rounded-lg border border-border-input bg-surface text-text-primary px-3.5 py-2 text-sm font-[inherit]
+         outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20"
       />
     </div>
   )
