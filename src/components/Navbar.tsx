@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.ts'
-import { useTheme } from '../theme/index.tsx'
-import { useLang } from '../lang/index.tsx'
+import { useTheme } from '../theme/useTheme'
+import { useLang } from '../lang'
 
 const pillClassName = (active: boolean) =>
   `rounded-lg px-4 py-[7px] text-[0.8rem] font-bold text-nav-text border cursor-pointer font-[inherit] transition-[background,border-color] duration-150 ${
