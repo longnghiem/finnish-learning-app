@@ -2,18 +2,14 @@ package me.longng.finnish_learning_backend.persistence
 
 import me.longng.finnish_learning_backend.TestcontainersConfiguration
 import me.longng.finnish_learning_backend.controller.dto.CardQueryParams
+import me.longng.finnish_learning_backend.controller.dto.SearchType
 import me.longng.finnish_learning_backend.domain.Card
-import me.longng.finnish_learning_backend.domain.SearchType
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @SpringBootTest
 @Import(TestcontainersConfiguration::class)

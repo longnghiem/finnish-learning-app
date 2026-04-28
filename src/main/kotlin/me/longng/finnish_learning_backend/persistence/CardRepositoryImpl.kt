@@ -1,8 +1,8 @@
 package me.longng.finnish_learning_backend.persistence
 
 import me.longng.finnish_learning_backend.controller.dto.CardQueryParams
+import me.longng.finnish_learning_backend.controller.dto.SearchType
 import me.longng.finnish_learning_backend.domain.Card
-import me.longng.finnish_learning_backend.domain.SearchType
 import me.longng.finnish_learning_backend.persistence.generated.tables.records.CardsRecord
 import me.longng.finnish_learning_backend.persistence.generated.tables.references.CARDS
 import org.jooq.DSLContext

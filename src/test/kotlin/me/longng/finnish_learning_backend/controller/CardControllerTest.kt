@@ -2,13 +2,15 @@ package me.longng.finnish_learning_backend.controller
 
 import me.longng.finnish_learning_backend.TestcontainersConfiguration
 import me.longng.finnish_learning_backend.controller.dto.CardQueryParams
-import me.longng.finnish_learning_backend.domain.SearchType
+import me.longng.finnish_learning_backend.controller.dto.SearchType
 import me.longng.finnish_learning_backend.persistence.CardRepository
 import me.longng.finnish_learning_backend.persistence.TopicRepository
 import me.longng.finnish_learning_backend.storage.ImageStorageService
 import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -20,8 +22,6 @@ import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.multipart
 import org.springframework.transaction.annotation.Transactional
-import org.mockito.kotlin.any
-import org.mockito.kotlin.whenever
 
 
 @SpringBootTest
