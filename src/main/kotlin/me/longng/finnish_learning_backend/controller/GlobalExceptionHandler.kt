@@ -1,7 +1,9 @@
 package me.longng.finnish_learning_backend.controller
 
 import me.longng.finnish_learning_backend.service.CardNotFoundException
+import me.longng.finnish_learning_backend.service.InvalidCredentialsException
 import me.longng.finnish_learning_backend.service.TopicNotFoundException
+import me.longng.finnish_learning_backend.service.UsernameAlreadyExistsException
 import me.longng.finnish_learning_backend.storage.ImageStorageException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -67,6 +69,24 @@ class GlobalExceptionHandler {
     fun handleIllegalArgument(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
         logger.warn("Illegal argument: {}", ex.message)
         return buildResponse(HttpStatus.BAD_REQUEST, ex.message)
+    }
+
+    @ExceptionHandler(UsernameAlreadyExistsException::class)
+    fun handleUsernameExists(ex: UsernameAlreadyExistsException): ResponseEntity<ErrorResponse> {
+        logger.warn("Registration failed: {}", ex.message)
+        return buildResponse(HttpStatus.CONFLICT, ex.message)
+    }
+
+    @ExceptionHandler(InvalidCredentialsException::class)
+    fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> {
+        logger.warn("Login failed: {}", ex.message)
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.message)
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<ErrorResponse> {
+        logger.warn("Access denied: {}", ex.message)
+        return buildResponse(HttpStatus.FORBIDDEN, "You do not have permission to perform this action")
     }
 
     @ExceptionHandler(Exception::class)

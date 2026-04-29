@@ -3,8 +3,11 @@ package me.longng.finnish_learning_backend.controller
 import me.longng.finnish_learning_backend.TestcontainersConfiguration
 import me.longng.finnish_learning_backend.controller.dto.CardQueryParams
 import me.longng.finnish_learning_backend.controller.dto.SearchType
+import me.longng.finnish_learning_backend.domain.Role
 import me.longng.finnish_learning_backend.persistence.CardRepository
 import me.longng.finnish_learning_backend.persistence.TopicRepository
+import me.longng.finnish_learning_backend.persistence.UserRepository
+import me.longng.finnish_learning_backend.service.JwtService
 import me.longng.finnish_learning_backend.storage.ImageStorageService
 import org.hamcrest.Matchers.startsWith
 import org.junit.jupiter.api.BeforeEach
@@ -16,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.context.annotation.Import
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
@@ -36,10 +40,19 @@ class CardControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @Autowired
+    private lateinit var userRepository: UserRepository
+
+    @Autowired
     private lateinit var topicRepository: TopicRepository
 
     @Autowired
     private lateinit var cardRepository: CardRepository
+
+    @Autowired
+    private lateinit var jwtService: JwtService
+
+    @Autowired
+    private lateinit var passwordEncoder: PasswordEncoder
 
     private fun firstTopicId(): Int = topicRepository.findAll().first().id
 
@@ -55,6 +68,7 @@ class CardControllerTest {
         exampleSentence: String = "Minä syön jäätelöä",
         translation: String = "to eat",
         topicId: Int = firstTopicId(),
+        token: String,
     ): Int {
         mockMvc.multipart("/api/cards") {
             file(testImage())
@@ -62,6 +76,7 @@ class CardControllerTest {
             param("exampleSentence", exampleSentence)
             param("translation", translation)
             param("topicId", topicId.toString())
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isCreated() }
         }
@@ -75,6 +90,19 @@ class CardControllerTest {
         return cardId
     }
 
+    /**
+     * Creates a test admin user and returns a valid JWT token for that user.
+     * Card mutation endpoints (POST/PUT/DELETE) require ADMIN role.
+     */
+    private fun adminToken(): String {
+        val user = userRepository.insert(
+            username = "testadmin",
+            passwordHash = passwordEncoder.encode("password")!!,
+            role = Role.ADMIN,
+        )
+        return jwtService.generateToken(user.id, user.username, user.role)
+    }
+
     @BeforeEach
     fun setUp() {
         whenever(imageStorageService.store(any())).thenReturn("test-image.jpg")
@@ -82,12 +110,15 @@ class CardControllerTest {
 
     @Test
     fun testCreateCard() {
+        val token = adminToken()
+
         mockMvc.multipart("/api/cards") {
             file(testImage())
             param("name", "syödä")
             param("exampleSentence", "Minä syön jäätelöä")
             param("translation", "to eat")
             param("topicId", firstTopicId().toString())
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isCreated() }
             jsonPath("$.id") { exists() }
@@ -103,11 +134,14 @@ class CardControllerTest {
 
     @Test
     fun testCreateCard_MissingRequiredFields() {
+        val token = adminToken()
+
         mockMvc.multipart("/api/cards") {
             file(testImage())
             param("exampleSentence", "Minä syön jäätelöä")
             param("translation", "to eat")
             param("topicId", firstTopicId().toString())
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isBadRequest() }
         }
@@ -117,6 +151,7 @@ class CardControllerTest {
             param("exampleSentence", "Minä syön jäätelöä")
             param("translation", "to eat")
             param("topicId", firstTopicId().toString())
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isBadRequest() }
         }
@@ -124,12 +159,15 @@ class CardControllerTest {
 
     @Test
     fun testCreateCard_NonExistingTopic() {
+        val token = adminToken()
+
         mockMvc.multipart("/api/cards") {
             file(testImage())
             param("name", "syödä")
             param("exampleSentence", "Minä syön jäätelöä")
             param("translation", "to eat")
             param("topicId", "99999")
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isNotFound() }
         }
@@ -137,7 +175,8 @@ class CardControllerTest {
 
     @Test
     fun testGetCardById() {
-        val cardId = createTestCard()
+        val token = adminToken()
+        val cardId = createTestCard(token = token)
 
         mockMvc.get("/api/cards/$cardId")
             .andExpect {
@@ -157,11 +196,13 @@ class CardControllerTest {
 
     @Test
     fun testUpdateCard() {
-        val cardId = createTestCard()
+        val token = adminToken()
+        val cardId = createTestCard(token = token)
 
         mockMvc.multipart("/api/cards/$cardId") {
             with { request -> request.method = "PUT"; request }
             param("name", "juoda")
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isOk() }
             jsonPath("$.id") { value(cardId) }
@@ -172,12 +213,14 @@ class CardControllerTest {
 
     @Test
     fun testDeleteCard() {
-        val cardId = createTestCard()
+        val token = adminToken()
+        val cardId = createTestCard(token = token)
 
-        mockMvc.delete("/api/cards/$cardId")
-            .andExpect {
-                status { isNoContent() }
-            }
+        mockMvc.delete("/api/cards/$cardId") {
+            header("Authorization", "Bearer $token")
+        }.andExpect {
+            status { isNoContent() }
+        }
 
         mockMvc.get("/api/cards/$cardId")
             .andExpect {
@@ -187,14 +230,16 @@ class CardControllerTest {
 
     @Test
     fun testQueryCards_ByTopic() {
-        val topicId = firstTopicId()
+        val token = adminToken()
+        val topicId = topicRepository.findAll()[2].id
         val anotherTopicId = topicRepository.findAll()[3].id
-        createTestCard(name = "syödä", topicId = topicId)
-        createTestCard(name = "juoda", topicId = topicId)
-        createTestCard(name = "tavata", topicId = anotherTopicId)
+        createTestCard(name = "syödä", topicId = topicId, token = token)
+        createTestCard(name = "juoda", topicId = topicId, token = token)
+        createTestCard(name = "tavata", topicId = anotherTopicId, token = token)
 
         mockMvc.get("/api/cards") {
             param("topicId", topicId.toString())
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isOk() }
             jsonPath("$.length()") { value(2) }
@@ -203,17 +248,52 @@ class CardControllerTest {
 
     @Test
     fun testQueryCards_BySearchTerm() {
-        createTestCard(name = "syödä", exampleSentence = "Minä syön jäätelöä")
-        createTestCard(name = "juoda", exampleSentence = "Hän juo maitoa")
+        val token = adminToken()
+        createTestCard(name = "harrastaa", exampleSentence = "Minä harrastan sulkapalloa", token = token)
+        createTestCard(name = "juoda", exampleSentence = "Hän juo maitoa", token = token)
 
         mockMvc.get("/api/cards") {
             param("searchType", "VERB")
-            param("searchTerm", "syö")
+            param("searchTerm", "harrastaa")
+            header("Authorization", "Bearer $token")
         }.andExpect {
             status { isOk() }
             jsonPath("$.length()") { value(1) }
-            jsonPath("$[0].name") { value("syödä") }
+            jsonPath("$[0].name") { value("harrastaa") }
         }
     }
 
+    @Test
+    fun testCreateCard_WithoutToken_Returns401() {
+        mockMvc.multipart("/api/cards") {
+            file(testImage())
+            param("name", "syödä")
+            param("exampleSentence", "Minä syön jäätelöä")
+            param("translation", "to eat")
+            param("topicId", firstTopicId().toString())
+        }.andExpect {
+            status { isForbidden() }
+        }
+    }
+
+    @Test
+    fun testCreateCard_WithUserRole_Returns403() {
+        val user = userRepository.insert(
+            username = "regularuser",
+            passwordHash = passwordEncoder.encode("password")!!,
+            role = Role.USER,
+        )
+        val userToken = jwtService.generateToken(user.id, user.username, user.role)
+
+        mockMvc.multipart("/api/cards") {
+            file(testImage())
+            param("name", "syödä")
+            param("exampleSentence", "Minä syön jäätelöä")
+            param("translation", "to eat")
+            param("topicId", firstTopicId().toString())
+            header("Authorization", "Bearer $userToken")
+        }.andExpect {
+            status { isForbidden() }
+        }
+    }
 }

@@ -103,7 +103,7 @@ class CardRepositoryTest {
 
     @Test
     fun testQueryCardsByTopic() {
-        val topicA = firstTopicId()
+        val topicA = topicRepository.findAll()[3].id
         val topicB = topicRepository.findAll()[1].id
         insertTestCard(topicId = topicA, name = "syödä")
         insertTestCard(topicId = topicA, name = "juoda")
@@ -121,16 +121,16 @@ class CardRepositoryTest {
 
     @Test
     fun testQueryCardsByVerbName() {
-        insertTestCard(name = "Syödä")
+        insertTestCard(name = "ajatella")
         insertTestCard(name = "juoda")
         insertTestCard(name = "tavata")
 
         val results = cardRepository.findAll(
-            CardQueryParams(topicId = null, searchType = SearchType.VERB, searchTerm = "syö"),
+            CardQueryParams(topicId = null, searchType = SearchType.VERB, searchTerm = "ajate"),
         )
 
         assertEquals(1, results.size)
-        assertEquals("Syödä", results.single().name)
+        assertEquals("ajatella", results.single().name)
     }
 
     @Test
