@@ -13,7 +13,7 @@ A Spring Boot backend for managing Finnish vocabulary flashcards.
 - **Security**: Spring Security (currently configured to permit all)
 - **API Documentation**: SpringDoc OpenAPI / Swagger
 - **Build Tool**: Gradle 8.x
-- **Messaging**: Apache Kafka (KRaft mode)
+- **Messaging**: Apache Kafka 7.9.0 (KRaft mode, no ZooKeeper)
 - **Authentication**: JWT (JJWT 0.12.x)
 - **Testing**: JUnit 5, Testcontainers (PostgreSQL, Kafka), Mockito
 
@@ -38,7 +38,20 @@ Raw OpenAPI JSON spec: http://localhost:8080/api-docs
 
 Raw OpenAPI YAML spec: http://localhost:8080/api-docs.yaml
 
+## Kafka
+
+### Architecture
+
+When a user submits a quiz answer, a `QuizAnswerEvent` is published to the `quiz-answers` Kafka topic by `QuizEventProducer`. 
+`QuizStatsConsumer` reads from this topic and updates the pre-aggregated `user_topic_stats` table (used by progress/dashboard endpoints).
+
+```
+Quiz answer → DB (source of truth) → QuizEventProducer → quiz-answers topic → QuizStatsConsumer → user_topic_stats
+```
+
 ## Docker
+
+Kafka runs in **KRaft mode** (`KAFKA_PROCESS_ROLES: broker,controller`), so no separate Zookeeper container is needed.
 
 Start PostgreSQL and Kafka locally with Docker Compose:
 
@@ -55,6 +68,14 @@ Stop and wipe all volumes (fresh slate):
 ```
 docker compose down -v
 ```
+
+### Inspect Kafka messages
+
+To verify that `QuizAnswerEvent`s are being published to the `quiz-answers` topic (useful for debugging the producer → consumer pipeline):
+```
+docker exec finnish_learning_kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic quiz-answers --from-beginning
+```
+Prints all previously published events as JSON and keeps listening for new ones. Press `Ctrl+C` to stop.
 
 ## .env file
 
