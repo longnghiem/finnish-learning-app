@@ -272,7 +272,7 @@ class CardControllerTest {
             param("translation", "to eat")
             param("topicId", firstTopicId().toString())
         }.andExpect {
-            status { isForbidden() }
+            status { isUnauthorized() }
         }
     }
 

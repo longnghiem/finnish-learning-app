@@ -53,4 +53,17 @@ interface CardRepository {
      * @return Matching cards ordered by [Card.createdAt] descending.
      */
     fun findAll(query: CardQueryParams): List<Card>
+
+    /**
+     * Finds cards in a topic that the user has never reviewed.
+     *
+     * A card is "new" if no row exists in `review_schedules` for the given
+     * user–card pair.
+     *
+     * @param userId The user to check review history for.
+     * @param topicId The topic to draw cards from.
+     * @param limit Maximum number of new cards to return.
+     * @return Cards ordered by [Card.createdAt] ASC (oldest first).
+     */
+    fun findNewCardsForUser(userId: Int, topicId: Int, limit: Int): List<Card>
 }
