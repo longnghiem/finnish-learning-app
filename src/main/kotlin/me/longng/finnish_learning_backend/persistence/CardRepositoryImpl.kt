@@ -134,6 +134,13 @@ class CardRepositoryImpl(
             .map { it.toDomain() }
     }
 
+    override fun countByTopicId(topicId: Int): Int {
+        return dsl.selectCount()
+            .from(CARDS)
+            .where(CARDS.TOPIC_ID.eq(topicId))
+            .fetchOne(0, Int::class.java) ?: 0
+    }
+
     private fun CardsRecord.toDomain() = Card(
         id = id!!,
         topicId = topicId!!,

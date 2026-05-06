@@ -66,4 +66,10 @@ interface CardRepository {
      * @return Cards ordered by [Card.createdAt] ASC (oldest first).
      */
     fun findNewCardsForUser(userId: Int, topicId: Int, limit: Int): List<Card>
+
+    /**
+     * Counts how many cards belong to a topic.
+     * @return The number of cards in the topic. Returns 0 if the topic has no cards (or does not exist).
+     */
+    fun countByTopicId(topicId: Int): Int
 }
