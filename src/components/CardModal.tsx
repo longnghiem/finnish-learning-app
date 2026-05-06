@@ -1,9 +1,10 @@
 import type {CardResponse} from '../types'
 import {useCreateCard, useUpdateCard} from '../hooks'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import {useEffect, useMemo, useRef, useState, type SubmitEvent} from 'react'
 import {getImageUrl} from '../api'
 import {createCardSchema, editCardSchema} from '../schemas'
 import {useLang} from '../lang'
+import {inputClasses, labelClasses} from '../styles'
 
 interface CardModalProps {
   mode: 'create' | 'edit'
@@ -11,11 +12,6 @@ interface CardModalProps {
   card?: CardResponse
   onClose: () => void
 }
-
-const inputClasses = 'w-full rounded-lg border border-border-input bg-surface text-text-primary px-3 py-[9px] text-sm font-[inherit]' +
-  ' outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20'
-
-const labelClasses = 'block text-[0.78rem] font-bold text-text-sub mb-[5px] tracking-[0.3px] uppercase'
 
 export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
   const { L } = useLang()
@@ -54,7 +50,7 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
 
   const isPending = createCard.isPending || updateCard.isPending
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     setFieldErrors({})
     setSubmitError(null)

@@ -11,13 +11,14 @@ const pillClassName = (active: boolean) =>
   }`
 
 export function Navbar() {
-  const { isLoggedIn, logout } = useAuth()
+  const { isLoggedIn, isAdmin, logout } = useAuth()
   const { dark, toggleDark } = useTheme()
   const { lang, L, toggleLang } = useLang()
   const navigate = useNavigate()
   const location = useLocation()
 
-  const isAdmin = location.pathname === '/admin'
+  const isAdminRoute = location.pathname === '/admin'
+  const isDashboardRoute = location.pathname === '/dashboard'
 
   const handleLogout = () => {
     logout()
@@ -41,9 +42,16 @@ export function Navbar() {
           {dark ? '☀️' : '🌙'}
         </button>
 
-        {/* Admin link - manage cards */}
+        {/* Dashboard - any authenticated user */}
         {isLoggedIn && (
-          <Link to="/admin" className={`${pillClassName(isAdmin)} no-underline inline-block`}>
+          <Link to="/dashboard" className={`${pillClassName(isDashboardRoute)} no-underline inline-block`}>
+            {L.dashboard}
+          </Link>
+        )}
+
+        {/* Admin link - manage cards */}
+        {isAdmin && (
+          <Link to="/admin" className={`${pillClassName(isAdminRoute)} no-underline inline-block`}>
             {L.admin}
           </Link>
         )}

@@ -1,4 +1,4 @@
-export { API_BASE_URL, getImageUrl } from './config'
+export { API_BASE_URL, getImageUrl, getAuthHeaders } from './config'
 export { fetchTopics } from './topic'
 export {
     fetchCards,
@@ -8,3 +8,5 @@ export {
     deleteCard,
 } from './cards'
 export type { FetchCardsParams, CreateCardData, UpdateCardData } from './cards'
+export { registerUser, loginUser } from './auth'
+export type { AuthResponse } from './auth'
