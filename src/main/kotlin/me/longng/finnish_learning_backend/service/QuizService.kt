@@ -126,7 +126,7 @@ class QuizService (
         name = name,
         exampleSentence = exampleSentence,
         translation = translation,
-        imageUrl = "/api/image/$imageFilename",
+        imageUrl = "/api/images/$imageFilename",
         isNew = isNew,
         repetition = schedule?.repetition,
         nextReviewDate = schedule?.nextReviewDate,
