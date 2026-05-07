@@ -34,10 +34,12 @@ class WebSecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .cors { }
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     // Public endpoints — browsing and authentication
                     .requestMatchers(HttpMethod.GET, "/api/topics/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/cards/**").permitAll()
