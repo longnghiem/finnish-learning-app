@@ -132,13 +132,7 @@ export function QuizPage() {
             onFlip={() => setFlipped(f => !f)}
           />
 
-          {flipped ? (
-            <GradeButtons onGrade={handleGrade} isLoading={submitAnswer.isPending} />
-          ) : (
-            <p className="text-[0.85rem] text-text-muted font-semibold">
-              {L.tapToFlip}
-            </p>
-          )}
+          {flipped ? <GradeButtons onGrade={handleGrade} isLoading={submitAnswer.isPending} /> : <></>}
 
           <span className="text-[0.8rem] text-text-muted font-semibold">
             {L.cardOf(cardIndex + 1, total)}
