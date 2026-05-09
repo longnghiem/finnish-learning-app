@@ -1,8 +1,35 @@
 import {type ReactNode, useCallback, useState} from "react";
-import {VALID_PASSWORD, VALID_USERNAME} from "./credentials.ts";
 import { AuthContext } from "./AuthContext.tsx";
 
-const LOCAL_STORAGE_KEY = 'isLoggedIn'
+export const TOKEN_KEY = 'auth_token'
+const USER_ID_KEY = 'auth_userId'
+const USERNAME_KEY = 'auth_username'
+const ROLE_KEY = 'auth_role'
+
+/**
+ * Reads the persisted auth state from localStorage
+ */
+function readPersistedAuth(): {
+    token: string | null
+    userId: number | null
+    username: string | null
+    role: string | null
+} {
+    const token = localStorage.getItem(TOKEN_KEY)
+    const userIdRaw = localStorage.getItem(USER_ID_KEY)
+    const username = localStorage.getItem(USERNAME_KEY)
+    const role = localStorage.getItem(ROLE_KEY)
+
+    if (!token) {
+        return { token: null, userId: null, username: null, role: null }
+    }
+
+    const userId = userIdRaw !== null ? Number(userIdRaw) : null
+    const validUserId = userId !== null && Number.isFinite(userId) ? userId : null
+
+    return {token, userId: validUserId, username, role}
+}
+
 
 interface AuthProviderProps {
     children: ReactNode
@@ -11,9 +38,9 @@ interface AuthProviderProps {
 /**
  * Provides authentication state to the component tree.
  *
- * On mount, reads `localStorage` to restore a previous session.
- * Wrap the entire application with this provider (e.g. in `App.tsx`
- * or `main.tsx`).
+ * On mount, reads persisted auth from `localStorage` so the session
+ * survives a page refresh. Wrap the entire application with this
+ * provider (e.g. in `App.tsx`).
  *
  * @example
  * ```tsx
@@ -22,27 +49,41 @@ interface AuthProviderProps {
  * </AuthProvider>
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
-        () => localStorage.getItem(LOCAL_STORAGE_KEY) === 'true',
+    const [authState, setAuthState] = useState(() => readPersistedAuth())
+
+    const loginWithToken = useCallback(
+      (token: string, userId: number, username: string, role: string): void => {
+          localStorage.setItem(TOKEN_KEY, token)
+          localStorage.setItem(USER_ID_KEY, String(userId))
+          localStorage.setItem(USERNAME_KEY, username)
+          localStorage.setItem(ROLE_KEY, role)
+          setAuthState({ token, userId, username, role })
+      },
+      [],
     )
 
-    const login = useCallback((username: string, password: string): boolean => {
-        if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, 'true')
-            setIsLoggedIn(true)
-            return true
-        }
-        return false
+    const logout = useCallback((): void => {
+        localStorage.removeItem(TOKEN_KEY)
+        localStorage.removeItem(USER_ID_KEY)
+        localStorage.removeItem(USERNAME_KEY)
+        localStorage.removeItem(ROLE_KEY)
+        setAuthState({ token: null, userId: null, username: null, role: null })
     }, [])
 
-    const logout = useCallback((): void => {
-        localStorage.removeItem(LOCAL_STORAGE_KEY)
-        setIsLoggedIn(false)
-    }, [])
+    const value = {
+        isLoggedIn: authState.token !== null,
+        token: authState.token,
+        userId: authState.userId,
+        username: authState.username,
+        role: authState.role,
+        isAdmin: authState.role === 'ADMIN',
+        loginWithToken,
+        logout,
+    }
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
-            {children}
-        </AuthContext.Provider>
+      <AuthContext.Provider value={value}>
+          {children}
+      </AuthContext.Provider>
     )
 }

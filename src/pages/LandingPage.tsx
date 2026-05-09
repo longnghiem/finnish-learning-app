@@ -1,9 +1,13 @@
-import {useTopics} from '../hooks'
+import {useTopicProgress, useTopics} from '../hooks'
 import {TopicCard} from '../components/TopicCard.tsx'
 import {useLang} from '../lang'
+import {useAuth} from "../auth/useAuth.ts";
 
 export function LandingPage() {
   const { data: topics, isLoading, isError } = useTopics()
+  const { isLoggedIn } = useAuth()
+  // Only fire the progress query when authenticated
+  const { data: topicProgress } = useTopicProgress(isLoggedIn)
   const { L } = useLang()
 
   if (isLoading) {
@@ -33,9 +37,10 @@ export function LandingPage() {
         </p>
       )}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-5">
-        {topics?.map(topic => (
-          <TopicCard key={topic.id} topic={topic} />
-        ))}
+        {topics?.map(topic => {
+          const due = topicProgress?.find(p => p.topicId === topic.id)?.dueCards
+          return <TopicCard key={topic.id} topic={topic} dueCards={due} />
+        })}
       </div>
     </div>
   )

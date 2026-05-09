@@ -3,12 +3,13 @@ import {useAuth} from '../auth/useAuth.ts'
 import {useCards, useDeleteCard, useTopics} from '../hooks'
 import {useEffect, useState} from 'react'
 import type {SearchType} from '../types'
-import {ProgressDots} from '../components/ProgressDots.tsx'
+import {ProgressBar} from '../components/ProgressBar.tsx'
 import {SearchBar} from '../components/SearchBar.tsx'
 import {Flashcard} from '../components/Flashcard.tsx'
 import {CardModal} from '../components/CardModal.tsx'
 import {ConfirmModal} from '../components/ConfirmModal.tsx'
 import {useLang} from '../lang'
+import {pageContainerCls, pageTitleCls} from "../styles.ts";
 
 const navBtnClasses = (disabled: boolean) =>
   `rounded-lg px-[18px] py-2 text-sm font-semibold font-[inherit] transition-colors duration-150 ${
@@ -22,7 +23,7 @@ export function TopicPage() {
   const numericTopicId = Number(topicId)
   const navigate = useNavigate()
 
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, isAdmin } = useAuth()
   const { L } = useLang()
   const { data: topics } = useTopics()
   const topicName = topics?.find(t => t.id === numericTopicId)?.name ?? `Topic ${topicId}`
@@ -86,12 +87,12 @@ export function TopicPage() {
           {L.next}
         </button>
       </div>
-      <ProgressDots total={total} current={currentIndex} />
+      <ProgressBar total={total} current={currentIndex} />
     </div>
   )
 
   return (
-    <div className="page-enter max-w-[680px] mx-auto px-6 pt-10 pb-16">
+    <div className={pageContainerCls}>
       <button
         onClick={() => navigate('/')}
         className="bg-transparent border-none cursor-pointer text-text-muted text-sm font-[inherit] mb-4 flex items-center gap-1 p-0 font-semibold"
@@ -99,7 +100,7 @@ export function TopicPage() {
         {L.allTopics}
       </button>
 
-      <h1 className="text-center text-2xl font-extrabold text-text-primary mb-7">
+      <h1 className={pageTitleCls}>
         {topicName}
       </h1>
 
@@ -114,12 +115,25 @@ export function TopicPage() {
 
       {flashcardArea}
 
-      {isLoggedIn && (
+      {isLoggedIn && total > 0 && (
+        <div className="mt-7 flex justify-center">
+          <button
+            type="button"
+            onClick={() => navigate(`/quiz/${numericTopicId}`)}
+            className="rounded-lg bg-accent text-white px-6 py-3 text-[0.95rem] font-extrabold border-none cursor-pointer
+              font-[inherit] transition-colors duration-150 hover:opacity-90"
+          >
+            {L.startQuiz}
+          </button>
+        </div>
+      )}
+
+      {isAdmin && (
         <div className="mt-9 flex items-center justify-center gap-2.5 flex-wrap">
           <button
             type="button"
             onClick={() => setModalMode('create')}
-            className="rounded-lg bg-green text-white px-5 py-[9px] text-[0.85rem] font-bold border-none cursor-pointer
+            className="rounded-lg bg-green text-white px-5 py-2.25 text-[0.85rem] font-bold border-none cursor-pointer
             font-[inherit] transition-colors duration-150 hover:bg-green-hover"
           >
             {L.createCard}
@@ -129,7 +143,7 @@ export function TopicPage() {
               <button
                 type="button"
                 onClick={() => setModalMode('edit')}
-                className="rounded-lg bg-yellow text-white px-5 py-[9px] text-[0.85rem] font-bold border-none cursor-pointer
+                className="rounded-lg bg-yellow text-white px-5 py-2.25 text-[0.85rem] font-bold border-none cursor-pointer
                 font-[inherit] transition-colors duration-150 hover:bg-yellow-hover"
               >
                 {L.edit}
@@ -137,7 +151,7 @@ export function TopicPage() {
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="rounded-lg bg-red text-white px-5 py-[9px] text-[0.85rem] font-bold border-none cursor-pointer
+                className="rounded-lg bg-red text-white px-5 py-2.25 text-[0.85rem] font-bold border-none cursor-pointer
                 font-[inherit] transition-colors duration-150 hover:bg-red-hover"
               >
                 {L.delete}

@@ -8,6 +8,9 @@ import { LandingPage } from './pages/LandingPage.tsx'
 import { LoginPage } from './pages/LoginPage.tsx'
 import { TopicPage } from './pages/TopicPage.tsx'
 import { AdminPage } from './pages/AdminPage.tsx'
+import {RegisterPage} from "./pages/RegisterPage.tsx";
+import {QuizPage} from "./pages/QuizPage.tsx";
+import {DashboardPage} from "./pages/DashboardPage.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +26,10 @@ function AppInner() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/topics/:topicId" element={<TopicPage />} />
+          <Route path="/quiz/:topicId" element={<QuizPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </main>

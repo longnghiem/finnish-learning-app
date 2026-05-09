@@ -19,7 +19,7 @@ export function useCards(
 ) {
     const hasSearch = !!searchTerm && !!searchType
 
-    return useQuery({
+    return useQuery<CardResponse[], Error>({
         queryKey: [...CARDS_QUERY_KEY, {topicId, searchType, searchTerm}],
         queryFn: () => {
             return fetchCards({
@@ -34,6 +34,11 @@ export function useCards(
 
 /**
  * Mutation hook for creating a new card.
+ *
+ * On success, calls `invalidateQueries` with the `['cards']` key. This marks every
+ * cached query whose key starts with `['cards']` as stale, so any mounted
+ * `useCards(...)` — regardless of its filter args — refetches and reflects the
+ * newly created card.
  */
 export function useCreateCard() {
     const queryClient = useQueryClient()

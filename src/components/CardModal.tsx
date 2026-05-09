@@ -1,9 +1,10 @@
 import type {CardResponse} from '../types'
 import {useCreateCard, useUpdateCard} from '../hooks'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import {useEffect, useMemo, useRef, useState, type SubmitEvent} from 'react'
 import {getImageUrl} from '../api'
 import {createCardSchema, editCardSchema} from '../schemas'
 import {useLang} from '../lang'
+import {inputCls, labelCls} from '../styles'
 
 interface CardModalProps {
   mode: 'create' | 'edit'
@@ -11,11 +12,6 @@ interface CardModalProps {
   card?: CardResponse
   onClose: () => void
 }
-
-const inputClasses = 'w-full rounded-lg border border-border-input bg-surface text-text-primary px-3 py-[9px] text-sm font-[inherit]' +
-  ' outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20'
-
-const labelClasses = 'block text-[0.78rem] font-bold text-text-sub mb-[5px] tracking-[0.3px] uppercase'
 
 export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
   const { L } = useLang()
@@ -54,7 +50,7 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
 
   const isPending = createCard.isPending || updateCard.isPending
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault()
     setFieldErrors({})
     setSubmitError(null)
@@ -71,7 +67,13 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
         return
       }
       try {
-        await createCard.mutateAsync({ name: result.data.name, exampleSentence: result.data.exampleSentence, translation: result.data.translation, topicId, image: result.data.image })
+        await createCard.mutateAsync({
+          name: result.data.name,
+          exampleSentence: result.data.exampleSentence,
+          translation: result.data.translation,
+          topicId,
+          image: result.data.image
+        })
         onClose()
       } catch (err) {
         setSubmitError(err instanceof Error ? err.message : 'Failed to create card.')
@@ -88,7 +90,15 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
         return
       }
       try {
-        await updateCard.mutateAsync({ id: card!.id, data: { name: result.data.name, exampleSentence: result.data.exampleSentence, translation: result.data.translation, image: result.data.image } })
+        await updateCard.mutateAsync({
+          id: card!.id,
+          data: {
+            name: result.data.name,
+            exampleSentence: result.data.exampleSentence,
+            translation: result.data.translation,
+            image: result.data.image
+          }
+        })
         onClose()
       } catch (err) {
         setSubmitError(err instanceof Error ? err.message : 'Failed to update card.')
@@ -118,25 +128,25 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className={labelClasses}>{L.finnishWord}</label>
-            <input className={inputClasses} value={name} onChange={e => setName(e.target.value)} placeholder="syödä" />
+            <label className={labelCls}>{L.finnishWord}</label>
+            <input className={inputCls} value={name} onChange={e => setName(e.target.value)} placeholder="syödä" />
             {fieldErrors.name && <p className="mt-1 text-xs text-red">{fieldErrors.name}</p>}
           </div>
 
           <div>
-            <label className={labelClasses}>{L.exSentence}</label>
-            <textarea className={`${inputClasses} resize-y`} rows={2} value={exampleSentence} onChange={e => setExampleSentence(e.target.value)} placeholder="Minä syön aamiaista" />
+            <label className={labelCls}>{L.exSentence}</label>
+            <textarea className={`${inputCls} resize-y`} rows={2} value={exampleSentence} onChange={e => setExampleSentence(e.target.value)} placeholder="Minä syön aamiaista" />
             {fieldErrors.exampleSentence && <p className="mt-1 text-xs text-red">{fieldErrors.exampleSentence}</p>}
           </div>
 
           <div>
-            <label className={labelClasses}>{L.engTranslation}</label>
-            <input className={inputClasses} value={translation} onChange={e => setTranslation(e.target.value)} placeholder="to eat" />
+            <label className={labelCls}>{L.engTranslation}</label>
+            <input className={inputCls} value={translation} onChange={e => setTranslation(e.target.value)} placeholder="to eat" />
             {fieldErrors.translation && <p className="mt-1 text-xs text-red">{fieldErrors.translation}</p>}
           </div>
 
           <div>
-            <label className={labelClasses}>
+            <label className={labelCls}>
               Image{mode === 'edit' ? <span className="font-normal opacity-60 normal-case tracking-normal"> (optional)</span> : ''}
             </label>
             {/* Hidden native file input */}

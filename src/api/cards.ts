@@ -1,6 +1,6 @@
 import type {SearchType} from "../types";
 import type {CardResponse, ErrorResponse} from "../types";
-import {API_BASE_URL} from "./config.ts";
+import {API_BASE_URL, getAuthHeaders } from "./config.ts";
 
 export interface FetchCardsParams {
     topicId?: number
@@ -60,6 +60,9 @@ export interface CreateCardData {
  * multipart form-data body part named `"image"`, matching the backend
  * `CardController.createCard` signature (`@RequestParam` + `@RequestPart`).
  *
+ * Requires ADMIN role on the backend, so the JWT bearer token is
+ * attached via `getAuthHeaders()`. Content-Type is intentionally NOT
+ * set — the browser fills it in with the correct multipart boundary.
  */
 export async function createCard(data: CreateCardData): Promise<CardResponse> {
     const url = new URL(`${API_BASE_URL}/api/cards`)
@@ -74,6 +77,7 @@ export async function createCard(data: CreateCardData): Promise<CardResponse> {
     // Do NOT set Content-Type manually — the browser sets it with the multipart boundary.
     const response = await fetch(url.toString(), {
         method: 'POST',
+        headers: { ...getAuthHeaders() },
         body: formData,
     })
 
@@ -127,6 +131,7 @@ export async function updateCard(
 
     const response = await fetch(url.toString(), {
         method: 'PUT',
+        headers: { ...getAuthHeaders() },
         body: formData,
     })
 
@@ -144,6 +149,7 @@ export async function updateCard(
 export async function deleteCard(id: number): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/cards/${id}`, {
         method: 'DELETE',
+        headers: { ...getAuthHeaders() },
     })
 
     if (!response.ok) {

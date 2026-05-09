@@ -7,7 +7,8 @@ import {useContext} from "react";
  * Must be used within an {@link AuthProvider}. Throws if called
  * outside the provider tree.
  *
- * @returns The current auth context value with `isLoggedIn`, `login`, and `logout`.
+ * @returns The current auth context value with `isLoggedIn`, `token`, `userId`,
+ * `username`, `role`, `isAdmin`, `loginWithToken`, and `logout`.
  */
 export function useAuth(): AuthContextType {
     const context = useContext(AuthContext);

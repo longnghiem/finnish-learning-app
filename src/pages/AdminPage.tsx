@@ -12,13 +12,13 @@ const thClasses = 'px-4 py-2.5 text-xs font-bold text-text-muted uppercase track
 const tdClasses = 'px-4 py-[13px] text-sm text-text-primary border-b border-border align-middle'
 
 export function AdminPage() {
-  const { isLoggedIn } = useAuth()
+  const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const { L } = useLang()
 
   useEffect(() => {
-    if (!isLoggedIn) navigate('/login', { replace: true })
-  }, [isLoggedIn, navigate])
+    if (!isAdmin) navigate('/login', { replace: true })
+  }, [isAdmin, navigate])
 
   const { data: topics } = useTopics()
   const { data: cards, isLoading, isError } = useCards()
