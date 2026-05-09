@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
  * so a user can only ever see their own progress.
  */
 @RestController
-@RequestMapping("api/progress")
+@RequestMapping("/api/progress")
 @Tag(name = "Progress", description = "Learning progress and statistics for an authenticated user" )
 class ProgressController (
     private val progressService: ProgressService,

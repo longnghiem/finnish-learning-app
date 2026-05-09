@@ -5,6 +5,7 @@ import me.longng.finnish_learning_backend.service.InvalidCredentialsException
 import me.longng.finnish_learning_backend.service.TopicNotFoundException
 import me.longng.finnish_learning_backend.service.UsernameAlreadyExistsException
 import me.longng.finnish_learning_backend.storage.ImageStorageException
+import org.springframework.security.access.AccessDeniedException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

@@ -114,3 +114,15 @@ class CardService(
     fun queryCards(query: CardQueryParams): List<Card> =
         cardRepository.findAll(query)
 }
+
+/**
+ * Thrown when a topic lookup by ID yields no result.
+ */
+class TopicNotFoundException(val id: Int) :
+    RuntimeException("Topic not found with id: $id")
+
+/**
+ * Thrown when a card lookup by ID yields no result.
+ */
+class CardNotFoundException(val id: Int) :
+    RuntimeException("Card not found with id: $id")
