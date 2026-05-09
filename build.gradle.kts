@@ -1,3 +1,14 @@
+// PostgreSQL driver + Flyway PostgreSQL plugin on the build classpath so the
+// migrateDb task can call Flyway programmatically without the Flyway Gradle plugin
+// (which is incompatible with Gradle 9+).
+buildscript {
+	repositories { mavenCentral() }
+	dependencies {
+		classpath("org.flywaydb:flyway-database-postgresql:11.8.2")
+		classpath("org.postgresql:postgresql:42.7.2")
+	}
+}
+
 plugins {
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.kotlin.spring)
@@ -53,6 +64,16 @@ dependencies {
 	testImplementation(libs.testcontainers.postgresql)
 	testRuntimeOnly(libs.junit.platform.launcher)
 	testImplementation(libs.mockito.kotlin)
+
+	// JWT authentication
+	implementation(libs.jjwt.api)
+	runtimeOnly(libs.jjwt.impl)
+	runtimeOnly(libs.jjwt.jackson)
+
+	// Kafka
+	implementation(libs.spring.kafka)
+	testImplementation(libs.spring.kafka.test)
+	testImplementation(libs.testcontainers.kafka)
 }
 
 // Load .env at configuration time for JOOQ codegen
@@ -72,7 +93,7 @@ jooq {
 			jooqConfiguration.apply {
 				jdbc.apply {
 					driver   = "org.postgresql.Driver"
-					url      = envOrDefault("SPRING_DATASOURCE_URL", "jdbc:postgresql://localhost:5432/finnish_learning_app")
+					url      = envOrDefault("SPRING_DATASOURCE_URL", "jdbc:postgresql://localhost:5532/finnish_learning_app")
 					user     = envOrDefault("SPRING_DATASOURCE_USERNAME", "postgres")
 					password = envOrDefault("SPRING_DATASOURCE_PASSWORD", "postgres")
 				}
@@ -131,4 +152,35 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 
 tasks.named("compileKotlin") {
 	dependsOn(tasks.named("generateJooq"))
+}
+
+/**
+ * Runs Flyway migrations against the configured database using the buildscript
+ * classpath (PostgreSQL driver + flyway-database-postgresql).
+ *
+ * This is intentionally idempotent: Flyway's schema history table prevents
+ * already-applied migrations from running again. Safe to call on every build.
+ */
+tasks.register("migrateDb") {
+	group = "database"
+	description = "Applies pending Flyway migrations to the local development database"
+
+	doLast {
+		val url      = envOrDefault("SPRING_DATASOURCE_URL",     "jdbc:postgresql://localhost:5532/finnish_learning_app")
+		val user     = envOrDefault("SPRING_DATASOURCE_USERNAME", "postgres")
+		val password = envOrDefault("SPRING_DATASOURCE_PASSWORD", "postgres")
+
+		val flyway = org.flywaydb.core.Flyway.configure()
+			.dataSource(url, user, password)
+			.locations("filesystem:src/main/resources/db/migration")
+			.load()
+
+		val result = flyway.migrate()
+		logger.lifecycle("Flyway: applied ${result.migrationsExecuted} migration(s), " +
+			"schema now at version ${result.targetSchemaVersion ?: "none"}")
+	}
+}
+
+tasks.named("generateJooq") {
+	dependsOn(tasks.named("migrateDb"))
 }

@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import me.longng.finnish_learning_backend.controller.dto.CardQueryParams
 import me.longng.finnish_learning_backend.controller.dto.CardResponse
-import me.longng.finnish_learning_backend.domain.SearchType
+import me.longng.finnish_learning_backend.controller.dto.SearchType
 import me.longng.finnish_learning_backend.service.CardService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType

@@ -1,10 +1,11 @@
 package me.longng.finnish_learning_backend.persistence
 
 import me.longng.finnish_learning_backend.controller.dto.CardQueryParams
+import me.longng.finnish_learning_backend.controller.dto.SearchType
 import me.longng.finnish_learning_backend.domain.Card
-import me.longng.finnish_learning_backend.domain.SearchType
 import me.longng.finnish_learning_backend.persistence.generated.tables.records.CardsRecord
 import me.longng.finnish_learning_backend.persistence.generated.tables.references.CARDS
+import me.longng.finnish_learning_backend.persistence.generated.tables.references.REVIEW_SCHEDULES
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
@@ -107,6 +108,37 @@ class CardRepositoryImpl(
             .fetch()
             .map { it.toDomain() }
 
+    }
+
+    /**
+     * Finds cards in a topic that the user has never reviewed.
+     */
+    override fun findNewCardsForUser(userId: Int, topicId: Int, limit: Int): List<Card> {
+        return dsl.selectFrom(CARDS)
+            .where(
+                CARDS.TOPIC_ID.eq(topicId)
+                    .and(
+                        DSL.notExists(
+                            DSL.selectOne()
+                                .from(REVIEW_SCHEDULES)
+                                .where(
+                                    REVIEW_SCHEDULES.CARD_ID.eq(CARDS.ID)
+                                        .and(REVIEW_SCHEDULES.USER_ID.eq(userId)),
+                                ),
+                        ),
+                    ),
+            )
+            .orderBy(CARDS.CREATED_AT.asc())
+            .limit(limit)
+            .fetch()
+            .map { it.toDomain() }
+    }
+
+    override fun countByTopicId(topicId: Int): Int {
+        return dsl.selectCount()
+            .from(CARDS)
+            .where(CARDS.TOPIC_ID.eq(topicId))
+            .fetchOne(0, Int::class.java) ?: 0
     }
 
     private fun CardsRecord.toDomain() = Card(
