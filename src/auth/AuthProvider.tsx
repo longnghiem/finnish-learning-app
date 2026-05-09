@@ -1,4 +1,5 @@
 import {type ReactNode, useCallback, useState} from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext } from "./AuthContext.tsx";
 
 export const TOKEN_KEY = 'auth_token'
@@ -50,6 +51,7 @@ interface AuthProviderProps {
  */
 export function AuthProvider({ children }: AuthProviderProps) {
     const [authState, setAuthState] = useState(() => readPersistedAuth())
+    const queryClient = useQueryClient()
 
     const loginWithToken = useCallback(
       (token: string, userId: number, username: string, role: string): void => {
@@ -57,9 +59,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           localStorage.setItem(USER_ID_KEY, String(userId))
           localStorage.setItem(USERNAME_KEY, username)
           localStorage.setItem(ROLE_KEY, role)
+          queryClient.clear()
           setAuthState({ token, userId, username, role })
       },
-      [],
+      [queryClient],
     )
 
     const logout = useCallback((): void => {
@@ -67,8 +70,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.removeItem(USER_ID_KEY)
         localStorage.removeItem(USERNAME_KEY)
         localStorage.removeItem(ROLE_KEY)
+        queryClient.clear()
         setAuthState({ token: null, userId: null, username: null, role: null })
-    }, [])
+    }, [queryClient])
 
     const value = {
         isLoggedIn: authState.token !== null,

@@ -14,12 +14,12 @@ import {
   dashTableHeaderCellCls,
   dashTitleCls,
 } from "../styles.ts";
-import {useDashboard} from "../hooks/useProgress.ts";
+import {useDashboard} from "../hooks";
 import {useEffect} from "react";
 import {useLang} from "../lang";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../auth/useAuth.ts";
-import type {TopicProgress} from "../api/progress.ts";
+import type {TopicProgress} from "../api";
 
 /**
  * Linear-style progress dashboard.
