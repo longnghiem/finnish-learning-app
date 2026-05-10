@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+/* ───────────────────────────────────────────────
+   Design tokens — light (default) & dark
+   ─────────────────────────────────────────────── */
+
+:root {
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --surface-alt: #f3f4f6;
+  --border: #e5e7eb;
+  --border-input: #d1d5db;
+  --text-primary: #1f2937;
+  --text-sub: #4b5563;
+  --text-muted: #9ca3af;
+  --nav-bg: #2f3d56;
+  --nav-text: #ffbd59;
+  --accent: #3b82f6;
+  --amber: #ffbd59;
+  --amber-hover: #f5a623;
+  --red: #ef4444;
+  --red-hover: #dc2626;
+  --green: #22c55e;
+  --green-hover: #16a34a;
+  --overlay: rgba(0, 0, 0, 0.5);
+  --nav-btn-text: #2f3d56;
+  --yellow: #eab308;
+  --yellow-hover: #ca8a04;
+  --error-bg: #fef2f2;
+  --flash-overlay-bg: rgba(180, 180, 180, 0.52);
+  --flash-front-text: #1a2636;
+  --flash-front-hint: #3a4a5a;
+  --flash-back-title: #2f3d56;
+  --flash-back-text: #2a3a4a;
+
+  --raw-shadow-card: 0 1px 3px rgb(0 0 0 / 0.08);
+  --raw-shadow-card-hover: 0 8px 24px rgb(0 0 0 / 0.12);
+  --raw-shadow-modal: 0 24px 48px rgb(0 0 0 / 0.16);
+  --raw-shadow-flash: 0 8px 32px rgb(0 0 0 / 0.1);
+}
+
+.dark {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-alt: #263044;
+  --border: #334155;
+  --border-input: #475569;
+  --text-primary: #f1f5f9;
+  --text-sub: #94a3b8;
+  --text-muted: #475569;
+  --nav-bg: #0a1628;
+  --nav-text: #ffbd59;
+  --accent: #60a5fa;
+  --amber: #ffbd59;
+  --amber-hover: #f5a623;
+  --red: #f87171;
+  --red-hover: #ef4444;
+  --green: #4ade80;
+  --green-hover: #22c55e;
+  --overlay: rgba(0, 0, 0, 0.7);
+  --nav-btn-text: #2f3d56;
+  --yellow: #eab308;
+  --yellow-hover: #ca8a04;
+  --error-bg: #3b1c1c;
+  --flash-overlay-bg: rgba(180, 180, 180, 0.52);
+  --flash-front-text: #1a2636;
+  --flash-front-hint: #3a4a5a;
+  --flash-back-title: #2f3d56;
+  --flash-back-text: #2a3a4a;
+
+  --raw-shadow-card: 0 1px 3px rgb(0 0 0 / 0.4);
+  --raw-shadow-card-hover: 0 8px 24px rgb(0 0 0 / 0.5);
+  --raw-shadow-modal: 0 24px 48px rgb(0 0 0 / 0.6);
+  --raw-shadow-flash: 0 8px 32px rgb(0 0 0 / 0.4);
+}
+
+/* ───────────────────────────────────────────────
+   Tailwind theme registration
+   ─────────────────────────────────────────────── */
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-border: var(--border);
+  --color-border-input: var(--border-input);
+  --color-text-primary: var(--text-primary);
+  --color-text-sub: var(--text-sub);
+  --color-text-muted: var(--text-muted);
+  --color-nav-bg: var(--nav-bg);
+  --color-nav-text: var(--nav-text);
+  --color-accent: var(--accent);
+  --color-amber: var(--amber);
+  --color-amber-hover: var(--amber-hover);
+  --color-red: var(--red);
+  --color-red-hover: var(--red-hover);
+  --color-green: var(--green);
+  --color-green-hover: var(--green-hover);
+  --color-overlay: var(--overlay);
+  --color-nav-btn-text: var(--nav-btn-text);
+  --color-yellow: var(--yellow);
+  --color-yellow-hover: var(--yellow-hover);
+  --color-error-bg: var(--error-bg);
+  --color-flash-overlay-bg: var(--flash-overlay-bg);
+  --color-flash-front-text: var(--flash-front-text);
+  --color-flash-front-hint: var(--flash-front-hint);
+  --color-flash-back-title: var(--flash-back-title);
+  --color-flash-back-text: var(--flash-back-text);
+
+  --shadow-card: var(--raw-shadow-card);
+  --shadow-card-hover: var(--raw-shadow-card-hover);
+  --shadow-modal: var(--raw-shadow-modal);
+  --shadow-flash: var(--raw-shadow-flash);
+}
+
+/* ───────────────────────────────────────────────
+   Global resets & base styles
+   ─────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 300ms ease, color 300ms ease;
+}
+
+input, textarea, button, select { font-family: inherit; }
+
+/* ───────────────────────────────────────────────
+   Animations
+   ─────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.page-enter { animation: fadeIn 220ms ease forwards; }
+.modal-enter { animation: scaleIn 180ms ease forwards; }
+
+/* ───────────────────────────────────────────────
+   3-D flip card
+   ─────────────────────────────────────────────── */
+
+.flashcard-scene {
+  perspective: 1000px;
+  cursor: pointer;
+}
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(.4,0,.2,1);
+}
+.flashcard-inner.flipped {
+  transform: rotateY(180deg);
+}
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  overflow: hidden;
+}
+.flashcard-face.back {
+  transform: rotateY(180deg);
+}
