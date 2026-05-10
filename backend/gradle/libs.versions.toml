@@ -1,0 +1,68 @@
+[versions]
+kotlin = "2.2.21"
+spring-boot = "4.0.5"
+spring-dependency-management = "1.1.7"
+springdoc = "3.0.2"
+mockito-kotlin = "5.4.0"
+postgresql = "42.7.2"
+jooq-codegen = "10.1"
+jjwt = "0.12.6"
+
+[libraries]
+# Kotlin
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5" }
+
+# Spring Boot starters (versions managed by Spring BOM)
+spring-boot-starter-flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
+spring-boot-starter-jooq = { module = "org.springframework.boot:spring-boot-starter-jooq" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+
+# Flyway
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
+
+# Jackson
+jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
+
+# Springdoc
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+
+# Database
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+
+# Spring Boot test starters (versions managed by Spring BOM)
+spring-boot-starter-flyway-test = { module = "org.springframework.boot:spring-boot-starter-flyway-test" }
+spring-boot-starter-jooq-test = { module = "org.springframework.boot:spring-boot-starter-jooq-test" }
+spring-boot-starter-security-test = { module = "org.springframework.boot:spring-boot-starter-security-test" }
+spring-boot-starter-validation-test = { module = "org.springframework.boot:spring-boot-starter-validation-test" }
+spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
+
+# Testcontainers (versions managed by Spring BOM)
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
+
+# JUnit
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+# Mockito
+mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
+
+# JWT
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# Kafka (version managed by Spring Boot BOM, so no explicit version)
+spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
+spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+jooq-codegen = { id = "nu.studer.jooq", version.ref = "jooq-codegen" }

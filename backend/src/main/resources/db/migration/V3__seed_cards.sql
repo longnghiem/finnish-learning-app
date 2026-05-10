@@ -1,0 +1,15 @@
+-- Seed data migrated from the original local database (cards_seed.csv)
+insert into cards (name, topic_id, example_sentence, translation, image_filename) values
+    ('Tilata',  4, 'He tilaavat ruokia',                          'To order',             'a55dacd1-3dfc-4e0e-901a-14fd81da2e79.png'),
+    ('Syödä',   4, 'He syövät ravintolassa',                      'To eat',               '3fef514e-2f2d-4b33-be3d-75dafeea8c64.png'),
+    ('sienestää', 7, 'Hän tykkää sienestää syksyllä',             'to pick mushrooms',    '42308f02-4bd2-49bc-8212-2edd31e160aa.png'),
+    ('Saunoa',  7, 'He saunovat joka viikko',                     'To go to sauna',       'a5ad79b2-0698-48a8-8732-1626744f6830.png'),
+    ('Katsoa',  4, 'Hän katsoo televisiota',                      'To watch',             'd40e1a4e-fade-498e-8799-9bd732d0e8ed.png'),
+    ('Saunoa',  4, 'He saunovat joka viikko',                     'To go to sauna',       '0c28e44e-8977-4bf1-b5df-2398641ab0d2.png'),
+    ('Korjata', 4, 'He korjaavat portaita',                       'To fix',               '1e5a9d39-4d78-4e6d-93f2-1d8606a0976d.png'),
+    ('Ajaa',    4, 'Autolla ajaminen keskustassa on stressaavaa', 'To drive',             'cb0ea722-a757-4409-8480-24a9ba3efe04.png'),
+    ('Odottaa', 4, 'He odottavat bussia',                         'To wait',              '202ba98c-b332-4593-ab42-a947b31ec5db.png'),
+    ('Maksaa',  4, 'Maksan kassalla',                             'To pay',               '49388ebc-7245-45a5-ac4f-ce16f5243de5.png'),
+    ('Pyytää',  4, 'Pyydän apua',                                 'To ask (for something)', '92997486-3b28-484e-b487-e956000fe773.png'),
+    ('Mennä',   4, 'Hän menee kouluun',                           'To go',                '33d70fa6-dc1c-4529-8cad-ff1f619da2f2.png');
+

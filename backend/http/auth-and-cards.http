@@ -1,0 +1,270 @@
+### ─────────────────────────────────────────────────────────────────────────
+### Finnish Learning Backend – Auth & Cards manual smoke tests
+###
+### Requirements
+###   • IntelliJ IDEA (or any JetBrains IDE) with the built-in HTTP Client.
+###   • A card image saved at  http/fixtures/sample.jpg  (any small JPEG works).
+###   • The application running on http://localhost:8080  (default).
+###     Override by selecting the "development" or "production" environment from
+###     the environment dropdown (top-right of the editor toolbar).
+###   • An ADMIN account: register one via request #8a, promote it in the DB,
+###     then log in via request #8b to capture the admin JWT.
+###
+### Usage
+###   Run requests in order (top-to-bottom). Each response handler stores the
+###   JWT token in the HTTP Client shared variables so later requests reuse it.
+### ─────────────────────────────────────────────────────────────────────────
+
+### 1. Register a new user (expects 201 + JWT)
+# @name registerUser
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "password123"
+}
+
+> {%
+  client.test("Status is 201", function() {
+    client.assert(response.status === 201, "Expected 201 but got " + response.status);
+  });
+  client.test("Response contains token", function() {
+    client.assert(response.body.token !== undefined, "No token in response");
+  });
+  client.global.set("userToken", response.body.token);
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 2. Login with the same credentials (expects 200 + JWT)
+# @name loginUser
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "password123"
+}
+
+> {%
+  client.test("Status is 200", function() {
+    client.assert(response.status === 200, "Expected 200 but got " + response.status);
+  });
+  client.test("Response contains token", function() {
+    client.assert(response.body.token !== undefined, "No token in response");
+  });
+  client.global.set("userToken", response.body.token);
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 3. Register with a duplicate username (expects 409)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "password123"
+}
+
+> {%
+  client.test("Status is 409 (duplicate username)", function() {
+    client.assert(response.status === 409, "Expected 409 but got " + response.status);
+  });
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 4. Login with wrong password (expects 401)
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "test",
+  "password": "wrongpassword"
+}
+
+> {%
+  client.test("Status is 401 (wrong password)", function() {
+    client.assert(response.status === 401, "Expected 401 but got " + response.status);
+  });
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 5. GET /api/cards without a token (expects 200 – public endpoint)
+GET http://localhost:8080/api/cards
+
+> {%
+  client.test("Status is 200 (public GET cards)", function() {
+    client.assert(response.status === 200, "Expected 200 but got " + response.status);
+  });
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 6. POST /api/cards without a token (expects 403)
+POST http://localhost:8080/api/cards
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="name"
+
+juoda
+--boundary
+Content-Disposition: form-data; name="exampleSentence"
+
+Minä juon vettä
+--boundary
+Content-Disposition: form-data; name="translation"
+
+to drink
+--boundary
+Content-Disposition: form-data; name="topicId"
+
+1
+--boundary
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./fixtures/sample.jpg
+--boundary--
+
+> {%
+  client.test("Status is 403 (no token → forbidden)", function() {
+    client.assert(response.status === 403, "Expected 403 but got " + response.status);
+  });
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 7. POST /api/cards with a USER token (expects 403 – requires ADMIN)
+### userToken is set by request #1 or #2 above.
+POST http://localhost:8080/api/cards
+Authorization: Bearer {{userToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="name"
+
+juoda
+--boundary
+Content-Disposition: form-data; name="exampleSentence"
+
+Minä juon vettä
+--boundary
+Content-Disposition: form-data; name="translation"
+
+to drink
+--boundary
+Content-Disposition: form-data; name="topicId"
+
+1
+--boundary
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./fixtures/sample.jpg
+--boundary--
+
+> {%
+  client.test("Status is 403 (USER role → forbidden for POST cards)", function() {
+    client.assert(response.status === 403, "Expected 403 but got " + response.status);
+  });
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 8a. Register an admin account  (one-time setup; skip if already exists)
+###
+###  ⚠️  REQUIRED ORDER:
+###     1. Run THIS request (8a) first.
+###     2. Promote the user in the DB BEFORE running 8b:
+###          UPDATE users SET role = 'ADMIN' WHERE username = 'admin-user';
+###        The role is baked into the JWT at login time, so the DB must be
+###        updated BEFORE logging in, otherwise the token will have role=USER
+###        and POST /api/cards will return 403.
+###     3. Run 8b to get a fresh ADMIN-role JWT, then run 8c.
+# @name registerAdmin
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "admin-user",
+  "password": "adminpass123"
+}
+
+> {%
+  client.test("Status is 201 (admin registered)", function() {
+    client.assert(response.status === 201, "Expected 201 but got " + response.status);
+  });
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 8b. Login as the ADMIN user to obtain an ADMIN-role JWT
+###     ⚠️  Only run this AFTER updating the DB role to ADMIN (see 8a above).
+###     If you already ran 8b before the DB update, run it again here to get
+###     a fresh token — the old token still contains role=USER.
+# @name loginAdmin
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin-user",
+  "password": "adminpass123"
+}
+
+> {%
+  client.test("Status is 200 (admin login)", function() {
+    client.assert(response.status === 200, "Expected 200 but got " + response.status);
+  });
+  client.test("Admin response contains token", function() {
+    client.assert(response.body.token !== undefined, "No token in response");
+  });
+  client.global.set("adminToken", response.body.token);
+%}
+
+### ─────────────────────────────────────────────────────────────────────────
+
+### 8c. POST /api/cards with an ADMIN token (expects 201)
+###     Requires a real image file at  http/fixtures/sample.jpg.
+###     Make sure a valid topicId exists in the database (adjust the value below).
+POST http://localhost:8080/api/cards
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="name"
+
+juoda
+--boundary
+Content-Disposition: form-data; name="exampleSentence"
+
+Minä juon vettä
+--boundary
+Content-Disposition: form-data; name="translation"
+
+to drink
+--boundary
+Content-Disposition: form-data; name="topicId"
+
+1
+--boundary
+Content-Disposition: form-data; name="image"; filename="sample.jpg"
+Content-Type: image/jpeg
+
+< ./fixtures/sample.jpg
+--boundary--
+
+> {%
+  client.test("Status is 201 (ADMIN creates card)", function() {
+    client.assert(response.status === 201, "Expected 201 but got " + response.status);
+  });
+  client.test("Response contains card id", function() {
+    client.assert(response.body.id !== undefined, "No id in response");
+  });
+  client.global.set("createdCardId", response.body.id);
+%}
+
