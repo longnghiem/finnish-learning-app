@@ -75,3 +75,4 @@ dist-ssr
 *.sw?
 
 CLAUDE.md
+db_backup/
