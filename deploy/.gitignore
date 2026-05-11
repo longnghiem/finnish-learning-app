@@ -1,0 +1,7 @@
+# Build outputs staged by deploy/build.sh — never committed.
+artefacts/
+
+# Operator-provided secrets (e.g. finnish-backend.env staged for upload).
+# Keep *.env.example files visible so the runbook can ship templates.
+*.env
+!*.env.example
