@@ -1,0 +1,31 @@
+# systemd unit for the single-node KRaft Kafka broker. Demo-grade.
+#
+# Heap cap rationale: 256 MB matches planned memory budget. With Spring Boot
+# at -Xmx384m, Postgres at ~150 MB, and the OS at ~150 MB, this leaves enough
+# headroom on a 1 GB box to run all four together with light swap usage.
+#
+# We deliberately don't set JAVA_HOME — Amazon Corretto 21 installs an
+# /usr/bin/java symlink (via alternatives) and Kafka's launch scripts find it
+# through PATH. Set JAVA_HOME here only if you ever install a second JDK.
+
+[Unit]
+Description=Apache Kafka (KRaft, single-node)
+After=network.target
+# No Requires= on Postgres or anything else — Kafka is independent and should
+# come up cleanly on boot.
+
+[Service]
+Type=simple
+User=kafka
+Group=kafka
+Environment=KAFKA_HEAP_OPTS=-Xms256m -Xmx256m
+ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
+Restart=always
+RestartSec=5
+# Send a SIGTERM and wait up to 30s before SIGKILL — gives the broker time to
+# flush logs cleanly.
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
