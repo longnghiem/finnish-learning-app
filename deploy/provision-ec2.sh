@@ -93,7 +93,7 @@ dnf install -y \
   postgresql15-server \
   postgresql15 \
   nginx \
-  curl \
+  curl-minimal \
   tar \
   ca-certificates \
   git \
