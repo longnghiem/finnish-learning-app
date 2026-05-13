@@ -18,7 +18,7 @@ After=network.target
 Type=simple
 User=kafka
 Group=kafka
-Environment=KAFKA_HEAP_OPTS=-Xms256m -Xmx256m
+Environment="KAFKA_HEAP_OPTS=-Xms256m -Xmx256m"
 ExecStart=/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
 Restart=always
 RestartSec=5
