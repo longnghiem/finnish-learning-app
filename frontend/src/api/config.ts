@@ -14,7 +14,10 @@ const rawBaseUrl = import.meta.env.VITE_API_BASE_URL
  * The single value is consumed by every `frontend/src/api/*.ts` module and by
  * `getImageUrl` below, so both API calls and image URLs share the same origin policy.
  */
-export const API_BASE_URL = rawBaseUrl === undefined ? 'http://localhost:8080' : rawBaseUrl
+export const API_BASE_URL =
+    rawBaseUrl === undefined ? 'http://localhost:8080'
+    : rawBaseUrl === '' ? window.location.origin
+    : rawBaseUrl
 
 export function getImageUrl(relativeImageUrl: string): string {
     return `${API_BASE_URL}${relativeImageUrl}`
