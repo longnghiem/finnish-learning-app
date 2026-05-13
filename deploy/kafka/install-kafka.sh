@@ -62,7 +62,7 @@ if ! grep -q '^ID="amzn"' /etc/os-release 2>/dev/null; then
 fi
 
 command -v java >/dev/null \
-  || fail "java not on PATH. Run deploy/provision-ec2.sh first (TASK_04)."
+  || fail "java not on PATH. Run deploy/provision-ec2.sh first."
 
 # Resolve sibling files relative to this script so the script works regardless
 # of cwd (e.g. when invoked from /home/ec2-user/finnish-learning-monorepo).

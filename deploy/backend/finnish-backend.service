@@ -1,0 +1,67 @@
+# systemd unit for the Finnish Learning backend (Spring Boot fat jar).
+# Demo-grade — no resource limits, no sandboxing flags, no log redirection.
+# Logs go to the system journal: journalctl -u finnish-backend -f
+#
+# Memory: -Xmx384m matches RESEARCH memory budget for a 1 GB t3.micro.
+# Co-residents: Postgres ~150 MB, Kafka -Xmx256m, nginx ~10 MB, OS ~150 MB.
+# Total RSS ~1.14 GB — fits with the 4 GB swapfile created by provision-ec2.sh.
+#
+# Java location: TASK_04 installs Amazon Corretto 21 (java-21-amazon-corretto-headless)
+# which registers /usr/bin/java via the alternatives system. If you ever install
+# a second JDK, double-check with `readlink -f /usr/bin/java` that it still
+# points at a 21.x build.
+
+[Unit]
+Description=Finnish Learning Backend (Spring Boot)
+Documentation=https://github.com/longnghiem/finnish-learning-app
+# Ordering: only start once the network is up and Postgres + Kafka are running.
+After=network-online.target postgresql.service kafka.service
+Wants=network-online.target
+# Dependency: if Postgres or Kafka stops, stop the backend too. Avoids the
+# backend serving 500s while a dependency is down.
+Requires=postgresql.service kafka.service
+
+[Service]
+# `simple` = the process we spawn IS the service (no forking, no PID file).
+Type=simple
+# Run as the unprivileged 'finnish' user that provision-ec2.sh created.
+# The user owns /opt/finnish (the jar) and /var/lib/finnish/uploads (image storage).
+User=finnish
+Group=finnish
+
+# All runtime secrets / config live here. Mode 0600, owner root:finnish.
+# The installer (install-backend.sh) creates this file from the .example template.
+EnvironmentFile=/etc/finnish-backend.env
+
+# Heap cap. -Xmx is the maximum heap size; we omit -Xms (initial heap) so the
+# JVM grows lazily on a small box. The G1 garbage collector picks itself by
+# default on JDK 21 — no tuning needed for a demo.
+#
+# The jar path matches deploy/deploy.sh: it uploads to /opt/finnish/app.jar.
+ExecStart=/usr/bin/java -Xmx384m -jar /opt/finnish/app.jar
+
+# Working directory matters because LocalImageStorageService resolves
+# IMAGE_STORAGE_LOCATION relative to CWD if a non-absolute path is configured.
+# We set an absolute path in the env file, but pinning WorkingDirectory here is
+# belt-and-braces.
+WorkingDirectory=/opt/finnish
+
+# Restart on any kind of exit, with a 5-second backoff. Stops systemd from
+# busy-looping if the JVM fails to start (e.g. bad env var) — after a handful
+# of fast failures systemd will give up; see DefaultStartLimitIntervalSec.
+Restart=always
+RestartSec=5
+
+# Give the JVM enough time to boot (Flyway migrations run on startup).
+# Default TimeoutStartSec is 90s; bump to 180s to be safe on a slow t3.micro
+# under swap pressure.
+TimeoutStartSec=180
+
+# Graceful shutdown: SIGTERM lets Spring Boot run its shutdown hooks (close
+# DataSource, flush Kafka producer). 30s should be plenty for a demo.
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+# Hook into the normal multi-user boot target so `systemctl enable` works.
+WantedBy=multi-user.target
