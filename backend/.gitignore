@@ -45,3 +45,7 @@ out/
 
 # jOOQ generated sources
 build/generated-sources/
+
+### Logs ###
+logs/
+*.log

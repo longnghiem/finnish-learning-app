@@ -372,6 +372,9 @@ If anything is wrong, SSH into the instance and tail logs:
 
 ```bash
 ssh -i ~/.ssh/finnish-demo.pem ec2-user@<EC2_HOST>
+# Application log file (rolling, plain text) — primary debug source:
+tail -f /opt/finnish/logs/finnish-backend.log
+# Or the systemd journal (console output):
 sudo journalctl -u finnish-backend -f
 ```
 
@@ -469,7 +472,7 @@ the Free Tier path — investigate before continuing.
 | Frontend throws `Failed to construct 'URL': Invalid URL` in DevTools | `VITE_API_BASE_URL=""` resolves to an empty string and `new URL("/api/...")` rejects relative URLs. Fix is in `frontend/src/api/config.ts`: empty string must fall back to `window.location.origin`. Rebuild + redeploy. |
 | SSH `Connection timed out` after a few days | Your home IP changed. EC2 SG → edit inbound SSH rule → **My IP**. |
 | `npm run build` warns about `http://localhost:8080` in bundle | `frontend/.env.production` missing or wrong. |
-| Disk full | `df -h`. Likely culprits: `/var/log/journal` or `/var/lib/pgsql`. Run `sudo journalctl --vacuum-size=200M`. |
+| Disk full | `df -h`. Likely culprits: `/var/log/journal`, `/var/lib/pgsql`, or `/opt/finnish/logs` (backend log files — rotation-capped at 100 MB total by `logback-spring.xml`; if it is larger, the rolling policy is misconfigured). Run `sudo journalctl --vacuum-size=200M`. |
 
 ---
 
@@ -482,7 +485,7 @@ to keep the demo path short:
 - **Custom domain** — requires Route 53 ($0.50/mo) and DNS configuration.
 - **CI / CD pipeline** — the current `build.sh` + `deploy.sh` flow is intentional for the demo.
 - **Infrastructure as Code** (Terraform, CDK) — the Console clicks above are explicit; an IaC version would mirror them.
-- **Monitoring / log aggregation** (CloudWatch Logs, Grafana) — `journalctl` is the demo log story.
+- **Remote log aggregation** The backend now writes rolling plain-text log files to `/opt/finnish/logs/` (see `backend/src/main/resources/logback-spring.xml`) and still logs to the journal; shipping those logs off-box is the part not covered here.
 - **Multi-instance / load balancer / autoscaling** — not feasible in Free Tier and unnecessary for a single-user demo.
 - **Database backups beyond `aws ec2 create-snapshot`** — RDS managed snapshots would be the production answer.
 

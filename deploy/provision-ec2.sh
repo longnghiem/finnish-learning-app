@@ -192,6 +192,10 @@ fi
 #
 # Directory map:
 #   /opt/finnish              Place for the jar (uploaded by deploy.sh).
+#   /opt/finnish/logs         Rolling log files written by the backend
+#                             (finnish-backend.log + gzipped history). The
+#                             LOG_DIR env var in /etc/finnish-backend.env
+#                             points here; see logback-spring.xml.
 #   /var/lib/finnish/uploads  Mutable data: card images. The env var
 #                             IMAGE_STORAGE_LOCATION points here.
 #   /var/www/finnish/dist     Static SPA bundle; nginx reads it directly.
@@ -207,7 +211,7 @@ else
 fi
 
 log "Creating application directories"
-mkdir -p /opt/finnish /var/lib/finnish/uploads /var/www/finnish/dist
+mkdir -p /opt/finnish /opt/finnish/logs /var/lib/finnish/uploads /var/www/finnish/dist
 chown -R finnish:finnish /opt/finnish /var/lib/finnish
 chown -R nginx:nginx /var/www/finnish
 chmod 750 /var/lib/finnish/uploads

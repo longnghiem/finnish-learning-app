@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logback configuration for the Finnish Learning backend.
+
+  Two appenders, both active:
+    * CONSOLE — Spring Boot's stock console appender, unchanged. On EC2 the
+      backend's stdout/stderr is captured by systemd-journald, so this keeps
+      `journalctl -u finnish-backend` working exactly as before.
+    * FILE — plain-text rolling file appender writing to
+      ${LOG_DIR}/finnish-backend.log. Lets the operator tail/grep logs on the
+      host directly instead of going through journalctl.
+
+  Rolling policy (SizeAndTimeBasedRollingPolicy):
+    * maxFileSize   10MB  — roll the active file once it reaches 10 MB
+    * maxHistory     7    — keep 7 days of gzipped history
+    * totalSizeCap 100MB  — hard cap on disk used by all log files combined.
+      Conservative for the 30 GB EC2 disk (see deploy/README.md "Disk full").
+
+  Log levels:
+    * me.longng.finnish_learning_backend = DEBUG — enables the existing
+      logger.debug(...) calls (ProgressService, QuizEventProducer, etc.)
+    * root = INFO — Spring / Hibernate / jOOQ / Kafka stay at INFO.
+
+  LOG_DIR is sourced from the Spring property app.logging.dir
+  (env var LOG_DIR, default ./logs). The -spring suffix on this file's name is
+  what enables <springProperty>; Spring Boot auto-detects logback-spring.xml.
+-->
+<configuration>
+    <!-- Spring Boot default conversion rules + FILE_LOG_PATTERN / CONSOLE_LOG_PATTERN. -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <!-- Spring Boot's stock CONSOLE appender — output identical to today. -->
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- Log directory: app.logging.dir property -> env var LOG_DIR, default ./logs. -->
+    <springProperty scope="context" name="LOG_DIR" source="app.logging.dir" defaultValue="./logs"/>
+
+    <!-- Rolling plain-text file appender. -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/finnish-backend.log</file>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/finnish-backend.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- App package at DEBUG so existing logger.debug(...) calls are emitted. -->
+    <logger name="me.longng.finnish_learning_backend" level="DEBUG"/>
+
+    <!-- Root: INFO, fan out to both console (journald) and the rolling file. -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>
