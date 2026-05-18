@@ -423,7 +423,7 @@ No EC2-side changes needed — provisioning is one-time.
 
 EC2 Console → Instance → **Instance state → Stop instance**. To resume, **Start instance**.
 
-> When you stop+start an instance, AWS reassigns a new public DNS unless you allocated an Elastic IP. For a demo, just take note of the new DNS after each restart.
+> When you stop+start an instance, AWS reassigns a new public DNS unless you allocated an Elastic IP.
 
 ### Permanent tear-down (zero ongoing cost)
 

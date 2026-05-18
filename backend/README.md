@@ -96,4 +96,10 @@ JWT_EXPIRATION_MS=86400000
 
 # Kafka
 KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+
+# Groq sentence evaluator
+GROQ_API_KEY=                  # Groq API key — leave blank to disable evaluation
+GROQ_BASE_URL=https://api.groq.com/openai/v1
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_DAILY_QUOTA=50             # per-user requests per UTC day
 ```
