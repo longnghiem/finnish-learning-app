@@ -4,6 +4,9 @@ import me.longng.finnish_learning_backend.service.CardNotFoundException
 import me.longng.finnish_learning_backend.service.InvalidCredentialsException
 import me.longng.finnish_learning_backend.service.TopicNotFoundException
 import me.longng.finnish_learning_backend.service.UsernameAlreadyExistsException
+import me.longng.finnish_learning_backend.service.groq.SentenceEvaluationMisconfiguredException
+import me.longng.finnish_learning_backend.service.groq.SentenceEvaluationQuotaExceededException
+import me.longng.finnish_learning_backend.service.groq.SentenceEvaluationUpstreamException
 import me.longng.finnish_learning_backend.storage.ImageStorageException
 import org.springframework.security.access.AccessDeniedException
 import org.slf4j.LoggerFactory
@@ -88,6 +91,39 @@ class GlobalExceptionHandler {
     fun handleAccessDenied(ex: AccessDeniedException): ResponseEntity<ErrorResponse> {
         logger.warn("Access denied: {}", ex.message)
         return buildResponse(HttpStatus.FORBIDDEN, "You do not have permission to perform this action")
+    }
+
+    @ExceptionHandler(SentenceEvaluationQuotaExceededException::class)
+    fun handleSentenceEvaluationQuota(
+        ex: SentenceEvaluationQuotaExceededException,
+    ): ResponseEntity<ErrorResponse> {
+        logger.warn("Sentence evaluation quota exceeded: {}", ex.message)
+        return buildResponse(
+            HttpStatus.TOO_MANY_REQUESTS,
+            "Daily limit of ${ex.dailyLimit} sentence evaluations reached. Try again tomorrow.",
+        )
+    }
+
+    @ExceptionHandler(SentenceEvaluationUpstreamException::class)
+    fun handleSentenceEvaluationUpstream(
+        ex: SentenceEvaluationUpstreamException,
+    ): ResponseEntity<ErrorResponse> {
+        logger.error("Sentence evaluation upstream failure", ex)
+        return buildResponse(
+            HttpStatus.BAD_GATEWAY,
+            "The sentence evaluation service is currently unavailable. Please try again later.",
+        )
+    }
+
+    @ExceptionHandler(SentenceEvaluationMisconfiguredException::class)
+    fun handleSentenceEvaluationMisconfigured(
+        ex: SentenceEvaluationMisconfiguredException,
+    ): ResponseEntity<ErrorResponse> {
+        logger.error("Sentence evaluation is not configured: {}", ex.message)
+        return buildResponse(
+            HttpStatus.BAD_GATEWAY,
+            "Sentence evaluation is not configured on this server.",
+        )
     }
 
     @ExceptionHandler(Exception::class)
