@@ -49,6 +49,18 @@ When a user submits a quiz answer, a `QuizAnswerEvent` is published to the `quiz
 Quiz answer → DB (source of truth) → QuizEventProducer → quiz-answers topic → QuizStatsConsumer → user_topic_stats
 ```
 
+## AI Sentence Evaluation
+
+Authenticated users can submit a Finnish sentence (with the target word + meaning) via `POST /api/evaluate-sentence`.
+The backend forwards it to the [Groq](https://groq.com/) chat-completions API (default model: `llama-3.3-70b-versatile`)
+and returns structured feedback: CEFR level, grammar mistake flag, typo flag, whether the target word was used correctly,
+an optional correction, and free-form feedback.
+
+A per-user `DailyQuotaTracker` enforces `GROQ_DAILY_QUOTA` requests per day **before** the upstream call to avoid burning 
+credits on rate-limited users. Excess requests get `429`. If `GROQ_API_KEY` is blank, evaluation is disabled.
+
+- System prompt: `src/main/resources/prompts/sentence-evaluation-system-prompt.txt`
+
 ## Docker
 
 Kafka runs in **KRaft mode** (`KAFKA_PROCESS_ROLES: broker,controller`), so no separate Zookeeper container is needed.

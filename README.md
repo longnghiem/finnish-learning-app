@@ -27,9 +27,10 @@ Suggested walkthrough:
 
 1. Open the URL above and log in with the credentials.
 2. From the topic list, open **"Vapaa-aika ja harrastukset"** (Free time and hobbies) to browse the flashcards.
-3. When ready, start the **quiz** from that topic.
-4. Open the **Dashboard** to see your per-topic stats — answer counts, accuracy, and recent activity.
-5. To see the **SM-2 spaced repetition** scheduler in action: register a fresh account, run a quiz so each card gets an initial review, then come back on subsequent days. Cards you answered correctly resurface later (intervals grow: 1 day → ~6 days → longer), while cards you got wrong reappear the next day. The per-card next-review date is computed server-side in [`SpacedRepetition.kt`](./backend/src/main/kotlin/me/longng/finnish_learning_backend/domain/SpacedRepetition.kt).
+3. Practice a card by **flipping it** and writing a sample sentence using the word — the **AI sentence evaluation** is only available once the card is flipped. Submit the sentence to get AI feedback on grammar and usage.
+4. When ready, start the **quiz** from that topic.
+5. Open the **Dashboard** to see your per-topic stats — answer counts, accuracy, and recent activity.
+6. To see the **SM-2 spaced repetition** scheduler in action: register a fresh account, run a quiz so each card gets an initial review, then come back on subsequent days. Cards you answered correctly resurface later (intervals grow: 1 day → ~6 days → longer), while cards you got wrong reappear the next day. The per-card next-review date is computed server-side in [`SpacedRepetition.kt`](./backend/src/main/kotlin/me/longng/finnish_learning_backend/domain/SpacedRepetition.kt).
 
 > Note: plain HTTP, single EC2 instance, no TLS. 
 
