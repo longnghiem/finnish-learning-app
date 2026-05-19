@@ -1,17 +1,18 @@
 import { API_BASE_URL, getAuthHeaders } from './config.ts'
 import type { ErrorResponse } from '../types'
 
-export type FinnishLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
+export type FinnishLevel = 'A1.1' | 'A1.2' | 'A2.1' | 'A2.2' | 'B1.1' | 'B1.2'
 
 /**
- * Mirrors backend `EvaluateSentenceResponse`
+ * Mirrors backend `EvaluateSentenceResponse`. Field names match the JSON
+ * the AI evaluator emits (see backend prompt file).
  */
 export interface EvaluateSentenceResponse {
-  hasGrammarMistake: boolean
-  hasTypo: boolean
-  level: FinnishLevel
+  has_typo: boolean
+  has_grammar_mistake: boolean
+  CEFR_level: FinnishLevel
+  feedback: string
   correction: string | null
-  b1Example: string | null
 }
 
 export type EvaluationErrorCode =

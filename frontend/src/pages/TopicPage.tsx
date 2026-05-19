@@ -10,6 +10,7 @@ import {CardModal} from '../components/CardModal.tsx'
 import {ConfirmModal} from '../components/ConfirmModal.tsx'
 import {useLang} from '../lang'
 import {pageContainerCls, pageTitleCls} from "../styles.ts";
+import { SentenceEvaluationPanel } from '../components/SentenceEvaluationPanel.tsx'
 
 const navBtnClasses = (disabled: boolean) =>
   `rounded-lg px-[18px] py-2 text-sm font-semibold font-[inherit] transition-colors duration-150 ${
@@ -26,7 +27,7 @@ export function TopicPage() {
   const { isLoggedIn, isAdmin } = useAuth()
   const { L } = useLang()
   const { data: topics } = useTopics()
-  const topicName = topics?.find(t => t.id === numericTopicId)?.name ?? `Topic ${topicId}`
+  const topicName = topics?.find((t) => t.id === numericTopicId)?.name ?? `Topic ${topicId}`
 
   const [searchType, setSearchType] = useState<SearchType>('VERB')
   const [searchTerm, setSearchTerm] = useState('')
@@ -37,7 +38,11 @@ export function TopicPage() {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
-  const { data: cards, isLoading, isError } = useCards(
+  const {
+    data: cards,
+    isLoading,
+    isError,
+  } = useCards(
     numericTopicId,
     debouncedSearchTerm ? searchType : undefined,
     debouncedSearchTerm || undefined,
@@ -55,6 +60,13 @@ export function TopicPage() {
   const total = cards?.length ?? 0
   const canGoPrev = currentIndex > 0
   const canGoNext = currentIndex < total - 1
+
+  const [flipped, setFlipped] = useState(false)
+  const [prevCardId, setPrevCardId] = useState<number | undefined>(currentCard?.id)
+  if (prevCardId !== currentCard?.id) {
+    setPrevCardId(currentCard?.id)
+    setFlipped(false)
+  }
 
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -75,19 +87,36 @@ export function TopicPage() {
     </div>
   ) : (
     <div className="flex flex-col items-center gap-6">
-      {currentCard && <Flashcard key={currentCard.id} card={currentCard} />}
+      {currentCard && (
+        <Flashcard
+          key={currentCard.id}
+          card={currentCard}
+          flipped={flipped}
+          onFlip={() => setFlipped((f) => !f)}
+        />
+      )}
       <div className="flex items-center gap-4">
-        <button className={navBtnClasses(!canGoPrev)} disabled={!canGoPrev} onClick={() => setCurrentIndex(i => i - 1)}>
+        <button
+          className={navBtnClasses(!canGoPrev)}
+          disabled={!canGoPrev}
+          onClick={() => setCurrentIndex((i) => i - 1)}
+        >
           {L.prev}
         </button>
         <span className="text-[0.8rem] text-text-muted font-semibold min-w-[52px] text-center">
           {L.cardOf(currentIndex + 1, total)}
         </span>
-        <button className={navBtnClasses(!canGoNext)} disabled={!canGoNext} onClick={() => setCurrentIndex(i => i + 1)}>
+        <button
+          className={navBtnClasses(!canGoNext)}
+          disabled={!canGoNext}
+          onClick={() => setCurrentIndex((i) => i + 1)}
+        >
           {L.next}
         </button>
       </div>
       <ProgressBar total={total} current={currentIndex} />
+
+      {isLoggedIn && flipped && currentCard && <SentenceEvaluationPanel word={currentCard.name} />}
     </div>
   )
 
@@ -108,7 +137,10 @@ export function TopicPage() {
         <SearchBar
           searchType={searchType}
           searchTerm={searchTerm}
-          onSearchTypeChange={t => { setSearchType(t); setSearchTerm('') }}
+          onSearchTypeChange={(t) => {
+            setSearchType(t)
+            setSearchTerm('')
+          }}
           onSearchTermChange={setSearchTerm}
         />
       </div>
@@ -177,7 +209,7 @@ export function TopicPage() {
             deleteCard.mutate(currentCard.id, {
               onSuccess: () => {
                 setShowDeleteConfirm(false)
-                setCurrentIndex(prev => Math.max(0, prev - 1))
+                setCurrentIndex((prev) => Math.max(0, prev - 1))
               },
             })
           }}

@@ -148,6 +148,10 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
 			.filter { it.size == 2 }
 			.forEach { (key, value) -> environment(key, value) }
 	}
+
+	// Local-dev JDWP listener so IntelliJ "Remote JVM Debug" can attach on :5005.
+	// Scoped to bootRun only — never applied to bootJar / production launch.
+	jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005")
 }
 
 tasks.named("compileKotlin") {

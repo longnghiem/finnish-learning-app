@@ -1,9 +1,9 @@
 package me.longng.finnish_learning_backend.service.groq
 
 import me.longng.finnish_learning_backend.controller.dto.EvaluateSentenceResponse
-import me.longng.finnish_learning_backend.controller.dto.FinnishLevel
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -31,8 +31,14 @@ class GroqClient(
     private val objectMapper: ObjectMapper,
     @Value("\${app.groq.api-key}") private val apiKey: String,
     @Value("\${app.groq.model}") private val model: String,
+    @Value("classpath:prompts/sentence-evaluation-system-prompt.md")
+    private val systemPromptResource: Resource,
 ) {
     private val logger = LoggerFactory.getLogger(GroqClient::class.java)
+
+    private val systemPrompt: String by lazy {
+        systemPromptResource.getContentAsString(Charsets.UTF_8).trim()
+    }
 
     fun evaluate(sentence: String): EvaluateSentenceResponse {
         require(sentence.isNotBlank()) { "sentence must not be blank" }
@@ -42,14 +48,13 @@ class GroqClient(
             "model" to model,
             "response_format" to mapOf("type" to "json_object"),
             "messages" to listOf(
-                mapOf("role" to "system", "content" to SYSTEM_PROMPT),
+                mapOf("role" to "system", "content" to systemPrompt),
                 mapOf("role" to "user", "content" to sentence),
             )
         )
 
         val rawContent = callGroq(requestBody)
-        val raw = parseRawEvaluation(rawContent)
-        return raw.toResponseEnforcingInvariants()
+        return parseEvaluation(rawContent).normalised()
     }
 
     // The url "chat/completions" are documented in https://console.groq.com/docs/api-reference#chat
@@ -69,13 +74,17 @@ class GroqClient(
             throw SentenceEvaluationUpstreamException("Groq upstream error: ${ex.message}", ex)
         }
 
-    private fun parseRawEvaluation(content: String): RawEvaluation =
+    private fun parseEvaluation(content: String): EvaluateSentenceResponse =
         try {
-            objectMapper.readValue<RawEvaluation>(content)
+            objectMapper.readValue<EvaluateSentenceResponse>(content)
         } catch (ex: Exception) {
             logger.error("Failed to parse Groq JSON content: {}", content, ex)
             throw SentenceEvaluationUpstreamException("Failed to parse Groq response", ex)
         }
+
+    /** Blank `correction` strings collapse to null so clients can null-check. */
+    private fun EvaluateSentenceResponse.normalised(): EvaluateSentenceResponse =
+        copy(correction = correction?.takeIf { it.isNotBlank() })
 
     /**
      * Minimal projection of the OpenAI-compatible response we actually consume.
@@ -86,63 +95,6 @@ class GroqClient(
     ) {
         data class Choice(val message: Message = Message())
         data class Message(val content: String = "")
-    }
-
-    /**
-     * Internal shape of the JSON the AI is instructed to produce. Field names
-     * match [EvaluateSentenceResponse]; conversion adds the invariant enforcement
-     * so the public response is trustworthy without further client-side checks.
-     */
-    private data class RawEvaluation(
-        val hasGrammarMistake: Boolean,
-        val hasTypo: Boolean,
-        val level: FinnishLevel,
-        val correction: String? = null,
-        val b1Example: String? = null,
-    ) {
-        fun toResponseEnforcingInvariants(): EvaluateSentenceResponse {
-            val needsCorrection = hasGrammarMistake || hasTypo
-            val needsB1Example = level == FinnishLevel.A1 || level == FinnishLevel.A2
-            return EvaluateSentenceResponse(
-                hasGrammarMistake = hasGrammarMistake,
-                hasTypo = hasTypo,
-                level = level,
-                correction = correction?.takeIf { it.isNotBlank() && needsCorrection },
-                b1Example = b1Example?.takeIf { it.isNotBlank() && needsB1Example },
-            )
-        }
-    }
-
-    companion object {
-        /**
-         * System prompt instructing Groq to return a strict JSON object that
-         * deserialises directly into [RawEvaluation].
-         */
-        private val SYSTEM_PROMPT = """
-            You evaluate a single Finnish sentence supplied by a learner.
-
-            Respond with a JSON object ONLY — no prose, no Markdown, no code fences —
-            containing exactly these fields:
-
-              - hasGrammarMistake (boolean)
-                  true if the sentence contains at least one grammatical mistake, false otherwise.
-              - hasTypo (boolean)
-                  true if the sentence contains at least one typo, false otherwise.
-              - level (string)
-                  One of "A1", "A2", "B1", "B2", "C1", "C2" (CEFR).
-              - correction (string)
-                  Required only when grammarCorrect is false OR hasTypo is true.
-                  When required, provide the corrected sentence in Finnish.
-                  Otherwise return an empty string.
-              - b1Example (string)
-                  Required only when level is "A1" or "A2".
-                  When required, provide a natural B1-level Finnish sentence that
-                  uses the most prominent content word from the user's sentence.
-                  Otherwise return an empty string.
-
-            All explanatory text in the JSON must be in English, except for the
-            Finnish sentences in `correction` and `b1Example` which must be in Finnish.
-        """.trimIndent()
     }
 
 }
