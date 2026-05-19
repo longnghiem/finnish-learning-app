@@ -1,4 +1,5 @@
 import {useEffect} from 'react'
+import {createPortal} from 'react-dom'
 import {useLang} from '../lang'
 
 interface ConfirmModalProps {
@@ -22,7 +23,7 @@ export function ConfirmModal({ message, onConfirm, onCancel, isLoading = false }
     return () => { document.body.style.overflow = '' }
   }, [])
 
-  return (
+  return createPortal(
     <div
       onClick={onCancel}
       className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-[2px]"
@@ -53,6 +54,7 @@ export function ConfirmModal({ message, onConfirm, onCancel, isLoading = false }
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

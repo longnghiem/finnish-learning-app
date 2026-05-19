@@ -1,6 +1,7 @@
 import type {CardResponse} from '../types'
 import {useCreateCard, useUpdateCard} from '../hooks'
 import {useEffect, useMemo, useRef, useState, type SubmitEvent} from 'react'
+import {createPortal} from 'react-dom'
 import {getImageUrl} from '../api'
 import {createCardSchema, editCardSchema} from '../schemas'
 import {useLang} from '../lang'
@@ -106,14 +107,14 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
     }
   }
 
-  return (
+  return createPortal(
     <div
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-[2px]"
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="modal-enter relative bg-surface rounded-2xl p-7 w-full max-w-[440px] mx-4 shadow-modal border border-border"
+        className="modal-enter relative bg-surface rounded-2xl p-7 w-full max-w-[440px] mx-4 my-4 max-h-[calc(100vh-2rem)] overflow-y-auto shadow-modal border border-border"
       >
         <button
           type="button"
@@ -188,6 +189,7 @@ export function CardModal({ mode, topicId, card, onClose }: CardModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

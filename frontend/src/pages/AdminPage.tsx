@@ -40,7 +40,7 @@ export function AdminPage() {
     return cards.filter(c => c.topicId === Number(filterTopic))
   }, [cards, filterTopic])
 
-  const defaultTopicId = filterTopic !== 'all' ? Number(filterTopic) : (topics?.[0]?.id ?? 1)
+  const defaultTopicId = filterTopic !== 'all' ? Number(filterTopic) : 4
 
   return (
     <div className="page-enter max-w-275 mx-auto px-6 pt-10 pb-16">
