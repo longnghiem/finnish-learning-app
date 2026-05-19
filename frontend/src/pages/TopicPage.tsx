@@ -9,7 +9,7 @@ import {Flashcard} from '../components/Flashcard.tsx'
 import {CardModal} from '../components/CardModal.tsx'
 import {ConfirmModal} from '../components/ConfirmModal.tsx'
 import {useLang} from '../lang'
-import {pageContainerCls, pageTitleCls} from "../styles.ts";
+import {pageTitleCls} from "../styles.ts";
 import { SentenceEvaluationPanel } from '../components/SentenceEvaluationPanel.tsx'
 
 const navBtnClasses = (disabled: boolean) =>
@@ -73,6 +73,12 @@ export function TopicPage() {
 
   const deleteCard = useDeleteCard()
 
+  // Reserve the right column whenever the eval panel could appear (logged-in
+  // user + a current card). The flashcard column then stays anchored across
+  // flips — the panel just fades in/out inside its pre-allocated slot.
+  const slotReserved = isLoggedIn && !!currentCard
+  const panelVisible = slotReserved && flipped
+
   const flashcardArea = isLoading ? (
     <div className="flex items-center justify-center py-20">
       <p className="text-[1.1rem] text-text-muted">Loading cards…</p>
@@ -86,44 +92,66 @@ export function TopicPage() {
       {L.noCardsFound}
     </div>
   ) : (
-    <div className="flex flex-col items-center gap-6">
-      {currentCard && (
-        <Flashcard
-          key={currentCard.id}
-          card={currentCard}
-          flipped={flipped}
-          onFlip={() => setFlipped((f) => !f)}
-        />
-      )}
-      <div className="flex items-center gap-4">
-        <button
-          className={navBtnClasses(!canGoPrev)}
-          disabled={!canGoPrev}
-          onClick={() => setCurrentIndex((i) => i - 1)}
-        >
-          {L.prev}
-        </button>
-        <span className="text-[0.8rem] text-text-muted font-semibold min-w-[52px] text-center">
-          {L.cardOf(currentIndex + 1, total)}
-        </span>
-        <button
-          className={navBtnClasses(!canGoNext)}
-          disabled={!canGoNext}
-          onClick={() => setCurrentIndex((i) => i + 1)}
-        >
-          {L.next}
-        </button>
+    <div className="flex justify-center items-start gap-9 flex-wrap">
+      {/* Left column: flashcard + nav + dots. Stays anchored across flips. */}
+      <div className="flex flex-col items-center gap-5 flex-none">
+        {currentCard && (
+          <Flashcard
+            key={currentCard.id}
+            card={currentCard}
+            flipped={flipped}
+            onFlip={() => setFlipped((f) => !f)}
+          />
+        )}
+        <div className="flex items-center gap-4">
+          <button
+            className={navBtnClasses(!canGoPrev)}
+            disabled={!canGoPrev}
+            onClick={() => setCurrentIndex((i) => i - 1)}
+          >
+            {L.prev}
+          </button>
+          <span className="text-[0.8rem] text-text-muted font-semibold min-w-[52px] text-center">
+            {L.cardOf(currentIndex + 1, total)}
+          </span>
+          <button
+            className={navBtnClasses(!canGoNext)}
+            disabled={!canGoNext}
+            onClick={() => setCurrentIndex((i) => i + 1)}
+          >
+            {L.next}
+          </button>
+        </div>
+        <ProgressBar total={total} current={currentIndex} />
       </div>
-      <ProgressBar total={total} current={currentIndex} />
 
-      {isLoggedIn && flipped && currentCard && (
-        <SentenceEvaluationPanel word={currentCard.name} meaning={currentCard.translation} />
+      {/* Right column: reserved slot. Fades the eval panel in/out without
+          moving the card column. */}
+      {slotReserved && (
+        <div className="flex-[1_1_380px] max-w-[520px] min-w-[320px] self-start">
+          <div
+            className="transition-opacity duration-200"
+            style={{
+              opacity: panelVisible ? 1 : 0,
+              pointerEvents: panelVisible ? 'auto' : 'none',
+            }}
+          >
+            {currentCard && (
+              <SentenceEvaluationPanel
+                key={`eval-${currentCard.id}`}
+                word={currentCard.name}
+                meaning={currentCard.translation}
+                autoFocus={panelVisible}
+              />
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
 
   return (
-    <div className={pageContainerCls}>
+    <div className={`page-enter mx-auto px-6 pt-7 pb-12 ${slotReserved ? 'max-w-[1080px]' : 'max-w-170'}`}>
       <button
         onClick={() => navigate('/')}
         className="bg-transparent border-none cursor-pointer text-text-muted text-sm font-[inherit] mb-4 flex items-center gap-1 p-0 font-semibold"
@@ -135,7 +163,7 @@ export function TopicPage() {
         {topicName}
       </h1>
 
-      <div className="mb-7">
+      <div className="mb-7 max-w-170 mx-auto">
         <SearchBar
           searchType={searchType}
           searchTerm={searchTerm}

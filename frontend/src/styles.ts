@@ -7,7 +7,7 @@ export const submitButtonCls = 'mt-1 rounded-lg bg-amber text-nav-btn-text px-4.
   'border-none cursor-pointer font-[inherit] w-full transition-colors duration-150 hover:bg-amber-hover disabled:opacity-60 disabled:cursor-not-allowed'
 
 // Flash cards
-export const cardWrapperCls = 'flashcard-scene w-full max-w-75 h-115 mx-auto'
+export const cardWrapperCls = 'flashcard-scene w-90 h-138 mx-auto'
 export const frontCardWrapperCls = 'flashcard-face border border-border bg-surface-alt shadow-flash'
 export const backCardWrapperCls = 'flashcard-face back border-2 border-accent bg-surface-alt shadow-flash'
 export const cardOverlayCls = 'absolute bottom-0 left-0 right-0 bg-flash-overlay-bg backdrop-blur-[6px] px-5 pt-3.5 pb-[18px] ' +
