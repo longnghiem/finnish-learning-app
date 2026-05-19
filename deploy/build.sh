@@ -124,7 +124,7 @@ log "Backend jar staged: $(basename "$FAT_JAR") -> finnish-backend.jar"
 # Frontend: install pinned deps and run the production build.
 #
 # `npm ci` (not `install`) so package-lock.json is honoured — reproducible bundles.
-# Vite auto-loads frontend/.env.production (added in TASK_02), which sets
+# Vite auto-loads frontend/.env.production, which sets
 # VITE_API_BASE_URL="" so the bundle issues same-origin requests behind nginx.
 # ──────────────────────────────────────────────────────────────────────────────
 log "Building frontend (npm ci && npm run build)"
@@ -138,7 +138,7 @@ log "Building frontend (npm ci && npm run build)"
 # .env.production is missing or VITE_API_BASE_URL leaked from another env source.
 if grep -RIn "http://localhost:8080" "$FRONTEND_DIR/dist" >/dev/null 2>&1; then
   warn "Frontend bundle contains 'http://localhost:8080' — production base URL \
-not applied. Check frontend/.env.production (TASK_02)."
+not applied. Check frontend/.env.production"
   warn "Bundle will be staged anyway; fix and rebuild before running deploy.sh."
 fi
 

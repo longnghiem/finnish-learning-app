@@ -264,15 +264,40 @@ sudo bash deploy/backend/install-backend.sh
 sudo nano /etc/finnish-backend.env       # or: sudo vim /etc/finnish-backend.env
 ```
 
-Edit two lines:
+Edit these lines:
 
 ```env
 SPRING_DATASOURCE_PASSWORD=<paste the password from 5.3>
 JWT_SECRET=<paste the output of: openssl rand -base64 32>
+GROQ_API_KEY=<paste your Groq API key — see below>
 ```
+
+`GROQ_API_KEY` powers the AI-backed sentence evaluator
+
+To obtain one:
+
+1. Sign up at https://console.groq.com/ (free tier available).
+2. **API Keys** → **Create API Key** → copy the `gsk_…` token. You can only
+   view it once.
+3. Paste it into `GROQ_API_KEY=` in this file.
+
+Optional tunables — defaults are sensible, override only if you need to:
+
+```env
+GROQ_BASE_URL=https://api.groq.com/openai/v1   # change only if proxying
+GROQ_MODEL=llama-3.3-70b-versatile             # any model your account can access
+GROQ_DAILY_QUOTA=50                            # per-user cap; 429 once exceeded
+```
+
+`GROQ_DAILY_QUOTA` is enforced in-process by `DailyQuotaTracker` and resets at
+00:00 UTC. Tune it to your Groq plan — every successful evaluation counts.
 
 Save and exit. The file is mode `600`, readable only by `root` and the
 `finnish` system user.
+
+> No new outbound firewall rule needed: EC2 instances allow all egress by
+> default, so the backend can reach `api.groq.com` over HTTPS out of the box.
+> If you tightened egress, allow `:443` to `api.groq.com`.
 
 ### 5.6 Install the nginx site
 
@@ -367,6 +392,11 @@ You should see the SPA. Walk through:
 2. Log in.
 3. Open a topic, take a quiz, answer a question.
 4. Check `/dashboard` — quiz stats should reflect the answer.
+5. Back to a topic, flip a card, expand the **Try a sentence** panel, type a
+   Finnish sentence using the shown word and click **Evaluate**. You should
+   see grammar / typo chips, a CEFR level, and (when relevant) a suggested
+   correction and a B1 example. If the panel reports
+   `Evaluator is temporarily unavailable`, check `GROQ_API_KEY` (see 8.2).
 
 If anything is wrong, SSH into the instance and tail logs:
 
@@ -378,7 +408,7 @@ tail -f /opt/finnish/logs/finnish-backend.log
 sudo journalctl -u finnish-backend -f
 ```
 
-### 8.1 Inspect Kafka messages
+### 8.2 Inspect Kafka messages
 
 The backend publishes `QuizAnswerEvent`s to the `quiz-answers` topic; a consumer
 inside the same JVM updates the `user_topic_stats` read-model table that powers
@@ -469,6 +499,9 @@ the Free Tier path — investigate before continuing.
 | Backend can't connect to Postgres, log says `Ident authentication failed` | `pg_hba.conf` is still using `ident` for TCP localhost. Confirm: `sudo grep '^host' /var/lib/pgsql/data/pg_hba.conf` — both lines must say `scram-sha-256`. Provisioning script handles this; if missing, re-run it. |
 | Backend can't connect to Postgres, log says `password authentication failed` | Password mismatch between `/etc/finnish-backend.env` and what you set in 5.3. Re-run the `ALTER USER` then `sudo systemctl restart finnish-backend`. |
 | Browser hits CORS error | `APP_CORS_ALLOWED_ORIGINS` is set to something other than empty in `/etc/finnish-backend.env`. For same-origin nginx setup, leave it empty. |
+| "Try a sentence" panel returns `Evaluator is temporarily unavailable` (502) | `GROQ_API_KEY` missing, blank, or rejected by Groq. Check `sudo grep '^GROQ_API_KEY' /etc/finnish-backend.env`. Validate the key: `curl -sS -H "Authorization: Bearer $GROQ_API_KEY" https://api.groq.com/openai/v1/models \| head`. After fixing: `sudo systemctl restart finnish-backend`. |
+| Panel returns `Daily limit reached` (429) on first try of the day | `DailyQuotaTracker` is process-local; either someone else on the same user already exhausted it, or a sticky clock issue. Restart wipes the counter: `sudo systemctl restart finnish-backend`. Raise the cap via `GROQ_DAILY_QUOTA`. |
+| Backend logs `GROQ_MODEL … model_decommissioned` or 4xx from Groq | The configured model id is no longer served. Pick a current model from https://console.groq.com/docs/models, update `GROQ_MODEL=` in `/etc/finnish-backend.env`, restart. |
 | Frontend throws `Failed to construct 'URL': Invalid URL` in DevTools | `VITE_API_BASE_URL=""` resolves to an empty string and `new URL("/api/...")` rejects relative URLs. Fix is in `frontend/src/api/config.ts`: empty string must fall back to `window.location.origin`. Rebuild + redeploy. |
 | SSH `Connection timed out` after a few days | Your home IP changed. EC2 SG → edit inbound SSH rule → **My IP**. |
 | `npm run build` warns about `http://localhost:8080` in bundle | `frontend/.env.production` missing or wrong. |
