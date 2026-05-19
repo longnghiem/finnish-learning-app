@@ -70,20 +70,22 @@ export function SentenceEvaluationPanel({ word }: SentenceEvaluationPanelProps) 
 
 function ResultView({ data }: { data: EvaluateSentenceResponse }) {
   const { L } = useLang()
-  const grammarOk = !data.has_grammar_mistake
-  const typoOk = !data.has_typo
+  const grammarOk = !data.hasGrammarMistake
+  const typoOk = !data.hasTypo
+  const wordOk = data.wordUsedCorrectly
 
   return (
     <div className="flex flex-col gap-3 mt-1">
       <div className="flex flex-wrap items-center gap-2">
         <Chip ok={grammarOk} label={grammarOk ? L.evalGrammarOk : L.evalGrammarBad} />
         <Chip ok={typoOk} label={typoOk ? L.evalTypoOk : L.evalTypoBad} />
+        <Chip ok={wordOk} label={wordOk ? L.evalWordOk : L.evalWordBad} />
         <span
-          aria-label={`${L.evalLevel}: ${data.CEFR_level}`}
+          aria-label={`${L.evalLevel}: ${data.cefrLevel}`}
           className="inline-flex items-center rounded-full bg-surface-alt border border-border
             px-2.5 py-0.5 text-[0.72rem] font-bold uppercase tracking-[0.5px] text-text-primary"
         >
-          {L.evalLevel}: {data.CEFR_level}
+          {L.evalLevel}: {data.cefrLevel}
         </span>
       </div>
 

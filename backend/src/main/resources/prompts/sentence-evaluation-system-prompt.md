@@ -24,9 +24,10 @@ OUTPUT INSTRUCTIONS:
 
 JSON FORMAT:
 {
-"has_typo": bool,
-"has_grammar_mistake": bool,
-"CEFR_level": "A1.1/A1.2/A2.1/A2.2/B1.1/B1.2",
-"feedback": "2-5 sentences in English.",
-"correction": "Corrected Finnish sentence or null if perfect"
+"hasTypo": Boolean,
+"hasGrammarMistake": Boolean,
+"wordUsedCorrectly": Boolean,
+"cefrLevel": String, // one of: "A1.1", "A1.2", "A2.1", "A2.2", "B1.1", "B1.2"
+"feedback": String, // 2-5 sentences in English
+"correction": String? // corrected Finnish sentence, or null if perfect
 }

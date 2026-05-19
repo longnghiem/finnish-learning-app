@@ -7,19 +7,15 @@ import com.fasterxml.jackson.annotation.JsonProperty
  *
  * @property hasTypo            `true` when the sentence contains at least one typo.
  * @property hasGrammarMistake  `true` when the sentence has a grammatical mistake.
+ * @property wordUsedCorrectly  `true` when the target word is used in the correct context and inflected properly.
  * @property cefrLevel          CEFR sub-level the AI assigns to the sentence.
  * @property feedback           2–5 sentences of English feedback for the learner.
  * @property correction         Corrected Finnish sentence; non-null only when needed.
  */
 data class EvaluateSentenceResponse(
-    @param:JsonProperty("has_typo")
-    @get:JsonProperty("has_typo")
     val hasTypo: Boolean,
-    @param:JsonProperty("has_grammar_mistake")
-    @get:JsonProperty("has_grammar_mistake")
     val hasGrammarMistake: Boolean,
-    @param:JsonProperty("CEFR_level")
-    @get:JsonProperty("CEFR_level")
+    val wordUsedCorrectly: Boolean,
     val cefrLevel: FinnishLevel,
     val feedback: String,
     val correction: String?,

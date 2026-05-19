@@ -8,9 +8,10 @@ export type FinnishLevel = 'A1.1' | 'A1.2' | 'A2.1' | 'A2.2' | 'B1.1' | 'B1.2'
  * the AI evaluator emits (see backend prompt file).
  */
 export interface EvaluateSentenceResponse {
-  has_typo: boolean
-  has_grammar_mistake: boolean
-  CEFR_level: FinnishLevel
+  hasTypo: boolean
+  hasGrammarMistake: boolean
+  wordUsedCorrectly: boolean
+  cefrLevel: FinnishLevel
   feedback: string
   correction: string | null
 }

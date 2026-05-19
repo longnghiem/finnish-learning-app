@@ -38,8 +38,8 @@ class SentenceEvaluationService(
         val result = groqClient.evaluate(sentence)
 
         logger.info(
-            "Sentence evaluated: userId={} cefrLevel={} hasGrammarMistake={} hasTypo={}",
-            userId, result.cefrLevel, result.hasGrammarMistake, result.hasTypo,
+            "Sentence evaluated: userId={} cefrLevel={} hasGrammarMistake={} hasTypo={} wordUsedCorrectly={} feedback={} correction={}",
+            userId, result.cefrLevel, result.hasGrammarMistake, result.hasTypo, result.wordUsedCorrectly, result.feedback, result.correction
         )
         return result
     }
