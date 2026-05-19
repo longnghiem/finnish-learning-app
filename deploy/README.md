@@ -272,33 +272,6 @@ JWT_SECRET=<paste the output of: openssl rand -base64 32>
 GROQ_API_KEY=<paste your Groq API key — see below>
 ```
 
-`GROQ_API_KEY` powers the AI-backed sentence evaluator
-
-To obtain one:
-
-1. Sign up at https://console.groq.com/ (free tier available).
-2. **API Keys** → **Create API Key** → copy the `gsk_…` token. You can only
-   view it once.
-3. Paste it into `GROQ_API_KEY=` in this file.
-
-Optional tunables — defaults are sensible, override only if you need to:
-
-```env
-GROQ_BASE_URL=https://api.groq.com/openai/v1   # change only if proxying
-GROQ_MODEL=llama-3.3-70b-versatile             # any model your account can access
-GROQ_DAILY_QUOTA=50                            # per-user cap; 429 once exceeded
-```
-
-`GROQ_DAILY_QUOTA` is enforced in-process by `DailyQuotaTracker` and resets at
-00:00 UTC. Tune it to your Groq plan — every successful evaluation counts.
-
-Save and exit. The file is mode `600`, readable only by `root` and the
-`finnish` system user.
-
-> No new outbound firewall rule needed: EC2 instances allow all egress by
-> default, so the backend can reach `api.groq.com` over HTTPS out of the box.
-> If you tightened egress, allow `:443` to `api.groq.com`.
-
 ### 5.6 Install the nginx site
 
 ```bash
