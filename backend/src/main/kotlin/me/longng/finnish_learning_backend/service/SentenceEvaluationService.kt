@@ -28,14 +28,16 @@ class SentenceEvaluationService(
     /**
      * Evaluates [sentence] on behalf of [userId].
      */
-    fun evaluate(userId: Int, sentence: String): EvaluateSentenceResponse {
+    fun evaluate(userId: Int, sentence: String, word: String, meaning: String): EvaluateSentenceResponse {
         require(sentence.isNotBlank()) { "Sentence must not be blank" }
+        require(word.isNotBlank()) { "Word must not be blank" }
+        require(meaning.isNotBlank()) { "Meaning must not be blank" }
 
         if (!quotaTracker.tryConsume(userId, dailyQuota)) {
             throw SentenceEvaluationQuotaExceededException(userId, dailyQuota)
         }
 
-        val result = groqClient.evaluate(sentence)
+        val result = groqClient.evaluate(sentence, word, meaning)
 
         logger.info(
             "Sentence evaluated: userId={} cefrLevel={} hasGrammarMistake={} hasTypo={} wordUsedCorrectly={} feedback={} correction={}",

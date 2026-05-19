@@ -41,6 +41,6 @@ class SentenceEvaluationController(
         authentication: Authentication
     ): EvaluateSentenceResponse {
         val userId = authentication.principal as Int
-        return service.evaluate(userId, request.sentence)
+        return service.evaluate(userId, request.sentence, request.word, request.meaning)
     }
 }

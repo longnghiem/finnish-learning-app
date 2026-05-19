@@ -116,7 +116,9 @@ export function TopicPage() {
       </div>
       <ProgressBar total={total} current={currentIndex} />
 
-      {isLoggedIn && flipped && currentCard && <SentenceEvaluationPanel word={currentCard.name} />}
+      {isLoggedIn && flipped && currentCard && (
+        <SentenceEvaluationPanel word={currentCard.name} meaning={currentCard.translation} />
+      )}
     </div>
   )
 

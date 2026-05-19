@@ -14,7 +14,7 @@ GRADING LOGIC:
 
 2. Strategic Competence: Reward attempts at complex structures even if they aren't perfect.
 
-3. Word Usage: Check if {word} is used in the correct context and inflected properly.
+3. Word Usage: Check if the target word is used in the correct context and inflected properly.
 
 OUTPUT INSTRUCTIONS:
 

@@ -40,16 +40,23 @@ class GroqClient(
         systemPromptResource.getContentAsString(Charsets.UTF_8).trim()
     }
 
-    fun evaluate(sentence: String): EvaluateSentenceResponse {
+    fun evaluate(sentence: String, word: String, meaning: String): EvaluateSentenceResponse {
         require(sentence.isNotBlank()) { "sentence must not be blank" }
+        require(word.isNotBlank()) { "word must not be blank" }
+        require(meaning.isNotBlank()) { "meaning must not be blank" }
         if (apiKey.isBlank()) throw SentenceEvaluationMisconfiguredException()
+
+        val userContent = """
+            The student was asked to write a sentence using: "$word" (meaning: "$meaning").
+            Their sentence: "$sentence"
+        """.trimIndent()
 
         val requestBody = mapOf(
             "model" to model,
             "response_format" to mapOf("type" to "json_object"),
             "messages" to listOf(
                 mapOf("role" to "system", "content" to systemPrompt),
-                mapOf("role" to "user", "content" to sentence),
+                mapOf("role" to "user", "content" to userContent),
             )
         )
 

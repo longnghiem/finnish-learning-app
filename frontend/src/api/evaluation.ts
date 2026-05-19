@@ -50,11 +50,13 @@ function statusToCode(status: number): EvaluationErrorCode {
 
 export async function evaluateSentence(
   sentence: string,
+  word: string,
+  meaning: string,
 ): Promise<EvaluateSentenceResponse> {
   const response = await fetch(`${API_BASE_URL}/api/evaluate-sentence`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-    body: JSON.stringify({ sentence }),
+    body: JSON.stringify({ sentence, word, meaning }),
   })
 
   if (response.ok) return response.json()

@@ -9,9 +9,13 @@ interface SentenceEvaluationPanelProps {
    * The Finnish word from the currently flipped flashcard.
    */
   word: string
+  /**
+   * English translation of the word — sent to the AI for context.
+   */
+  meaning: string
 }
 
-export function SentenceEvaluationPanel({ word }: SentenceEvaluationPanelProps) {
+export function SentenceEvaluationPanel({ word, meaning }: SentenceEvaluationPanelProps) {
   const { L } = useLang()
   const [sentence, setSentence] = useState('')
   const evaluation = useSentenceEvaluation()
@@ -21,7 +25,7 @@ export function SentenceEvaluationPanel({ word }: SentenceEvaluationPanelProps) 
 
   const handleSubmit = () => {
     if (!canSubmit) return
-    evaluation.mutate(trimmed)
+    evaluation.mutate({ sentence: trimmed, word, meaning })
   }
 
   return (
