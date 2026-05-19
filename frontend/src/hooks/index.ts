@@ -3,3 +3,4 @@ export { useCards, useCreateCard, useUpdateCard, useDeleteCard } from './useCard
 export type { UpdateCardVariables } from './useCards'
 export { useQuizCards, useSubmitAnswer } from './useQuiz'
 export { useTopicProgress, useDashboard } from './useProgress'
+export { useSentenceEvaluation } from './useSentenceEvaluation'
