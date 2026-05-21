@@ -80,6 +80,11 @@ export const I18N = {
     colPct: '%',
     colAccStreak: 'Acc · Streak',
     colDueToday: 'Due Today',
+    cards: 'cards',
+    demoHintIntro: 'Want to try logged-in features —',
+    demoHintFeatures: 'quiz, progress tracking, dashboard, and AI sentence evaluation',
+    demoHintRegister: 'Register your own account',
+    demoHintOr: ', or sign in with the demo account',
     // — Sentence evaluation —
     evalPanelTitle: 'Try a sentence',
     evalPanelPrompt: 'Write a Finnish sentence using this word:',
@@ -178,6 +183,11 @@ export const I18N = {
     colPct: '%',
     colAccStreak: 'Tark. · Putki',
     colDueToday: 'Tänään',
+    cards: 'korttia',
+    demoHintIntro: 'Haluatko kokeilla kirjautuneen käyttäjän ominaisuuksia —',
+    demoHintFeatures: 'tietovisa, edistymisen seuranta, hallintapaneeli ja tekoälyn lausearviointi',
+    demoHintRegister: 'Rekisteröi oma tili',
+    demoHintOr: ' tai kirjaudu sisään demotunnuksilla',
     // — Sentence evaluation —
     evalPanelTitle: 'Kokeile lausetta',
     evalPanelPrompt: 'Kirjoita suomenkielinen lause käyttäen tätä sanaa:',

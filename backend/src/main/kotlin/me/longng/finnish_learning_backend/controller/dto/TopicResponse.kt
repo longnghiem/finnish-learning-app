@@ -8,11 +8,13 @@ import me.longng.finnish_learning_backend.domain.Topic
 data class TopicResponse(
     val id: Int,
     val name: String,
+    val totalCards: Int,
 ) {
     companion object {
-        fun from(topic: Topic): TopicResponse = TopicResponse(
+        fun from(topic: Topic, totalCards: Int): TopicResponse = TopicResponse(
             id = topic.id,
             name = topic.name,
+            totalCards = totalCards,
         )
     }
 }

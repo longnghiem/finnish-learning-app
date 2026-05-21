@@ -12,6 +12,7 @@ export interface CardResponse {
 export interface TopicResponse {
     id: number
     name: string
+    totalCards: number
 }
 
 export interface ErrorResponse {
