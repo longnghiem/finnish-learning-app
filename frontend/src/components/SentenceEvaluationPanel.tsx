@@ -24,18 +24,21 @@ interface SentenceEvaluationPanelProps {
 export function SentenceEvaluationPanel({ word, meaning, autoFocus }: SentenceEvaluationPanelProps) {
   const { L } = useLang()
   const [sentence, setSentence] = useState('')
+  const [prevWord, setPrevWord] = useState(word)
   const evaluation = useSentenceEvaluation()
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Reset input + reveal-focus when the active word changes (new card flipped).
-  useEffect(() => {
+  if (prevWord !== word) {
+    setPrevWord(word)
     setSentence('')
     evaluation.reset()
+  }
+
+  useEffect(() => {
     if (autoFocus && inputRef.current) {
       const t = setTimeout(() => inputRef.current?.focus(), 250)
       return () => clearTimeout(t)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [word, autoFocus])
 
   const trimmed = sentence.trim()

@@ -203,11 +203,13 @@ export function PortfolioPage() {
           <div className="absolute left-1.5 top-2 bottom-2 w-0.5 bg-border rounded-[2px]" />
 
           <div className="flex flex-col gap-[18px]">
-            {CV.experience.map((job, i) => (
+            {CV.experience.map((job, i) => {
+              const isCurrent = 'current' in job && job.current
+              return (
               <div key={i} className="relative">
                 <span
                   className={`absolute -left-5 top-6 w-3.5 h-3.5 rounded-full border-2 ${
-                    job.current
+                    isCurrent
                       ? 'bg-amber border-amber shadow-[0_0_0_4px_rgba(255,189,89,0.18)]'
                       : 'bg-surface border-border'
                   }`}
@@ -223,12 +225,12 @@ export function PortfolioPage() {
                     </div>
                     <span
                       className={`text-[11.5px] font-mono font-semibold rounded-md px-[9px] py-1 whitespace-nowrap border ${
-                        job.current
+                        isCurrent
                           ? 'text-amber bg-[rgba(255,189,89,0.12)] border-[rgba(255,189,89,0.35)]'
                           : 'text-text-muted bg-surface-alt border-border'
                       }`}
                     >
-                      {job.period}{job.current ? '  · current' : ''}
+                      {job.period}{isCurrent ? '  · current' : ''}
                     </span>
                   </div>
                   <ul className="list-none p-0 m-0 flex flex-col gap-2.5">
@@ -244,7 +246,8 @@ export function PortfolioPage() {
                   </ul>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
