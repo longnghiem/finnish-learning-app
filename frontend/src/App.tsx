@@ -11,6 +11,7 @@ import { AdminPage } from './pages/AdminPage.tsx'
 import {RegisterPage} from "./pages/RegisterPage.tsx";
 import {QuizPage} from "./pages/QuizPage.tsx";
 import {DashboardPage} from "./pages/DashboardPage.tsx";
+import {PortfolioPage} from "./pages/PortfolioPage.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,6 +26,7 @@ function AppInner() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/topics/:topicId" element={<TopicPage />} />

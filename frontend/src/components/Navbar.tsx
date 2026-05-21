@@ -19,6 +19,7 @@ export function Navbar() {
 
   const isAdminRoute = location.pathname === '/admin'
   const isDashboardRoute = location.pathname === '/dashboard'
+  const isPortfolioRoute = location.pathname === '/portfolio'
 
   const handleLogout = () => {
     logout()
@@ -41,6 +42,11 @@ export function Navbar() {
         <button onClick={toggleDark} className={pillClassName(false)} title="Toggle dark mode">
           {dark ? '☀️' : '🌙'}
         </button>
+
+        {/* About me - public portfolio */}
+        <Link to="/portfolio" className={`${pillClassName(isPortfolioRoute)} no-underline inline-block`}>
+          {L.aboutMe}
+        </Link>
 
         {/* Dashboard - any authenticated user */}
         {isLoggedIn && (
