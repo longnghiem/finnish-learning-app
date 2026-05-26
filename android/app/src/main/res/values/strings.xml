@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Finnish Learning</string>
+
+    <!-- Navigation labels -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_portfolio">Portfolio</string>
+    <string name="nav_login">Log in</string>
+    <string name="nav_logout">Log out</string>
+    <string name="nav_register">Register</string>
 </resources>
