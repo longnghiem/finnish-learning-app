@@ -5,7 +5,7 @@ import java.time.Instant
 /**
  * Event published to Kafka when a user answers a quiz question.
  *
- * The synchronous path (REST → review_schedules DB) is the source of truth.
+ * The committed `review_schedule` row is the source of truth.
  * This event triggers the asynchronous path: a Kafka consumer updates
  * pre-aggregated statistics in `user_topic_stats` for fast dashboard queries.
  *

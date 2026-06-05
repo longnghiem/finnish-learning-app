@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service
 /**
  * Publishes [QuizAnswerEvent]s to the `quiz-answers` Kafka topic.
  *
- * This is called by the quiz service after the synchronous DB update to`review_schedules` completes.
+ * This is invoked by [QuizAnswerEventListener] on TransactionPhase.AFTER_COMMIT, only once the
+ * "review_schedule" write has actually committed
  * The event triggers the asynchronous stats aggregation pipeline.
  *
  * Publishing is fire-and-forget: if Kafka is unavailable, the quiz answer is still persisted in the DB (source of truth).

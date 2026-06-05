@@ -10,6 +10,7 @@ import me.longng.finnish_learning_backend.event.QuizEventProducer
 import me.longng.finnish_learning_backend.persistence.CardRepository
 import me.longng.finnish_learning_backend.persistence.ReviewScheduleRepository
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -21,13 +22,14 @@ import java.time.Instant
  * - [CardRepository] for card data
  * - [ReviewScheduleRepository] for spaced repetition state
  * - [calculateNextReview] (SM-2 algorithm) for schedule computation
- * - [QuizEventProducer] for async stats aggregation via Kafka
+ * - [ApplicationEventPublisher] to emit a [QuizAnswerEvent] that is forwarded to Kafka
+ *   only after the transaction commits.
  */
 @Service
 class QuizService (
     private val cardRepository: CardRepository,
     private val reviewScheduleRepository: ReviewScheduleRepository,
-    private val quizEventProducer: QuizEventProducer,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     private val logger = LoggerFactory.getLogger(QuizService::class.java)
 
@@ -63,6 +65,7 @@ class QuizService (
 
     /**
      * Processes a quiz answer: runs SM-2, persists the updated schedule, publishes Kafka event.
+     * Publishes the event after commit to ensure no event is published for a rolled-back answer
      *
      * @param quality Self-assessed recall quality (UI sends 1/3/4/5).
      * @return The updated schedule state for frontend display.
@@ -91,9 +94,10 @@ class QuizService (
             nextReviewDate = nextReview.nextReviewDate,
         )
 
-        // Publish Kafka event
+        // Emit an in-process Spring application event. QuizAnswerEventListener forwards it to Kafka
+        // on TransactionPhase.AFTER_COMMIT
         val correct = quality >= 3
-        quizEventProducer.publish(QuizAnswerEvent(
+        applicationEventPublisher.publishEvent(QuizAnswerEvent(
             userId = userId,
             cardId = cardId,
             topicId = card.topicId,

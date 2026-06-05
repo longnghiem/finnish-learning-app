@@ -46,7 +46,15 @@ When a user submits a quiz answer, a `QuizAnswerEvent` is published to the `quiz
 `QuizStatsConsumer` reads from this topic and updates the pre-aggregated `user_topic_stats` table (used by progress/dashboard endpoints).
 
 ```
-Quiz answer → DB (source of truth) → QuizEventProducer → quiz-answers topic → QuizStatsConsumer → user_topic_stats
+  Quiz answer
+    → QuizService.submitAnswer  [@Transactional]
+         → DB: review_schedule (source of truth)
+         → publishEvent(QuizAnswerEvent)            (in-process, held until commit)
+    → COMMIT
+    → QuizAnswerEventListener  [@TransactionalEventListener(AFTER_COMMIT)]
+         → QuizEventProducer → quiz-answers topic
+    → QuizStatsConsumer → user_topic_stats
+
 ```
 
 ## AI Sentence Evaluation

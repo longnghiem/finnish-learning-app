@@ -14,6 +14,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Instant
 import java.time.LocalDate
 import kotlin.test.assertEquals
@@ -25,9 +26,9 @@ class QuizServiceTest {
 
     private val cardRepository: CardRepository = mock()
     private val reviewScheduleRepository: ReviewScheduleRepository = mock()
-    private val quizEventProducer: QuizEventProducer = mock()
+    private val applicationEventPublisher: ApplicationEventPublisher = mock()
 
-    private val quizService = QuizService(cardRepository, reviewScheduleRepository, quizEventProducer)
+    private val quizService = QuizService(cardRepository, reviewScheduleRepository, applicationEventPublisher)
 
     private val testCard = Card(
         id = 42,
@@ -176,7 +177,7 @@ class QuizServiceTest {
 
         // Verify Kafka event content
         val eventCaptor = argumentCaptor<QuizAnswerEvent>()
-        verify(quizEventProducer).publish(eventCaptor.capture())
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture())
         val event = eventCaptor.firstValue
         assertEquals(1, event.userId)
         assertEquals(42, event.cardId)
@@ -225,7 +226,7 @@ class QuizServiceTest {
 
         // Verify Kafka event marks as incorrect
         val eventCaptor = argumentCaptor<QuizAnswerEvent>()
-        verify(quizEventProducer).publish(eventCaptor.capture())
+        verify(applicationEventPublisher).publishEvent(eventCaptor.capture())
         assertFalse(eventCaptor.firstValue.correct)
     }
 }
