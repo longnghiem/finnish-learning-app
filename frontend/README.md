@@ -45,6 +45,18 @@ The design was implemented by **Claude Design**
 
 ## Getting Started
 
+### Prerequisites
+
+- **Node.js** `^20.19.0 || >=22.12.0` (required by Vite 8). Tested on Node 20.20.
+- **npm** `>=10` (ships with the Node versions above).
+
+Check your versions:
+
+```bash
+node -v
+npm -v
+```
+
 ### Install & Run
 
 ```bash
