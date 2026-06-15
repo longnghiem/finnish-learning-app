@@ -12,11 +12,11 @@ import retrofit2.http.Query
 interface QuizApi {
 
     @GET("api/quiz/topics/{topicId}/cards")
-    suspend fun nextBatch(
+    suspend fun fetchQuizCards(
         @Path("topicId") topicId: Int,
         @Query("limit") limit: Int = 10,
     ): List<QuizCardResponse>
 
     @POST("api/quiz/answer")
-    suspend fun submit(@Body body: SubmitAnswerRequest): SubmitAnswerResponse
+    suspend fun submitAnswer(@Body body: SubmitAnswerRequest): SubmitAnswerResponse
 }

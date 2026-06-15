@@ -9,12 +9,12 @@ import retrofit2.http.Query
 interface CardApi {
 
     @GET("api/cards")
-    suspend fun list(
+    suspend fun fetchCards(
         @Query("topicId") topicId: Int? = null,
         @Query("searchType") searchType: SearchType? = null,
         @Query("searchTerm") searchTerm: String? = null,
     ): List<CardResponse>
 
     @GET("api/cards/{id}")
-    suspend fun byId(@Path("id") id: Int): CardResponse
+    suspend fun fetchCardById(@Path("id") id: Int): CardResponse
 }

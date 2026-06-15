@@ -8,5 +8,5 @@ import retrofit2.http.POST
 interface EvaluationApi {
 
     @POST("api/evaluate-sentence")
-    suspend fun evaluate(@Body body: EvaluateSentenceRequest): EvaluateSentenceResponse
+    suspend fun evaluateSentence(@Body body: EvaluateSentenceRequest): EvaluateSentenceResponse
 }

@@ -7,8 +7,8 @@ import retrofit2.http.GET
 interface ProgressApi {
 
     @GET("api/progress/topics")
-    suspend fun topics(): List<TopicProgressResponse>
+    suspend fun fetchTopicProgress(): List<TopicProgressResponse>
 
     @GET("api/progress/dashboard")
-    suspend fun dashboard(): DashboardResponse
+    suspend fun fetchDashboard(): DashboardResponse
 }

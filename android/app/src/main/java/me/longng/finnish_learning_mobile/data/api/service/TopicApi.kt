@@ -6,5 +6,5 @@ import retrofit2.http.GET
 interface TopicApi {
 
     @GET("api/topics")
-    suspend fun list(): List<TopicResponse>
+    suspend fun fetchTopics(): List<TopicResponse>
 }
