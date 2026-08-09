@@ -39,8 +39,6 @@ out/
 ### Kotlin ###
 .kotlin
 
-.github/
-
 **/application-dev.properties
 .env
 
