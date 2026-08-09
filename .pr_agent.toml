@@ -1,0 +1,68 @@
+# .pr_agent.toml — configuration for the PR-Agent AI code-review bot.
+#
+#
+# ⚠️  The project's coding rules are NOT in this file. They live in
+#     .ai/conventions/REVIEW_CONTEXT.md and reach the model via
+#     `repo_context_files` below.
+#
+# ⚠️  The OpenAI credential is supplied at runtime by the OPENAI_KEY repository secret.
+
+[config]
+model = "gpt-4o-mini"
+fallback_models = ["gpt-4o-mini"]
+
+repo_context_files = [".ai/conventions/REVIEW_CONTEXT.md"]
+repo_context_from_default_branch = true
+repo_context_max_lines = 500
+
+[ignore]
+# Defence in depth. Most of these paths are already covered by .gitignore and
+# should never appear in a diff; listing them keeps reviews scoped if something
+# generated is committed by accident, and documents what is deliberately not reviewed.
+glob = [
+    "**/build/**",
+    "**/node_modules/**",
+    "frontend/dist/**",
+    "**/gradle/wrapper/**",
+    "**/*.lock",
+    "frontend/package-lock.json",
+    "db_backup/**",
+    "deploy/artefacts/**",
+]
+
+[pr_reviewer]
+require_tests_review = true
+extra_instructions = '''
+- Treat the repository context files as authoritative. They override any generic
+  best-practice advice you would otherwise give, and the numbered rules in
+  REVIEW_CONTEXT.md take priority over everything else. When a rule is violated,
+  name it.
+- This is a monorepo of three independent builds (backend/, frontend/, android/)
+  that share no code. Never propose a refactor spanning them.
+- Do not report: formatting, import order, or style nits already enforced by
+  ESLint/Prettier; praise; restatements of what the diff already shows;
+  speculative refactors with no concrete defect behind them.
+- frontend/ has no test runner configured — never ask for frontend tests.
+'''
+
+[pr_code_suggestions]
+num_code_suggestions = 6
+suggestions_score_threshold = 7
+extra_instructions = '''
+- Suggestions must be idiomatic for the stack of the file being changed (see the
+  repository context files) and must compile against it.
+- Never suggest a change spanning backend/, frontend/ and android/ — they are
+  independent builds with no shared code.
+- Do not propose new libraries or dependencies.
+- Do not suggest edits to generated jOOQ sources or to checked-in Flyway
+  migrations.
+- Prefer the smallest change that fixes a concrete defect.
+'''
+
+[pr_description]
+extra_instructions = '''
+- This is a monorepo: state which of backend/, frontend/, android/ or deploy/
+  the pull request touches.
+- Call out schema changes (a new Flyway V* migration), new environment
+  variables, and any change to the public REST API contract.
+'''
