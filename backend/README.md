@@ -60,14 +60,14 @@ When a user submits a quiz answer, a `QuizAnswerEvent` is published to the `quiz
 ## AI Sentence Evaluation
 
 Authenticated users can submit a Finnish sentence (with the target word + meaning) via `POST /api/evaluate-sentence`.
-The backend forwards it to the [Groq](https://groq.com/) chat-completions API (default model: `llama-3.3-70b-versatile`)
+The backend forwards it to the [Groq](https://groq.com/) chat-completions API (default model: `openai/gpt-oss-120b`)
 and returns structured feedback: CEFR level, grammar mistake flag, typo flag, whether the target word was used correctly,
 an optional correction, and free-form feedback.
 
 A per-user `DailyQuotaTracker` enforces `GROQ_DAILY_QUOTA` requests per day **before** the upstream call to avoid burning 
 credits on rate-limited users. Excess requests get `429`. If `GROQ_API_KEY` is blank, evaluation is disabled.
 
-- System prompt: `src/main/resources/prompts/sentence-evaluation-system-prompt.txt`
+- System prompt: `src/main/resources/prompts/sentence-evaluation-system-prompt.md`
 
 ## Docker
 
@@ -120,6 +120,6 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 # Groq sentence evaluator
 GROQ_API_KEY=                  # Groq API key — leave blank to disable evaluation
 GROQ_BASE_URL=https://api.groq.com/openai/v1
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
 GROQ_DAILY_QUOTA=50             # per-user requests per day
 ```
