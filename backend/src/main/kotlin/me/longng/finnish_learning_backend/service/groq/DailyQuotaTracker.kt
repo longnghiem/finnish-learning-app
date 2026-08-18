@@ -32,11 +32,11 @@ class DailyQuotaTracker(
         val updated = counters.compute(userId) { _, existing ->
             when {
                 existing == null || existing.date != today -> Counter(today, 1)
-                existing.count >= dailyLimit -> existing
+                existing.count > dailyLimit -> existing
                 else -> existing.copy(count = existing.count + 1)
             }
         }!!
-        return updated.count <= dailyLimit && updated.date == today
+        return updated.count <= dailyLimit
     }
 
     companion object {
