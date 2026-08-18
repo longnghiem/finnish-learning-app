@@ -26,8 +26,6 @@ data class EvaluateSentenceResponse(
  * (e.g. `"A1.1"`) which is illegal in Kotlin identifiers, so the enum
  * constants use underscores and map via [JsonProperty].
  *
- * Declaration order is significant: ordinal comparisons are used to
- * decide whether a sentence is below B1. Do not reorder.
  */
 enum class FinnishLevel {
     @JsonProperty("A1.1") A1_1,
