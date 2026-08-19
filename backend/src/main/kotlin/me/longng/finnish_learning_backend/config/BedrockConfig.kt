@@ -20,9 +20,9 @@ import java.time.Duration
  */
 @Configuration
 class BedrockConfig (
-    @Value($$"${app.bedrock.region}") private val region: String,
-    @Value($$"${app.bedrock.connect-timeout-ms}") private val connectTimeoutMs: Long,
-    @Value($$"${app.bedrock.read-timeout-ms}") private val readTimeoutMs: Long,
+    @Value("\${app.bedrock.region}") private val region: String,
+    @Value("\${app.bedrock.connect-timeout-ms}") private val connectTimeoutMs: Long,
+    @Value("\${app.bedrock.read-timeout-ms}") private val readTimeoutMs: Long,
 ) {
     @Bean
     fun bedrockRuntimeClient(): BedrockRuntimeClient =
