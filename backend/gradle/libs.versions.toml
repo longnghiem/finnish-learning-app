@@ -7,6 +7,7 @@ mockito-kotlin = "5.4.0"
 postgresql = "42.7.2"
 jooq-codegen = "10.1"
 jjwt = "0.12.6"
+aws-sdk = "2.53.3"
 
 [libraries]
 # Kotlin
@@ -59,6 +60,10 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka" }
 spring-kafka-test = { module = "org.springframework.kafka:spring-kafka-test" }
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
+
+# aws
+aws-bedrockruntime = { module = "software.amazon.awssdk:bedrockruntime", version.ref = "aws-sdk" }
+aws-url-connection-client = { module = "software.amazon.awssdk:url-connection-client", version.ref = "aws-sdk" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

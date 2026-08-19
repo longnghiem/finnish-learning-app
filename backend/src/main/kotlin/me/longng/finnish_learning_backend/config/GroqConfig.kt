@@ -16,7 +16,7 @@ import org.springframework.web.client.RestClient
  */
 @Configuration
 class GroqConfig(
-    @Value($$"${app.groq.base-url}") private val baseUrl: String,
+    @Value("\${app.groq.base-url}") private val baseUrl: String,
 ) {
     @Bean
     fun groqRestClient(): RestClient = RestClient.builder()

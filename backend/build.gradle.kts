@@ -74,6 +74,13 @@ dependencies {
 	implementation(libs.spring.kafka)
 	testImplementation(libs.spring.kafka.test)
 	testImplementation(libs.testcontainers.kafka)
+
+	// AWS Bedrock (essay evaluation)
+	implementation(libs.aws.bedrockruntime) {
+		exclude(group = "software.amazon.awssdk", module = "apache5-client")
+		exclude(group = "software.amazon.awssdk", module = "netty-nio-client")
+	}
+	implementation(libs.aws.url.connection.client)
 }
 
 // Load .env at configuration time for JOOQ codegen
