@@ -4,6 +4,9 @@ import me.longng.finnish_learning_backend.service.CardNotFoundException
 import me.longng.finnish_learning_backend.service.InvalidCredentialsException
 import me.longng.finnish_learning_backend.service.TopicNotFoundException
 import me.longng.finnish_learning_backend.service.UsernameAlreadyExistsException
+import me.longng.finnish_learning_backend.service.bedrock.EssayEvaluationMisconfiguredException
+import me.longng.finnish_learning_backend.service.bedrock.EssayEvaluationQuotaExceededException
+import me.longng.finnish_learning_backend.service.bedrock.EssayEvaluationUpstreamException
 import me.longng.finnish_learning_backend.service.groq.SentenceEvaluationMisconfiguredException
 import me.longng.finnish_learning_backend.service.groq.SentenceEvaluationQuotaExceededException
 import me.longng.finnish_learning_backend.service.groq.SentenceEvaluationUpstreamException
@@ -123,6 +126,39 @@ class GlobalExceptionHandler {
         return buildResponse(
             HttpStatus.BAD_GATEWAY,
             "Sentence evaluation is not configured on this server.",
+        )
+    }
+
+    @ExceptionHandler(EssayEvaluationQuotaExceededException::class)
+    fun handleEssayEvaluationQuota(
+        ex: EssayEvaluationQuotaExceededException,
+    ): ResponseEntity<ErrorResponse> {
+        logger.warn("Essay evaluation quota exceeded: {}", ex.message)
+        return buildResponse(
+            HttpStatus.TOO_MANY_REQUESTS,
+            "Daily limit of ${ex.dailyLimit} essay evaluations reached. Try again tomorrow.",
+        )
+    }
+
+    @ExceptionHandler(EssayEvaluationUpstreamException::class)
+    fun handleEssayEvaluationUpstream(
+        ex: EssayEvaluationUpstreamException,
+    ): ResponseEntity<ErrorResponse> {
+        logger.error("Essay evaluation upstream failure", ex)
+        return buildResponse(
+            HttpStatus.BAD_GATEWAY,
+            "The essay evaluation service is currently unavailable. Please try again later.",
+        )
+    }
+
+    @ExceptionHandler(EssayEvaluationMisconfiguredException::class)
+    fun handleEssayEvaluationMisconfigured(
+        ex: EssayEvaluationMisconfiguredException,
+    ): ResponseEntity<ErrorResponse> {
+        logger.error("Essay evaluation is not configured: {}", ex.message)
+        return buildResponse(
+            HttpStatus.BAD_GATEWAY,
+            "Essay evaluation is not configured on this server.",
         )
     }
 
