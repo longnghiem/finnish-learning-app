@@ -14,5 +14,20 @@ export { fetchQuizCards, submitAnswer } from './quiz'
 export type { QuizCard, SubmitAnswerResponse } from './quiz'
 export { fetchTopicProgress, fetchDashboard } from './progress'
 export type { TopicProgress, DashboardStats } from './progress'
-export { evaluateSentence, EvaluationError } from './evaluation'
-export type { FinnishLevel, EvaluateSentenceResponse, EvaluationErrorCode } from './evaluation'
+export {
+  evaluateSentence,
+  evaluateEssay,
+  fetchEssayPrompts,
+  EvaluationError,
+  MIN_ESSAY_LENGTH,
+  MAX_ESSAY_LENGTH,
+} from './evaluation'
+export type {
+  FinnishLevel,
+  EvaluateSentenceResponse,
+  EvaluationErrorCode,
+  EssayPrompt,
+  EssayIssue,
+  EssayIssueKind,
+  EvaluateEssayResponse,
+} from './evaluation'
