@@ -34,7 +34,14 @@ function statusToCode(status: number): EvaluationErrorCode {
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
-  if (response.ok) return (await response.json()) as T
+  if (response.ok) {
+    try {
+      return (await response.json()) as T
+    } catch {
+      // 2xx whose body isn't JSON
+      throw new EvaluationError('UPSTREAM', response.statusText)
+    }
+  }
 
   let message: string
   try {
