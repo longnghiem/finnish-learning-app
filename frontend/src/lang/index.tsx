@@ -122,7 +122,7 @@ export const I18N = {
     essayOnTopic: 'On topic',
     essayOffTopic: 'Off topic or not in Finnish',
     essayIssues: 'Issues',
-    essayNoIssues: 'No grammar or spelling issues found 🎉',
+    essayNoIssues: 'No grammar or spelling issues found',
     essayIssueGrammar: 'Grammar',
     essayIssueTypo: 'Typo',
   },
