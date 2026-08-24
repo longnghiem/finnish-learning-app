@@ -44,3 +44,12 @@ export const dashTableColsCls = 'grid grid-cols-[minmax(160px,2fr)_72px_minmax(1
 export const dashTableHeaderCellCls = 'text-[10px] font-semibold text-text-muted tracking-[0.4px] uppercase'
 export const dashRowBtnCls = 'bg-transparent border-0 cursor-pointer font-[inherit] text-left ' +
   'border-t border-border py-3.5 transition-opacity duration-150 hover:opacity-70'
+
+// AI evaluation — shared by the sentence panel and the essay page
+export const evalPanelCls = 'w-full rounded-2xl border border-border bg-surface shadow-card px-[22px] pt-5 pb-[18px] ' +
+  'flex flex-col gap-[13px]'
+export const evalResultCls = 'flex flex-col gap-3.5 mt-0.5 pt-3.5 border-t border-dashed border-border ' +
+  'animate-[fadeIn_280ms_ease]'
+export const evalTextareaCls = `${inputCls} resize-y leading-[1.55] text-[0.95rem]`
+export const evalErrorBoxCls = 'rounded-lg border border-red/40 bg-red/10 text-red px-3.5 py-2.5 text-[0.85rem] ' +
+  'font-semibold animate-[fadeIn_220ms_ease]'
