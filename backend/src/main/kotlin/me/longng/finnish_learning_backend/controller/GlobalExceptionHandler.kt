@@ -15,12 +15,21 @@ import org.springframework.security.access.AccessDeniedException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.web.HttpMediaTypeNotSupportedException
+import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
+/**
+ * Central exception-to-HTTP-status mapping for the whole API.
+ * All responses use [ErrorResponse].
+ */
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
@@ -160,6 +169,36 @@ class GlobalExceptionHandler {
             HttpStatus.BAD_GATEWAY,
             "Essay evaluation is not configured on this server.",
         )
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleUnreadableBody(ex: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
+        logger.warn("Malformed request body: {}", ex.message)
+        return buildResponse(HttpStatus.BAD_REQUEST, "Malformed or missing request body.")
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleTypeMismatch(ex: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse> {
+        logger.warn("Parameter type mismatch: name={} required={}", ex.name, ex.requiredType?.simpleName)
+        return buildResponse(HttpStatus.BAD_REQUEST, "Invalid value for parameter '${ex.name}'.")
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
+    fun handleUnsupportedMediaType(ex: HttpMediaTypeNotSupportedException): ResponseEntity<ErrorResponse> {
+        logger.warn("Unsupported media type: {}", ex.message)
+        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported content type for this endpoint.")
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleMethodNotSupported(ex: HttpRequestMethodNotSupportedException): ResponseEntity<ErrorResponse> {
+        logger.warn("Method not supported: {}", ex.message)
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, "HTTP method not supported for this endpoint.")
+    }
+
+    @ExceptionHandler(NoResourceFoundException::class)
+    fun handleNoResourceFound(ex: NoResourceFoundException): ResponseEntity<ErrorResponse> {
+        logger.warn("No handler for request: {}", ex.message)
+        return buildResponse(HttpStatus.NOT_FOUND, "The requested resource was not found.")
     }
 
     @ExceptionHandler(Exception::class)
