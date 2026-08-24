@@ -151,7 +151,9 @@ export function TopicPage() {
   )
 
   return (
-    <div className={`page-enter mx-auto px-6 pt-7 pb-12 ${slotReserved ? 'max-w-[1080px]' : 'max-w-170'}`}>
+    <div
+      className={`page-enter mx-auto px-6 pt-7 pb-12 ${slotReserved ? 'max-w-[1080px]' : 'max-w-170'}`}
+    >
       <button
         onClick={() => navigate('/')}
         className="bg-transparent border-none cursor-pointer text-text-muted text-sm font-[inherit] mb-4 flex items-center gap-1 p-0 font-semibold"
@@ -159,9 +161,7 @@ export function TopicPage() {
         {L.allTopics}
       </button>
 
-      <h1 className={pageTitleCls}>
-        {topicName}
-      </h1>
+      <h1 className={pageTitleCls}>{topicName}</h1>
 
       <div className="mb-7 max-w-170 mx-auto">
         <SearchBar
@@ -177,15 +177,25 @@ export function TopicPage() {
 
       {flashcardArea}
 
-      {isLoggedIn && total > 0 && (
-        <div className="mt-7 flex justify-center">
+      {isLoggedIn && (
+        <div className="mt-7 flex justify-center gap-3 flex-wrap">
+          {total > 0 && (
+            <button
+              type="button"
+              onClick={() => navigate(`/quiz/${numericTopicId}`)}
+              className="rounded-lg bg-accent text-white px-6 py-3 text-[0.95rem] font-extrabold border-none cursor-pointer
+                font-[inherit] transition-colors duration-150 hover:opacity-90"
+            >
+              {L.startQuiz}
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => navigate(`/quiz/${numericTopicId}`)}
-            className="rounded-lg bg-accent text-white px-6 py-3 text-[0.95rem] font-extrabold border-none cursor-pointer
-              font-[inherit] transition-colors duration-150 hover:opacity-90"
+            onClick={() => navigate(`/essay/${numericTopicId}`)}
+            className="rounded-lg bg-surface-alt text-text-primary border border-border px-6 py-3 text-[0.95rem]
+              font-extrabold cursor-pointer font-[inherit] transition-colors duration-150 hover:opacity-80"
           >
-            {L.startQuiz}
+            {L.writeEssay}
           </button>
         </div>
       )}

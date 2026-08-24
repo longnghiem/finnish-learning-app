@@ -12,6 +12,7 @@ import {RegisterPage} from "./pages/RegisterPage.tsx";
 import {QuizPage} from "./pages/QuizPage.tsx";
 import {DashboardPage} from "./pages/DashboardPage.tsx";
 import {PortfolioPage} from "./pages/PortfolioPage.tsx";
+import { EssayPage } from './pages/EssayPage.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,7 @@ function AppInner() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/topics/:topicId" element={<TopicPage />} />
           <Route path="/quiz/:topicId" element={<QuizPage />} />
+          <Route path="/essay/:topicId" element={<EssayPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Routes>
