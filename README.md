@@ -65,6 +65,7 @@ Spring Boot 4 / Kotlin 2.2 / Java 21 API backed by PostgreSQL 16 (jOOQ + Flyway)
 Quiz answers are written to the DB (source of truth) and published to the `quiz-answers` Kafka topic; a consumer maintains the pre-aggregated `user_topic_stats` table that powers the progress dashboard.
 
 **AI sentence evaluation** is LLM-backed *automated writing evaluation* (AWE): Groq chat completion (`openai/gpt-oss-120b`) returns JSON-mode structured feedback — CEFR sub-level, grammar / typo / word-usage flags, and an optional correction — behind a per-user daily quota.
+**AI short essay evaluation** is the same idea at paragraph length, on a different provider: Claude Haiku 4.5 via AWS Bedrock's Converse API, called from `eu-north-1` through the EU inference profile, with the response shape enforced by a JSON Schema rather than described in a prompt — CEFR sub-level, a topic-relevance flag, and a list of grammar/typo issues each paired with a substitutable fix. 
 
 Quick start (from `backend/`):
 ```

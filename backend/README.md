@@ -69,6 +69,25 @@ credits on rate-limited users. Excess requests get `429`. If `GROQ_API_KEY` is b
 
 - System prompt: `src/main/resources/prompts/sentence-evaluation-system-prompt.md`
 
+## AI Short Essay Evaluation
+
+Authenticated users pick a prompt for a topic and submit a 300–2,500 character Finnish essay.
+The backend grades it with **Claude Haiku 4.5 on AWS Bedrock** and returns a CEFR sub-level, an on-topic flag, 
+a list of concrete grammar/typo issues with suggested fixes, and optional feedback.
+
+### How Bedrock is used
+
+- **Converse API**, AWS SDK for Java v2 (`software.amazon.awssdk:bedrockruntime`). 
+- **Structured output**, not prompt-described JSON. The response contract is sent as
+  `outputConfig.textFormat` with a JSON Schema (`ESSAY_RESPONSE_SCHEMA` in
+  `BedrockEssayClient`), so the model cannot return a shape Jackson fails to bind.
+- **EU inference profile** `eu.anthropic.claude-haiku-4-5-20251001-v1:0`, invoked from
+  `eu-north-1`. 
+- **Cost control before the call.** `EssayQuotaTracker` caps each user at
+  `BEDROCK_DAILY_QUOTA` (20) evaluations per Helsinki day and is checked *before* the
+  billable request, so a rate-limited user never triggers one.
+- System prompt: `src/main/resources/prompts/essay-evaluation-system-prompt.md`
+
 ## Docker
 
 Kafka runs in **KRaft mode** (`KAFKA_PROCESS_ROLES: broker,controller`), so no separate Zookeeper container is needed.
@@ -122,4 +141,9 @@ GROQ_API_KEY=                  # Groq API key — leave blank to disable evaluat
 GROQ_BASE_URL=https://api.groq.com/openai/v1
 GROQ_MODEL=openai/gpt-oss-120b
 GROQ_DAILY_QUOTA=50             # per-user requests per day
+
+# Bedrock essay evaluator — LOCAL DEVELOPMENT ONLY.
+AWS_BEARER_TOKEN_BEDROCK=       # Bedrock long-term API key (starts ABSK...) — set an expiry
+AWS_REGION=eu-north-1
+
 ```

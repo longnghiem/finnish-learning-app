@@ -82,7 +82,7 @@ export const I18N = {
     colDueToday: 'Due Today',
     cards: 'cards',
     demoHintIntro: 'Want to try logged-in features —',
-    demoHintFeatures: 'quiz, progress tracking, dashboard, and AI sentence evaluation',
+    demoHintFeatures: 'quiz, progress tracking, dashboard, and AI sentence/essay evaluation',
     demoHintRegister: 'Register your own account',
     demoHintOr: ', or sign in with the demo account',
     // — Sentence evaluation —
@@ -207,7 +207,7 @@ export const I18N = {
     colDueToday: 'Tänään',
     cards: 'korttia',
     demoHintIntro: 'Haluatko kokeilla kirjautuneen käyttäjän ominaisuuksia —',
-    demoHintFeatures: 'tietovisa, edistymisen seuranta, hallintapaneeli ja tekoälyn lausearviointi',
+    demoHintFeatures: 'tietovisa, edistymisen seuranta, hallintapaneeli ja tekoälyn lause- ja esseearviointi',
     demoHintRegister: 'Rekisteröi oma tili',
     demoHintOr: ' tai kirjaudu sisään demotunnuksilla',
     // — Sentence evaluation —
