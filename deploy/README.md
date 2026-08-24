@@ -54,6 +54,10 @@ Trade-off: no high availability, no autoscaling.
 | **Public DNS** | The DNS name AWS assigns the instance, e.g. `ec2-13-50-1-23.eu-north-1.compute.amazonaws.com`. |
 | **Free Tier** | AWS gives every new account 12 months of free usage on a list of services. `t3.micro` 750 hr/mo + 30 GB EBS are the lines that matter for us. |
 | **Budget Alert** | A free AWS Billing feature that emails you when spending crosses a threshold (e.g. $1, $5, $10). Always set this on day 1. |
+| **IAM role** | A bundle of AWS permissions that a *machine* can wear, rather than a person. The instance assumes the role and receives temporary, auto-rotating credentials — no password, no key file, nothing stored on disk. |
+| **Instance profile** | The wrapper that lets an EC2 instance wear an IAM role. Picking the "EC2" use case in the console creates it for you; a scripted version has to create it explicitly. |
+| **Bedrock** | AWS's managed service for calling foundation models (Anthropic's Claude among them) through an ordinary AWS API, billed per token and authenticated with ordinary AWS credentials. |
+| **Inference profile** | A Bedrock alias that routes one call to whichever region in a group has capacity. `eu.anthropic.claude-haiku-4-5-…` stays inside EU regions. Stockholm has no on-demand Anthropic capacity, so this app always calls through the profile, never the bare model id. |
 
 ---
 
@@ -190,6 +194,67 @@ If this fails:
 | `Permission denied (publickey)` | Wrong key path, or the SG rule for SSH points at the wrong IP. |
 | `Connection timed out` | SG rule missing for port 22, or your home IP changed. Update the SG. |
 | `WARNING: UNPROTECTED PRIVATE KEY FILE` | Forgot `chmod 600 ~/.ssh/finnish-demo.pem`. |
+
+### 4.7 Give the instance permission to call Bedrock
+The instance gets its credentials from an **IAM role** it wears through an **instance profile**
+
+#### 4.7.1 Enable Anthropic models on the account
+Bedrock console → region **Europe (Stockholm) `eu-north-1`** → **Model catalog** → **Claude Haiku 4.5**.
+
+#### 4.7.2 Create the policy
+IAM Console → **Policies** → **Create policy** → **JSON** tab. Paste this, replacing
+`<ACCOUNT_ID>` with your 12-digit AWS account id **in the first ARN only**:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "InvokeHaikuViaEuProfile",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+      ],
+      "Resource": [
+        "arn:aws:bedrock:eu-north-1:<ACCOUNT_ID>:inference-profile/eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:eu-north-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:eu-west-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:eu-west-3::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:eu-central-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:eu-south-1::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0",
+        "arn:aws:bedrock:eu-south-2::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
+      ]
+    }
+  ]
+}
+```
+
+Name it **`fin-app-bedrock-invoke`**.
+- **The six regions are not a guess.** They came from
+  `aws bedrock get-inference-profile --inference-profile-identifier eu.anthropic.claude-haiku-4-5-20251001-v1:0 --query "models[].modelArn"`.
+- `InvokeModelWithResponseStream` is included deliberately, to leave the door open for
+  streaming later.
+
+#### 4.7.3 Create the role
+
+IAM Console → **Roles** → **Create role**:
+
+1. **Trusted entity type**: AWS service
+2. **Use case**: EC2
+3. **Permissions**: attach `fin-app-bedrock-invoke`
+4. **Role name**: `fin-app-ec2-bedrock`
+
+#### 4.7.4 Attach the role to the instance
+
+EC2 Console → **Instances** → select the instance from §4.5 (`finnish-demo`) →
+**Actions** → **Security** → **Modify IAM role** → pick `fin-app-ec2-bedrock` →
+**Update IAM role**.
+
+#### 4.7.5 Local development is different
+
+Your laptop has no instance profile, so it authenticates with a **Bedrock long-term API
+key** (`AWS_BEARER_TOKEN_BEDROCK`) kept in the gitignored `backend/.env`. 
 
 ---
 

@@ -40,6 +40,7 @@ The design was implemented by **Claude Design**
 - `/login` — Login page
 - `/admin` — Card management page (admin only)
 - `/dashboard` — Progress dashboard (authenticated users only): per-topic stats, streaks, accuracy, due cards
+- `/essay/:topicId` — Short-essay writing page (authenticated users only): prompt dropdown, 300–2,500 character editor with live counter, and the AI evaluation result — CEFR level, on-topic flag, and per-issue fixes
 
 ---
 
