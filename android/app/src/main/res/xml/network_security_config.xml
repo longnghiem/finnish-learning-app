@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">ec2-51-20-56-106.eu-north-1.compute.amazonaws.com</domain>
+        <domain includeSubdomains="false">opisuomea.org</domain>
     </domain-config>
 
     <domain-config cleartextTrafficPermitted="true">
