@@ -20,7 +20,7 @@ const CV = {
     { group: 'Mobile',     items: ['Android (Kotlin)', 'Voice-directed (EdgeVUI)', 'Zebra & Honeywell scanners'] },
     { group: 'Testing',    items: ['Selenium (Web)', 'Appium (Mobile)', 'JUnit 5', 'Mockito'] },
     { group: 'DevOps',     items: ['GitLab CI/CD', 'Docker Compose', 'Ansible', 'AWS'] },
-    { group: 'Agentic AI', items: ['Claude Code', 'Claude Design', 'GitHub Copilot', 'Pi Coding Agent'] },
+    { group: 'AI',         items: ['Agents', 'PR-Agent', 'MCP', 'Groq', 'AWS Bedrock'] },
   ],
   experience: [
     {
