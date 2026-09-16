@@ -163,17 +163,29 @@ You can never re-download this file. If you lose it, delete the key pair and cre
      - Name: `finnish-demo-sg`.
      - Inbound rules:
 
-       | Type   | Protocol | Port | Source           | Why                    |
-       |--------|----------|------|------------------|------------------------|
-       | SSH    | TCP      | 22   | **My IP**        | so only you can SSH    |
-       | HTTP   | TCP      | 80   | `0.0.0.0/0`      | so anyone can view app |
+       | Type   | Protocol | Port | Source           | Why                       |
+       |--------|----------|------|------------------|---------------------------|
+       | SSH    | TCP      | 22   | **My IP**        | so only you can SSH       |
+       | HTTP   | TCP      | 80   | `0.0.0.0/0`      | redirect + cert renewal   |
+       | HTTPS  | TCP      | 443  | `0.0.0.0/0`      | so anyone can view app    |
 
        Do **not** open 8080, 9092, or 5432. Those services bind to `127.0.0.1` on the host and must not be reachable from the internet.
+
+       Port 80 must stay open even though the site is HTTPS-only in practice: Let's Encrypt
+       renews over the HTTP-01 challenge on port 80 every ~60 days, and nginx serves the
+       HTTP→HTTPS redirect there. Closing it breaks renewal silently — see
+       `HTTPS_MIGRATION_PLAN.md` §6.
 7. **Configure storage**:
    - 1 × **30 GiB** **gp3** root volume.
    - Confirm "Free tier eligible storage" appears in the right panel.
 8. Click **Launch instance**. Wait for **Instance State: Running** (~30 s).
-9. Click the instance ID → copy the **Public IPv4 DNS** (e.g. `ec2-13-50-1-23.eu-north-1.compute.amazonaws.com`). Note it; the rest of this guide calls it `<EC2_HOST>`.
+9. Click the instance ID → copy the **Public IPv4 address**. Note it; the rest of this guide calls it `<EC2_HOST>`.
+
+   Allocate an **Elastic IP** and associate it with the instance (EC2 Console → Elastic IPs →
+   Allocate, then Actions → Associate). An auto-assigned address is released whenever the
+   instance stops — including stops AWS initiates — and **cannot** be converted to an Elastic
+   IP afterwards. Do this before pointing a domain at the box. The current deployment uses
+   `51.20.173.173` (`eipalloc-0ba117a9172d96614`).
 
 ### 4.6 First SSH
 
@@ -413,7 +425,8 @@ The script:
 2. uploads the SPA bundle,
 3. restarts `finnish-backend`,
 4. smoke-tests `http://127.0.0.1:8080/api-docs` until the backend is ready,
-5. prints `Deployed: http://<EC2_HOST>/`.
+5. prints `Deployed: http://<EC2_HOST>/` — the real URL is **https://opisuomea.org**;
+   the script still prints the bare-IP form.
 
 If the smoke test fails, the script prints the last 50 lines of
 `journalctl -u finnish-backend` so you can see why.
@@ -422,7 +435,8 @@ If the smoke test fails, the script prints the last 50 lines of
 
 ## 8. Verify
 
-In a browser, open `http://<EC2_HOST>/`.
+In a browser, open **https://opisuomea.org**. (`http://` redirects to it; the bare
+`http://<EC2_HOST>/` still works but serves the cert for the wrong name, so the browser warns.)
 
 You should see the SPA. Walk through:
 
@@ -487,11 +501,17 @@ No EC2-side changes needed — provisioning is one-time.
 
 ## 10. Pause and tear down
 
-### Pause (no compute charges, EBS still bills ~$2/mo after Free Tier)
+### Pause (no compute charges; EBS ~$2.50/mo and the Elastic IP ~$3.65/mo still bill)
 
 EC2 Console → Instance → **Instance state → Stop instance**. To resume, **Start instance**.
 
-> When you stop+start an instance, AWS reassigns a new public DNS unless you allocated an Elastic IP.
+> **Stopping is less of a saving than it looks.** Compute stops billing, but the 30 GB gp3
+> volume keeps charging ~$2.50/mo and the **Elastic IP starts charging ~$3.65/mo** — AWS bills
+> idle public IPv4 addresses at the same $0.005/hr as in-use ones. A stopped instance therefore
+> costs ~$6/mo rather than ~$0.
+>
+> Releasing the Elastic IP to avoid that charge would break `https://opisuomea.org`, since the
+> A record points at it. Keep the address; treat pausing as a modest saving, not a free one.
 
 ### Permanent tear-down (zero ongoing cost)
 
@@ -511,16 +531,62 @@ Snapshots cost ~$0.05/GB/mo. A 5 GB snapshot is essentially free.
 
 ## 11. Cost expectations
 
-| Item | Free Tier (months 1–12) | Post-Free-Tier |
-|---|---|---|
-| `t3.micro` × 750 hr/mo | $0 | ~$7.50/mo |
-| 30 GB gp3 EBS | $0 (always-free) | ~$2.40/mo |
-| Outbound data (first 1 GB/mo) | $0 | $0 |
-| Public IPv4 (assigned, in use) | $0 (always-free) | $3.65/mo |
-| **Total** | **$0** | **~$10–14/mo** |
+**This deployment is not on the classic 12-month Free Tier.** It runs on the newer
+credits-based **Free Plan**: usage is billed at normal rates and offset line-by-line by a
+credit, which is why the console reads ~$0 while real charges accrue underneath.
 
-Set the **$1 Budget Alert** in step 4.2. If it ever fires, you've drifted off
-the Free Tier path — investigate before continuing.
+### Actual monthly cost — $14.31/mo AWS, ~$15.16/mo all-in
+
+Rates derived from the August 2026 bill (`eu-north-1`):
+
+| Usage type | Qty | Cost | Rate |
+|---|---|---|---|
+| `EUN1-BoxUsage:t3.micro` | 743.83 hr | $8.03 | $0.0108/hr |
+| `EUN1-PublicIPv4:InUseAddress` | 744.12 hr | $3.72 | $0.0050/hr |
+| `EUN1-EBS:VolumeUsage.gp3` | 30 GB | $2.51 | $0.0836/GB-mo |
+| Data transfer out | 0.45 GB | ~$0 | first 100 GB/mo free |
+| Domain — `opisuomea.org` (Cloudflare Registrar) | — | ~$0.85 | ~$10/yr, billed annually |
+| **Total** | | **~$15.16/mo** | |
+
+Let's Encrypt certificates and Cloudflare DNS are free. The Elastic IP adds nothing over the
+auto-assigned address it replaced — since 1 February 2024 AWS charges $0.005/hr for *every*
+public IPv4 address, elastic or not.
+
+### Credits run out around November 2026
+
+```
+Month      Usage     Credit
+2026-05     9.07     -9.07     (partial — launched May 12)
+2026-06    13.88    -13.88
+2026-07    14.26    -14.26
+2026-08    14.31    -14.31
+2026-09     6.25     -6.25     (in progress)
+                              Total credits burned: $57.76
+```
+
+Whichever comes first — the ~6-month plan limit or the remaining balance. Confirm the exact
+figure in **Billing console → Credits**.
+
+### Budget alerts must track gross usage, not net cost
+
+The $1 Budget Alert in step 4.2 **will never fire** while credits are active: they pin net
+cost at $0, so the alert watches a number that cannot move. Set the budget on **gross usage**
+or on **credit balance** instead. Otherwise the first signal that credits ran out is a real
+invoice.
+
+### Reducing cost once credits end
+
+Now that the public URL is a domain rather than an IP, the instance can be changed underneath
+it without breaking the link:
+
+| Change | Saving |
+|---|---|
+| Graviton `t4g.micro` (stack is all JVM / dnf packages, ports cleanly) | ~$1.55/mo |
+| 30 GB → 16 GB root volume | ~$1.23/mo |
+| 1-year Compute Savings Plan | ~$2.25/mo |
+
+Lightsail at $5/mo all-in is cheaper still, but cannot use an EC2 instance profile — the
+Bedrock IAM role would regress to static access keys on disk. Not worth it.
 
 ---
 

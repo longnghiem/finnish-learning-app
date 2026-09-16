@@ -14,7 +14,7 @@ See each subdirectory's README for full setup, env vars, and commands.
 
 The app is deployed on AWS EC2 (Amazon Linux 2023, t3.micro, Free Tier) and is reachable at:
 
-**http://ec2-51-20-56-106.eu-north-1.compute.amazonaws.com/**
+**https://opisuomea.org**
 
 Demo credentials:
 
