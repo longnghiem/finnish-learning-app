@@ -39,7 +39,7 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"http://ec2-51-20-56-106.eu-north-1.compute.amazonaws.com/\""
+                "\"https://opisuomea.org/\""
             )
         }
     }
