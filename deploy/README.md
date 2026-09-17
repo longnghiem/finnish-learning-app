@@ -15,9 +15,12 @@ One EC2 virtual machine in AWS, configured like this:
 ┌────────────────────────────────────────────────────────────────────────┐
 │  EC2  t3.micro  (Amazon Linux 2023, 1 GB RAM + 4 GB swap, 30 GB disk)  │
 │                                                                        │
-│  nginx :80   ←  the only public entry point                            │
+│  nginx :80 / :443  ←  the only public entry point                      │
+│    ├─ :80            →  301 redirect to HTTPS (+ ACME challenge)       │
 │    ├─ /              →  /var/www/finnish/dist/   (static SPA)          │
 │    └─ /api/*         →  127.0.0.1:8080           (Spring Boot)         │
+│                                                                        │
+│  Let's Encrypt cert   (certbot, auto-renews ~every 60 days)            │
 │                                                                        │
 │  Spring Boot jar      :8080   (systemd, -Xmx384m, Amazon Corretto 21)  │
 │  Kafka KRaft broker   :9092   (systemd, -Xmx256m, loopback only)       │
@@ -349,7 +352,7 @@ JWT_SECRET=<paste the output of: openssl rand -base64 32>
 GROQ_API_KEY=<paste your Groq API key — see below>
 ```
 
-### 5.6 Install the nginx site
+### 5.6 Install the nginx site (phase 1 — HTTP only)
 
 ```bash
 sudo bash deploy/nginx/install-nginx.sh
@@ -358,7 +361,31 @@ sudo systemctl status nginx --no-pager | head -5
 
 Expect `Active: active (running)`.
 
-### 5.7 Confirm dependencies
+The site is HTTP-only at this point. TLS is phase 2, in §5.7.
+
+### 5.7 Enable HTTPS (phase 2)
+
+**Prerequisite:** the domain's DNS A record must already point at this instance's
+Elastic IP, and port 443 must be open in the Security Group. Let's Encrypt fetches
+the HTTP-01 challenge over the public internet — if the A record still points at an
+old instance, the challenge is served by that host and issuance fails.
+
+```bash
+sudo CERTBOT_EMAIL=you@example.com bash deploy/nginx/install-tls.sh
+```
+
+This obtains the certificate with `certbot certonly --webroot` (which never edits
+nginx config) and then installs `deploy/nginx/finnish-tls.conf` over
+`/etc/nginx/conf.d/finnish.conf`.
+
+Expect the script to end with `Renewal dry-run passed.`
+
+After this point, **do not re-run `install-nginx.sh` on this host** — it installs the
+HTTP-only bootstrap vhost and will refuse with exit 3 to protect the running TLS
+config. To change the vhost, edit `finnish-tls.conf` in the repo and re-run
+`install-tls.sh`.
+
+### 5.8 Confirm dependencies
 
 ```bash
 systemctl is-active postgresql kafka nginx
@@ -647,6 +674,8 @@ deploy/
 │   ├── server.properties           Kafka config (loopback listeners only)
 │   └── kafka.service               systemd unit for Kafka
 └── nginx/
-    ├── finnish.conf                site config: SPA + /api/ proxy
-    └── install-nginx.sh            EC2: drop site config + reload nginx
+    ├── finnish.conf                phase 1 vhost: HTTP only, ACME-ready
+    ├── finnish-tls.conf            phase 2 vhost: :80 redirect + :443 ssl
+    ├── install-nginx.sh            EC2: phase 1 — drop site config + reload nginx
+    └── install-tls.sh              EC2: phase 2 — certbot + swap in the TLS vhost
 ```
