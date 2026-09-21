@@ -113,9 +113,4 @@ src/
 └── styles.ts     # Shared Tailwind class strings 
 ```
 
----
 
-## To Do
-
-1. Fix card management page – Create card modal is missing topic selection
-2. Token expiry handling
