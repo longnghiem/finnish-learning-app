@@ -85,6 +85,15 @@ describe('buildIndex', () => {
     expect(Number.isNaN(Date.parse(index.generatedAt))).toBe(false)
   })
 
+  it('testBuildIndex_EmptyProfile', async () => {
+    const error = await expectValidationError(tempDir)
+
+    expect(error.problems).toEqual([
+      `(profile): no .md files found in ${tempDir}`,
+      '(profile): expected exactly one "about" entry (in about.md), found none',
+    ])
+  })
+
   it('testBuildIndex_DuplicateId', async () => {
     await writeProfile(tempDir, {
       'about.md': VALID_ABOUT,

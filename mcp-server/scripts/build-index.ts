@@ -3,12 +3,14 @@
  *
  * Usage: `npm run build:index -- --profile-dir <path> --out <file>`
  *
- * Exit code 0 = written; 1 = validation failed, bad arguments, or the folder couldn't be read.
+ * Exit code 0 = written; 1 = validation failed, bad arguments (including an `--out` path that
+ * isn't a `.json` file outside the profile folder), or the folder couldn't be read or written.
  */
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { buildIndex, ProfileValidationError } from '../src/profile/buildIndex.ts'
+import { checkOutputPath } from '../src/profile/checkOutputPath.ts'
 
 const USAGE = 'Usage: npm run build:index -- --profile-dir <path> --out <file>'
 
@@ -16,6 +18,12 @@ async function main(): Promise<number> {
   const args = readArgs()
   if (args === undefined) {
     console.error(USAGE)
+    return 1
+  }
+
+  const outputProblems = checkOutputPath(args.profileDir, args.out)
+  if (outputProblems.length > 0) {
+    outputProblems.forEach((problem) => console.error(problem))
     return 1
   }
 
