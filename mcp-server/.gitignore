@@ -1,0 +1,6 @@
+node_modules/
+dist/
+build/
+# The real profile must never be committed. Keep it outside the repo
+# Leading "/" = only mcp-server/profile/, not src/profile/ (the code)
+/profile/

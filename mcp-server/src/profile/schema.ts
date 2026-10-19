@@ -1,0 +1,83 @@
+import { z } from 'zod'
+
+/** The profile entries */
+export const ENTRY_TYPES = ['about', 'experience', 'project', 'story'] as const
+export const EntryTypeSchema = z.enum(ENTRY_TYPES)
+export type EntryType = z.infer<typeof EntryTypeSchema>
+
+/**
+ * How well the owner knows a skill. The fit check relies on these to avoid overselling:
+ * - `strong`: used a lot in real work, could lead others;
+ * - `working`: used for real, productive without help;
+ * - `familiar`: tried it or knows the basics.
+ */
+export const SKILL_LEVELS = ['strong', 'working', 'familiar'] as const
+export const SkillLevelSchema = z.enum(SKILL_LEVELS)
+export type SkillLevel = z.infer<typeof SkillLevelSchema>
+
+/** Longest allowed `summary`. Summaries go into every prompt, so they must stay short. */
+export const MAX_SUMMARY_LENGTH = 300
+
+/**
+ * Longest allowed `id`. Same limit as the `get_entry(id)` tool input in TASK_05, so every
+ * entry can actually be requested.
+ */
+export const MAX_ID_LENGTH = 100
+
+/**
+ * Allowed characters in an `id`: lower-case letters, digits, `-` and `/`. Same pattern as the
+ * `get_entry(id)` tool input.
+ */
+export const ID_PATTERN = /^[a-z0-9/-]+$/
+
+const nonBlankString = z.string().trim().min(1, 'must not be empty')
+
+/** Zod schema for one item of `skills`: `{ name: Kotlin, level: strong }`. */
+export const SkillSchema = z.strictObject({
+  name: nonBlankString,
+  level: SkillLevelSchema,
+})
+/** A skill with its proficiency level. */
+export type Skill = z.infer<typeof SkillSchema>
+
+/**
+ * Zod schema for the YAML frontmatter of a profile entry.
+ *
+ * It checks what can be judged from one file alone. Rules that need the file path or the
+ * other files (id = path, type = folder, unique ids, exactly one `about`, non-empty body) are
+ * checked in `buildIndex.ts`.
+ *
+ * `strictObject` rejects unknown keys, so a typo such as `sumary:` fails the build instead of
+ * being silently ignored.
+ */
+export const EntrySchema = z
+  .strictObject({
+    id: z
+      .string()
+      .max(MAX_ID_LENGTH)
+      .regex(ID_PATTERN, 'may only contain a-z, 0-9, "-" and "/"'),
+    type: EntryTypeSchema,
+    title: nonBlankString,
+    tags: z.array(nonBlankString).readonly(),
+    summary: nonBlankString.max(MAX_SUMMARY_LENGTH),
+    period: nonBlankString.optional(),
+    skills: z.array(SkillSchema).readonly().optional(),
+    notDone: z.array(nonBlankString).readonly().optional(),
+  })
+  .readonly()
+  .refine((entry) => entry.period === undefined || entry.type === 'experience', {
+    message: 'is only allowed on experience entries',
+    path: ['period'],
+  })
+export type EntryFrontmatter = z.infer<typeof EntrySchema>
+
+/** One profile entry: its frontmatter plus the markdown body (the text after the frontmatter). */
+export type Entry = EntryFrontmatter & { readonly body: string }
+
+/** The build output written to `index.json` and bundled into the Lambda. */
+export type ProfileIndex = {
+  /** When the index was built, as an ISO 8601 timestamp (UTC). */
+  readonly generatedAt: string
+  /** All entries, sorted by `type`, then `id`. */
+  readonly entries: readonly Entry[]
+}
