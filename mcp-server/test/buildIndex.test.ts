@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { buildIndex, ProfileValidationError } from '../src/profile/buildIndex.ts'
-import { ENTRY_TYPES, SKILL_LEVELS } from '../src/profile/schema.ts'
+import { ENTRY_TYPES, MAX_BODY_LENGTH, SKILL_LEVELS } from '../src/profile/schema.ts'
 
 const EXAMPLE_PROFILE_DIR = path.resolve(import.meta.dirname, '../profile.example')
 
@@ -68,8 +68,10 @@ describe('buildIndex', () => {
 
     expect(index.entries.map((entry) => entry.id)).toEqual([
       'about',
+      'education/example-university',
       'experience/acme-backend',
       'experience/globex-fullstack',
+      'faq/role-looking-for',
       'projects/finnish-learning-app',
       'stories/kafka-read-model',
     ])
@@ -119,6 +121,50 @@ describe('buildIndex', () => {
 
     expect(error.problems).toEqual([
       'projects/misfiled.md: type "story" doesn\'t match its folder (expected "project")',
+    ])
+  })
+
+  it('testBuildIndex_PeriodOnlyOnEducationAndExperience', async () => {
+    await writeProfile(tempDir, {
+      'about.md': VALID_ABOUT,
+      'education/degree.md': entryFile([
+        ...minimalFrontmatter('education/degree', 'education'),
+        'period: 2014 – 2018',
+      ]),
+      'experience/job.md': entryFile([
+        ...minimalFrontmatter('experience/job', 'experience'),
+        'period: 2018 – 2024',
+      ]),
+      'faq/why-leaving.md': entryFile([
+        ...minimalFrontmatter('faq/why-leaving', 'faq'),
+        'period: 2024 – 2025',
+      ]),
+    })
+
+    const error = await expectValidationError(tempDir)
+
+    expect(error.problems).toEqual([
+      'faq/why-leaving.md: period: is only allowed on education and experience entries',
+    ])
+  })
+
+  it('testBuildIndex_BodyTooLong', async () => {
+    await writeProfile(tempDir, {
+      'about.md': VALID_ABOUT,
+      'stories/at-limit.md': entryFile(
+        minimalFrontmatter('stories/at-limit', 'story'),
+        'x'.repeat(MAX_BODY_LENGTH),
+      ),
+      'stories/too-long.md': entryFile(
+        minimalFrontmatter('stories/too-long', 'story'),
+        'x'.repeat(MAX_BODY_LENGTH + 1),
+      ),
+    })
+
+    const error = await expectValidationError(tempDir)
+
+    expect(error.problems).toEqual([
+      `stories/too-long.md: body is ${MAX_BODY_LENGTH + 1} characters, at most ${MAX_BODY_LENGTH} allowed (split it into several entries, e.g. one story per episode)`,
     ])
   })
 

@@ -1,9 +1,20 @@
 import { z } from 'zod'
 
-/** The profile entries */
-export const ENTRY_TYPES = ['about', 'experience', 'project', 'story'] as const
+/**
+ * The kinds of profile entries:
+ * - `about`: the one overview entry (location, languages, overall skills, gaps);
+ * - `education`: a degree, certificate or substantial course;
+ * - `experience`: a job;
+ * - `faq`: the owner's own answer to a question recruiters often ask (e.g. why they are leaving);
+ * - `project`: something built, including open source, talks and articles;
+ * - `story`: a concrete anecdote that shows a skill (situation, task, action, result).
+ */
+export const ENTRY_TYPES = ['about', 'education', 'experience', 'faq', 'project', 'story'] as const
 export const EntryTypeSchema = z.enum(ENTRY_TYPES)
 export type EntryType = z.infer<typeof EntryTypeSchema>
+
+/** The {@link EntryType}s that may have a `period`: the ones that cover a span of time. */
+export const PERIOD_TYPES: readonly EntryType[] = ['education', 'experience']
 
 /**
  * How well the owner knows a skill. The fit check relies on these to avoid overselling:
@@ -19,6 +30,13 @@ export type SkillLevel = z.infer<typeof SkillLevelSchema>
 export const MAX_SUMMARY_LENGTH = 300
 
 /**
+ * Longest allowed body, in characters. The backend passes at most 8,000 characters of a `get_entry`
+ * result to the model and drops the rest. The result is the whole entry as JSON (frontmatter fields,
+ * quotes, escaped line breaks), so the body must stay well below that or its end is never read.
+ */
+export const MAX_BODY_LENGTH = 6000
+
+/**
  * Longest allowed `id`. Same limit as the `get_entry(id)` tool input in TASK_05, so every
  * entry can actually be requested.
  */
@@ -29,6 +47,16 @@ export const MAX_ID_LENGTH = 100
  * `get_entry(id)` tool input.
  */
 export const ID_PATTERN = /^[a-z0-9/-]+$/
+
+/**
+ * Zod schema for an entry id: at most {@link MAX_ID_LENGTH} characters matching
+ * {@link ID_PATTERN}. Used for the `id` field of {@link EntrySchema} and for the input of the MCP
+ * tool `get_entry`, so both apply exactly the same rules.
+ */
+export const EntryIdSchema = z
+  .string()
+  .max(MAX_ID_LENGTH)
+  .regex(ID_PATTERN, 'may only contain a-z, 0-9, "-" and "/"')
 
 const nonBlankString = z.string().trim().min(1, 'must not be empty')
 
@@ -52,10 +80,7 @@ export type Skill = z.infer<typeof SkillSchema>
  */
 export const EntrySchema = z
   .strictObject({
-    id: z
-      .string()
-      .max(MAX_ID_LENGTH)
-      .regex(ID_PATTERN, 'may only contain a-z, 0-9, "-" and "/"'),
+    id: EntryIdSchema,
     type: EntryTypeSchema,
     title: nonBlankString,
     tags: z.array(nonBlankString).readonly(),
@@ -65,8 +90,8 @@ export const EntrySchema = z
     notDone: z.array(nonBlankString).readonly().optional(),
   })
   .readonly()
-  .refine((entry) => entry.period === undefined || entry.type === 'experience', {
-    message: 'is only allowed on experience entries',
+  .refine((entry) => entry.period === undefined || PERIOD_TYPES.includes(entry.type), {
+    message: `is only allowed on ${PERIOD_TYPES.join(' and ')} entries`,
     path: ['period'],
   })
 export type EntryFrontmatter = z.infer<typeof EntrySchema>

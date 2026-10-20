@@ -5,10 +5,9 @@ access to a curated developer profile, and nothing else.
 
 - The **Spring Boot backend** is the MCP host and client. It runs the chat with Claude on AWS
   Bedrock and calls this server when the model wants to look something up.
-- This server runs on **AWS Lambda** (TASK_05/06). It only knows one bundled file, `index.json`,
+- This server runs on **AWS Lambda**. It only knows one bundled file, `index.json`,
   built from markdown profile entries by the script in this project.
 - Recruiters never talk to this server directly.
-
 
 ## Requirements
 
@@ -19,6 +18,8 @@ access to a curated developer profile, and nothing else.
 npm ci               # install the exact versions from package-lock.json
 npm run typecheck    # TypeScript type check, no output files
 npm test             # unit tests (Vitest)
+npm run format       # format the TypeScript files with Prettier (markdown is left alone)
+npm run format:check # only report unformatted files
 ```
 
 ## The profile
@@ -28,12 +29,12 @@ A profile is a folder of markdown files, one file per **entry**:
 ```
 <profile-dir>/
 ├── about.md                  # exactly one; type: about
+├── education/<name>.md       # one per degree, certificate or course; type: education
 ├── experience/<name>.md      # one per job; type: experience
-├── projects/<name>.md        # one per project; type: project
+├── faq/<name>.md             # one per common recruiter question (title = the question); type: faq
+├── projects/<name>.md        # one per project, talk or article; type: project
 └── stories/<name>.md         # one per anecdote (STAR style); type: story
 ```
-
-`profile.example/` is a complete, **fictional** example. Copy it as a starting point.
 
 ### Where the real profile lives
 
@@ -41,7 +42,6 @@ A profile is a folder of markdown files, one file per **entry**:
 outside the repo (for example `~/private/recruiter-profile/`) and pass its path with
 `--profile-dir`. `/profile/` is listed in `.gitignore` as a safety net in case a copy ends up
 inside this folder.
-
 
 ### Entry format
 
@@ -51,30 +51,30 @@ Each file starts with a **frontmatter** block (YAML between two `---` lines), fo
 ```markdown
 ---
 id: experience/acme-backend        # unique; equals the path without .md
-type: experience                   # about | experience | project | story
+type: experience                   # about | education | experience | faq | project | story
 title: Backend developer, Acme Oy
 tags: [kotlin, spring-boot, kafka]
-summary: One or two sentences, ≤300 chars. Shown by list_entries.
-period: 2022-03 – 2024-08          # optional, experience only
+summary: One or two sentences, ≤300 chars. In the index (every prompt) and in list_entries.
+period: 2022-03 – 2024-08          # optional, education and experience only
 skills:                            # optional; proficiency is what fit-check honesty is based on
   - { name: Kotlin, level: strong }      # strong | working | familiar
   - { name: AWS Lambda, level: familiar }
 notDone: [Kubernetes in production]   # optional; explicit gaps (about entry mainly)
 ---
-Body markdown. The full text returned by get_entry. Quotes for fit check are taken from here.
+Body markdown. The full text returned by get_entry.
 ```
 
 | Field | Required | Meaning |
 |---|---|---|
 | `id` | yes | The file path without `.md`, e.g. `projects/finnish-learning-app`. Only `a-z`, `0-9`, `-`, `/`; at most 100 characters. |
-| `type` | yes | Must match the folder: `about.md` → `about`, `experience/` → `experience`, `projects/` → `project`, `stories/` → `story`. |
+| `type` | yes | Must match the folder: `about.md` → `about`, `education/` → `education`, `experience/` → `experience`, `faq/` → `faq`, `projects/` → `project`, `stories/` → `story`. |
 | `title` | yes | Short human-readable name. |
 | `tags` | yes | Keywords (technologies, topics). May be empty: `[]`. |
 | `summary` | yes | 1–2 sentences, at most 300 characters. The model sees only this before deciding to open the entry, so make it specific. |
-| `period` | no | When it happened, free text. Only allowed on `experience` entries. |
+| `period` | no | When it happened, free text. Only allowed on `education` and `experience` entries. |
 | `skills` | no | `{ name, level }` items. `strong` = used a lot, could lead; `working` = productive without help; `familiar` = basics only. Be honest: the fit check uses these levels to avoid overselling. |
 | `notDone` | no | Things you have explicitly **not** done. Gives the fit check real gaps to report. Mostly used in `about.md`. |
-| body | yes | The full text in markdown. Must not be empty. Fit-check quotes must come from the title, summary or body. |
+| body | yes | The full text in markdown. Not empty, at most 6,000 characters: the backend passes at most 8,000 characters of an entry to the model, so a longer body would lose its end. Fit-check quotes must come from the title, summary or body. |
 
 Unknown fields are rejected, so a typo such as `sumary:` fails the build instead of being ignored.
 
@@ -89,7 +89,7 @@ The build fails, listing **every** problem with its file path, when:
 - a file uses an upper-case extension (`.MD`);
 - two files declare the same `id`;
 - there isn't exactly one `about` entry;
-- the body is empty.
+- the body is empty or longer than 6,000 characters.
 
 ## Building the index
 
@@ -100,25 +100,62 @@ npm run build:index -- --profile-dir <path-to-profile> --out build/index.json
 npm run build:index -- --profile-dir profile.example --out build/index.json
 ```
 
-On success it prints `Wrote <n> entries to <file>` and exits with code 0. On any problem it prints
-the list and exits with code 1, so scripts can stop before deploying a broken profile.
+## The MCP server
 
-`index.json` has this shape (entries sorted by `type`, then `id`):
+The server is read-only and stateless. It answers every request with one plain JSON reply
+(never an SSE stream).
 
-```json
-{
-  "generatedAt": "2026-10-19T12:00:00.000Z",
-  "entries": [
-    {
-      "id": "about",
-      "type": "about",
-      "title": "About Example Person",
-      "tags": ["kotlin", "typescript"],
-      "summary": "…",
-      "skills": [{ "name": "Kotlin", "level": "strong" }],
-      "notDone": ["Kubernetes in production"],
-      "body": "…"
-    }
-  ]
-}
+### Tools
+
+| Tool | Input | Output | Errors (as tool error results, `isError: true`) |
+|---|---|---|---|
+| `list_entries` | `{ type?: "about" \| "education" \| "experience" \| "faq" \| "project" \| "story" }`; no other fields | JSON array of `{ id, type, title, tags, summary }`, **no body**, in index order (by type, then id) | Unknown `type` or extra fields: `Input validation error: …` |
+| `get_entry` | `{ id: string }`: at most 100 characters of `a-z`, `0-9`, `-`, `/`; no other fields | One complete entry as JSON: all frontmatter fields plus `body` | Invalid id or extra fields: `Input validation error: …`. Unknown id: `Unknown entry id "<id>". Call list_entries to see the available ids.` |
+
+### Resource `profile://index`
+
+Plain text (`text/plain`), one line per entry, fields separated by ` | `:
+
 ```
+id | type | title | tags | summary
+```
+
+For example:
+
+```
+about | about | About Example Person | kotlin, typescript, spring-boot, react, aws | Fictional full-stack developer used as sample data. …
+experience/acme-backend | experience | Backend developer, Acme Oy | kotlin, spring-boot, kafka, postgresql | Built and ran Kotlin/Spring Boot services …
+```
+
+Inside a value, line breaks become spaces (so each entry is exactly one line) and `|` becomes `/`
+(so `|` only separates fields). The backend reads this resource and puts it into the model's prompt.
+
+### Running locally
+
+**Development only: no authentication, listens on 127.0.0.1 only. Never deploy it.**
+
+```bash
+npm run build:index -- --profile-dir profile.example --out build/index.json
+npm run dev                                   # http://localhost:3001/mcp, index from build/index.json
+npm run dev -- --index path/to/index.json     # another index file
+```
+
+Try it from another terminal (`jq .` pretty-prints the reply):
+
+```bash
+curl -s http://localhost:3001/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H 'MCP-Protocol-Version: 2025-11-25' -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_entries","arguments":{}}}' | jq .
+```
+
+### Security
+
+- **Only the backend can call it.** In production the Lambda function URL uses `AWS_IAM` auth: AWS
+  rejects any request not signed by the backend's EC2 instance role before our code runs.
+- **Browsers are refused.** Any request with an `Origin` header gets 403. Browsers send one; the
+  backend never does.
+- **Only POST.** Anything else gets 405, before the MCP SDK sees it. This matters on Lambda: the SDK
+  would hold a GET open until the timeout, and the backend's MCP client sends one GET per connection.
+- **Small requests only.** Bodies over 64 KB get 413.
+- **Read-only, no other data.** No tool changes anything. The server has no database, makes no
+  network calls, and its Lambda role has no AWS permissions beyond writing logs.
+- **No conversation content in logs.** One log line per request: the JSON-RPC method, the tool name
+  and the latency. Never the request body.
