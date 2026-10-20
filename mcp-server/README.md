@@ -159,3 +159,22 @@ curl -s http://localhost:3001/mcp -H 'Content-Type: application/json' -H 'Accept
   network calls, and its Lambda role has no AWS permissions beyond writing logs.
 - **No conversation content in logs.** One log line per request: the JSON-RPC method, the tool name
   and the latency. Never the request body.
+
+## Deploy
+
+The server runs on AWS Lambda behind a function URL with IAM auth. The AWS resources are defined
+with the AWS CDK in [`infra/`](../infra/README.md).
+
+- **One-time setup:** [docs/runbooks/recruiter-chatbot-aws-setup.md](../docs/runbooks/recruiter-chatbot-aws-setup.md), Part A.
+- **After every change** to the profile or the code:
+
+  ```bash
+  bash deploy-mcp.sh --profile-dir <path-to-your-profile>
+  ```
+
+  It validates the profile, bundles the code (`npm run bundle` → `dist/lambda/`), runs
+  `cdk deploy`, and checks that the function URL refuses unsigned requests. `--help` lists all flags.
+- **Rehearsal:** `DRY_RUN=1 bash deploy-mcp.sh --profile-dir …` builds everything and writes the
+  CloudFormation template to `infra/cdk.out/`, without any AWS access.
+
+Everything in the deployed profile is effectively public: the chatbot can be made to repeat it.
