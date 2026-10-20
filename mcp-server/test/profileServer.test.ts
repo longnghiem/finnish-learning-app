@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { handleMcpRequest, PROFILE_INDEX_URI, SERVER_INFO } from '../src/server.ts'
+import { handleMcpRequest, PROFILE_INDEX_URI, SERVER_INFO } from '../src/profileServer.ts'
 import { FAKE_INDEX, INITIALIZE_MESSAGE, MCP_HEADERS, toolCallMessage } from './fakeIndex.ts'
 
 /**

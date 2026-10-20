@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatIndex, getEntry, listEntries } from '../src/tools.ts'
+import { formatIndex, getEntry, listEntries } from '../src/profileTools.ts'
 import { FAKE_INDEX } from './fakeIndex.ts'
 
 describe('listEntries', () => {

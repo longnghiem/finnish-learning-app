@@ -1,7 +1,7 @@
 import type { APIGatewayProxyStructuredResultV2, LambdaFunctionURLEvent } from 'aws-lambda'
 import { loadIndex } from './loadIndex.ts'
 import type { ProfileIndex } from './profile/schema.ts'
-import { handleMcpRequest, rejectByMethodOrOrigin, rejectOversizedBody } from './server.ts'
+import { handleMcpRequest, rejectByMethodOrOrigin, rejectOversizedBody } from './profileServer.ts'
 
 /**
  * The object form of a function URL result. (Lambda also accepts a bare string; we never use it,
