@@ -1,6 +1,6 @@
 import type { LambdaFunctionURLEvent } from 'aws-lambda'
 import { describe, expect, it, vi } from 'vitest'
-import { createHandler, type FunctionUrlResult } from '../src/lambda.ts'
+import { createHandler, type FunctionUrlResult } from '../src/lambdaHandler.ts'
 import { FAKE_INDEX, INITIALIZE_MESSAGE, MCP_HEADERS, toolCallMessage } from './fakeIndex.ts'
 
 const DOMAIN = 'fakeurlid0000000000000000000000.lambda-url.eu-north-1.on.aws'

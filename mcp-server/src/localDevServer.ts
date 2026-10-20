@@ -14,7 +14,7 @@ import { buffer } from 'node:stream/consumers'
 import { parseArgs } from 'node:util'
 import { loadIndex } from './loadIndex.ts'
 import type { ProfileIndex } from './profile/schema.ts'
-import { handleMcpRequest, rejectByMethodOrOrigin, rejectOversizedBody } from './server.ts'
+import { handleMcpRequest, rejectByMethodOrOrigin, rejectOversizedBody } from './profileServer.ts'
 
 const HOST = '127.0.0.1'
 const PORT = 3001
@@ -79,6 +79,6 @@ createServer((req, res) => {
 }).listen(PORT, HOST, () => {
   console.log(
     `Profile MCP server (development, NO AUTH) on http://localhost:${PORT}${MCP_PATH} ` +
-    `with ${index.entries.length} entries from ${values.index}`,
+      `with ${index.entries.length} entries from ${values.index}`,
   )
 })

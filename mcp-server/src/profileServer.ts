@@ -6,7 +6,7 @@ import {
   GetEntryInputSchema,
   listEntries,
   ListEntriesInputSchema,
-} from './tools.ts'
+} from './profileTools.ts'
 
 // Protocol version: nothing is pinned. The backend's MCP client (the Java SDK) speaks the
 // 2025-era protocol, which starts with `initialize`. This SDK serves that protocol by default, and
