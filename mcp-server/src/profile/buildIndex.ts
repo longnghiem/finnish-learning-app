@@ -1,7 +1,13 @@
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { parse as parseYaml, YAMLParseError } from 'yaml'
-import { type Entry, type EntryType, EntrySchema, type ProfileIndex } from './schema.ts'
+import {
+  type Entry,
+  type EntryType,
+  EntrySchema,
+  MAX_BODY_LENGTH,
+  type ProfileIndex,
+} from './schema.ts'
 
 /**
  * Thrown by {@link buildIndex} when the profile has problems. `message` lists every problem on
@@ -24,9 +30,14 @@ export class ProfileValidationError extends Error {
 /** The only top-level file; it holds the single `about` entry. */
 const ABOUT_FILE = 'about.md'
 
-/** Sub-folder name → the `type` its entries must have. Folders are plural, types singular. */
+/**
+ * Sub-folder name → the `type` its entries must have. Folders are plural, types singular, except
+ * where the word has no plural form in use (`education`, `experience`, `faq`).
+ */
 const FOLDER_TYPES: Readonly<Record<string, EntryType>> = {
+  education: 'education',
   experience: 'experience',
+  faq: 'faq',
   projects: 'project',
   stories: 'story',
 }
@@ -186,6 +197,11 @@ async function readEntryFile(profileDir: string, relPath: string): Promise<FileR
       ...(body.length === 0
         ? [`${relPath}: body is empty (write the entry text below the frontmatter)`]
         : []),
+      ...(body.length > MAX_BODY_LENGTH
+        ? [
+            `${relPath}: body is ${body.length} characters, at most ${MAX_BODY_LENGTH} allowed (split it into several entries, e.g. one story per episode)`,
+          ]
+        : []),
     ],
   }
 }
@@ -198,8 +214,7 @@ async function readEntryFile(profileDir: string, relPath: string): Promise<FileR
 function parseFrontmatterYaml(
   text: string,
 ):
-  | { readonly ok: true; readonly data: unknown }
-  | { readonly ok: false; readonly message: string } {
+  { readonly ok: true; readonly data: unknown } | { readonly ok: false; readonly message: string } {
   try {
     return { ok: true, data: parseYaml(text) }
   } catch (error) {
