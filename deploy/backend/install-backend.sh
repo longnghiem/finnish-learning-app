@@ -58,11 +58,11 @@ fi
 # 2. Verify provision-ec2.sh has run (we depend on the 'finnish' user).
 # ──────────────────────────────────────────────────────────────────────────────
 if ! id -u finnish >/dev/null 2>&1; then
-  fail "User 'finnish' not found. Run deploy/provision-ec2.sh first (TASK_04)."
+  fail "User 'finnish' not found. Run deploy/provision-ec2.sh first."
 fi
 
 if [[ ! -d /opt/finnish ]]; then
-  fail "/opt/finnish missing. Run deploy/provision-ec2.sh first (TASK_04)."
+  fail "/opt/finnish missing. Run deploy/provision-ec2.sh first."
 fi
 
 # Resolve the directory this script lives in so it works regardless of cwd.

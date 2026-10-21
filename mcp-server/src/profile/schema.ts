@@ -37,8 +37,8 @@ export const MAX_SUMMARY_LENGTH = 300
 export const MAX_BODY_LENGTH = 6000
 
 /**
- * Longest allowed `id`. Same limit as the `get_entry(id)` tool input in TASK_05, so every
- * entry can actually be requested.
+ * Longest allowed `id`. Entry ids and the `get_entry` tool's input are both checked with
+ * {@link EntryIdSchema}, which uses this limit, so every entry can actually be requested.
  */
 export const MAX_ID_LENGTH = 100
 
