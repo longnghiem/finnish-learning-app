@@ -176,8 +176,7 @@ You can never re-download this file. If you lose it, delete the key pair and cre
 
        Port 80 must stay open even though the site is HTTPS-only in practice: Let's Encrypt
        renews over the HTTP-01 challenge on port 80 every ~60 days, and nginx serves the
-       HTTP→HTTPS redirect there. Closing it breaks renewal silently — see
-       `HTTPS_MIGRATION_PLAN.md` §6.
+       HTTP→HTTPS redirect there. Closing it breaks renewal silently.
 7. **Configure storage**:
    - 1 × **30 GiB** **gp3** root volume.
    - Confirm "Free tier eligible storage" appears in the right panel.

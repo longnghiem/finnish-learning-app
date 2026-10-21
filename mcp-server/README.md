@@ -176,5 +176,8 @@ with the AWS CDK in [`infra/`](../infra/README.md).
   `cdk deploy`, and checks that the function URL refuses unsigned requests. `--help` lists all flags.
 - **Rehearsal:** `DRY_RUN=1 bash deploy-mcp.sh --profile-dir …` builds everything and writes the
   CloudFormation template to `infra/cdk.out/`, without any AWS access.
+- **Calling the deployed server from your laptop:** `bash allow-local-invoke.sh` allows your IAM
+  user to call the function URL (`--remove` takes that back). Then `bash verify-function-url.sh`
+  checks that an unsigned request gets 403 and a signed one gets 200, and shows the logs.
 
 Everything in the deployed profile is effectively public: the chatbot can be made to repeat it.

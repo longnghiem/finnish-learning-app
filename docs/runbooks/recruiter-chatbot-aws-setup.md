@@ -11,6 +11,12 @@ Every step has four parts: **What** it does, **Why** it's needed, the **Command*
 **Verify** it worked. Run the steps in order, from the repository root. `<ACCOUNT_ID>` is a
 placeholder; the commands fill in your real account id from a variable.
 
+**Pasting commands.** Every command here is a single line, and paste one line at a time.
+Anything longer is a script in `mcp-server/`. Terminals can split a long pasted line or add
+spaces in front of pasted lines, and that breaks commands in ways that are hard to see. One
+example: a line break inside a signed `curl` request's header makes AWS answer "The request
+signature we calculated does not match…", even though your keys are fine.
+
 ## Part A: the MCP server on Lambda
 
 ### What you'll have at the end
@@ -70,10 +76,6 @@ before it can deploy anything. It contains:
 | An ECR repository | Container images (not used by us; empty costs nothing) |
 | Five IAM roles | The CDK CLI **assumes** these to deploy: one to start deployments, one to upload files, one to upload images, one to look things up, and one that **CloudFormation itself** uses to create the resources |
 
-**Why:** the CDK doesn't call `create-function` and friends itself. It generates a CloudFormation
-template, uploads the zip to the bucket, and asks CloudFormation to make the account look like
-the template. The bootstrap stack is the place and the permissions for that.
-
 ```bash
 cd infra
 npm ci
@@ -87,70 +89,19 @@ cd ..
 aws cloudformation describe-stacks --stack-name CDKToolkit --query 'Stacks[0].StackStatus' --output text   # CREATE_COMPLETE
 ```
 
-**Good to know:**
-- The CloudFormation role gets **AdministratorAccess** by default, so CloudFormation can create
-  any resource a stack asks for. This is the standard setup. Only you can start a deployment (it
-  needs your credentials), and the `--require-approval broadening` prompt in the deploy script
-  shows every IAM change before it happens. In larger organisations this role is narrowed with
-  `--cloudformation-execution-policies`.
-- The bucket keeps **every** zip ever uploaded, so old versions of your profile pile up there
-  (private, in your account). `npx cdk gc --unstable=gc` deletes unused ones.
-- Cost: a few MB in S3, a few cents a month at most.
-
 ### A2. First deploy, with the fictional example
 
 **What:** create the stack `FinAppProfileMcp` with the **example profile**.
-**Why:** test the whole setup before any real profile text leaves your laptop.
-
-Optional, to see what will happen first:
-
-```bash
-DRY_RUN=1 bash mcp-server/deploy-mcp.sh --profile-dir mcp-server/profile.example --allow-example   # builds + synthesizes, no AWS access
-(cd infra && npx cdk diff)                                                                         # compares with what's deployed (nothing yet)
-```
-
-Then deploy:
 
 ```bash
 bash mcp-server/deploy-mcp.sh --profile-dir mcp-server/profile.example --allow-example
 ```
 
-Because this deploy **creates IAM permissions**, the CDK stops and shows a table like this:
-
-```
-IAM Statement Changes
-┌───┬─────────────────────────────┬────────┬──────────────────────────┬──────────────────────────────┬───────────────────────────────────────────┐
-│   │ Resource                    │ Effect │ Action                   │ Principal                    │ Condition                                 │
-├───┼─────────────────────────────┼────────┼──────────────────────────┼──────────────────────────────┼───────────────────────────────────────────┤
-│ + │ ${Function.Arn}             │ Allow  │ lambda:InvokeFunctionUrl │ AWS:fin-app-ec2-bedrock      │ "StringEquals": {                         │
-│   │                             │        │                          │                              │   "lambda:FunctionUrlAuthType": "AWS_IAM" │
-│   │                             │        │                          │                              │ }                                         │
-│ + │ ${Function.Arn}             │ Allow  │ lambda:InvokeFunction    │ AWS:fin-app-ec2-bedrock      │ "Bool": {                                 │
-│   │                             │        │                          │                              │   "lambda:InvokedViaFunctionUrl": true    │
-│   │                             │        │                          │                              │ }                                         │
-├───┼─────────────────────────────┼────────┼──────────────────────────┼──────────────────────────────┼───────────────────────────────────────────┤
-│ + │ ${Function/ServiceRole.Arn} │ Allow  │ sts:AssumeRole           │ Service:lambda.amazonaws.com │                                           │
-└───┴─────────────────────────────┴────────┴──────────────────────────┴──────────────────────────────┴───────────────────────────────────────────┘
-IAM Policy Changes
-┌───┬─────────────────────────┬────────────────────────────────────────────────────────────────────────────────┐
-│   │ Resource                │ Managed Policy ARN                                                             │
-├───┼─────────────────────────┼────────────────────────────────────────────────────────────────────────────────┤
-│ + │ ${Function/ServiceRole} │ arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole │
-└───┴─────────────────────────┴────────────────────────────────────────────────────────────────────────────────┘
-Do you wish to deploy these changes (y/n)?
-```
-
-This is the real output for this stack. Read it: the backend's role may call the function **only
-through the URL**, and the function's own role may only write logs. Type `y`. CloudFormation then
-creates everything in about a minute, and the script finishes with
-"Unsigned request … refused with 403, as expected".
-
 **Verify:**
 
 ```bash
 aws cloudformation describe-stacks --stack-name FinAppProfileMcp --query 'Stacks[0].[StackStatus,Outputs]' --output text
-aws lambda get-function-configuration --function-name fin-app-profile-mcp \
-  --query '[State,Runtime,Architectures[0],MemorySize,Timeout,Handler]' --output text   # Active nodejs22.x arm64 256 10 index.handler
+aws lambda get-function-configuration --function-name fin-app-profile-mcp --query '[State,Runtime,Architectures[0],MemorySize,Timeout,Handler]' --output text   # Active nodejs22.x arm64 256 10 index.handler
 aws lambda get-function-url-config --function-name fin-app-profile-mcp --query '[AuthType,InvokeMode]' --output text   # AWS_IAM BUFFERED
 aws lambda get-function-concurrency --function-name fin-app-profile-mcp                # "ReservedConcurrentExecutions": 5
 aws lambda get-policy --function-name fin-app-profile-mcp   # error "ResourceNotFoundException": good, no resource policy, nothing public
@@ -159,11 +110,6 @@ aws lambda get-policy --function-name fin-app-profile-mcp   # error "ResourceNot
 Copy the `FunctionUrl` output (`https://<random-id>.lambda-url.eu-north-1.on.aws/`). The backend
 needs it as `ASK_MCP_URL`, with `mcp` appended.
 
-**If the deploy fails**, CloudFormation **rolls back**: it undoes everything it created in this
-attempt, and the stack ends in `ROLLBACK_COMPLETE`. The reason is in the CDK output, or in the
-CloudFormation console → stack → **Events**. Fix it, then delete the failed stack
-(`cd infra && npx cdk destroy`) and deploy again. A stack in `ROLLBACK_COMPLETE` can't be updated.
-
 ### A3. Local development (pick one)
 
 **Option 1, recommended: no AWS at all.** Run the server locally (`npm run dev` in `mcp-server/`)
@@ -171,81 +117,47 @@ and point the backend at `http://localhost:3001/mcp` with signing off.
 
 **Option 2: call the real Lambda from your laptop.** Your laptop has no EC2 role; it signs with
 your own IAM identity, which needs the same two permissions. This is **not** in the CDK stack,
-because your personal identity isn't part of the application. Find out who you are:
+because your personal identity isn't part of the application.
 
 ```bash
-aws sts get-caller-identity --query Arn --output text
+bash mcp-server/allow-local-invoke.sh
 ```
 
-If it prints `arn:aws:iam::<ACCOUNT_ID>:user/<name>`:
+It asks AWS which IAM user the profile `fin-learn-app` belongs to, then adds the inline policy
+`fin-app-profile-mcp-invoke` to that user. The policy has the same two statements the stack gives
+the backend's role: `lambda:InvokeFunctionUrl` only while the URL uses `AWS_IAM`, and
+`lambda:InvokeFunction` only through the URL.
 
-```bash
-FN_ARN="arn:aws:lambda:$AWS_REGION:$ACCOUNT_ID:function:fin-app-profile-mcp"
-cat > /tmp/mcp-invoke.json <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "lambda:InvokeFunctionUrl",
-      "Resource": "$FN_ARN",
-      "Condition": { "StringEquals": { "lambda:FunctionUrlAuthType": "AWS_IAM" } }
-    },
-    {
-      "Effect": "Allow",
-      "Action": "lambda:InvokeFunction",
-      "Resource": "$FN_ARN",
-      "Condition": { "Bool": { "lambda:InvokedViaFunctionUrl": "true" } }
-    }
-  ]
-}
-EOF
-aws iam put-user-policy --user-name <name> --policy-name fin-app-profile-mcp-invoke \
-  --policy-document file:///tmp/mcp-invoke.json
-```
-
-(If it prints an `assumed-role` ARN, e.g. from SSO, the policy belongs on that role instead.)
+**Verify:** the script ends by listing `lambda:InvokeFunctionUrl lambda:InvokeFunction`.
 
 ### A4. Verify the whole chain
 
 **What:** proof that AWS itself refuses unsigned calls and accepts signed ones.
-**Why:** this is the first time AWS's real signature check is involved. Everything before was
-tested locally.
+
+This needs A3 option 2.
 
 ```bash
-FN_URL="$(aws cloudformation describe-stacks --stack-name FinAppProfileMcp \
-  --query "Stacks[0].Outputs[?OutputKey=='FunctionUrl'].OutputValue" --output text)"
+bash mcp-server/verify-function-url.sh
 ```
 
-**1. Unsigned → 403** (the deploy script already checked this; here by hand):
+It reads the function URL from the stack's outputs, then:
 
-```bash
-curl -s -o /dev/null -w '%{http_code}\n' -X POST "${FN_URL}mcp" -H 'Content-Type: application/json' -d '{}'   # 403
-```
+1. **Unsigned → 403.** A POST to `<FunctionUrl>mcp` without a signature. The deploy script runs
+   the same check.
+2. **Signed → 200.** `curl --aws-sigv4` signs a `tools/call list_entries` request with your
+   credentials, the same way the backend will sign with its EC2 role. The credentials are
+   exported inside the script only, so they don't stay in your terminal.
+3. **The logs.** It shows the last 15 minutes: one JSON line per request, plus Lambda's own
+   `START`/`END`/`REPORT` lines. The first `REPORT` line has an `Init Duration`, which means that
+   call was a cold start. CloudWatch delivers logs a few seconds late, so lines from this run can
+   be missing. Run `aws logs tail /aws/lambda/fin-app-profile-mcp --since 15m` again a minute
+   later.
 
-**2. Signed from your laptop → 200** (needs A3 option 2). `export-credentials` puts temporary
-credentials into this terminal's environment; close the terminal afterwards.
+**Verify:** "Refused with 403, as expected", the JSON reply listing the deployed entries'
+summaries, then "Accepted with 200 and an MCP result, as expected". If either check fails, the
+script stops with a red `[err]` line (exit code 2 for the unsigned check, 3 for the signed one).
 
-```bash
-eval "$(aws configure export-credentials --format env)"
-curl -s "${FN_URL}mcp" --aws-sigv4 "aws:amz:$AWS_REGION:lambda" \
-  --user "$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY" \
-  ${AWS_SESSION_TOKEN:+-H "x-amz-security-token: $AWS_SESSION_TOKEN"} \
-  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_entries","arguments":{}}}'
-```
-
-Expected: a JSON reply whose text lists the example entries.
-
-**3. The logs** (one JSON line per request, plus Lambda's own `START`/`END`/`REPORT` lines):
-
-```bash
-aws logs tail /aws/lambda/fin-app-profile-mcp --since 15m
-```
-
-The first `REPORT` line has an `Init Duration`: that was a cold start.
-
-**4. Later, with the backend (after TASK_12):** the backend's connection shows up as three
+**4. Later, once the backend calls the server:** the backend's connection shows up as three
 requests: `initialize` (200), **one `GET` answered 405 within milliseconds**, and
 `notifications/initialized` (202). The fast 405 proves IAM let the backend in and the "POST only"
 rule works; without it, that GET would run for the full 10 seconds.
@@ -266,6 +178,9 @@ bash mcp-server/deploy-mcp.sh --profile-dir <path-to-your-profile>
 
 Only the code changes, so the CDK doesn't ask for approval. From now on, this is the only command
 you need after editing the profile or the server code.
+
+**Verify:** `bash mcp-server/verify-function-url.sh` now lists your entries instead of the
+example ones.
 
 ### Everyday CDK commands (run in `infra/`)
 
@@ -293,7 +208,7 @@ This deletes the function, its URL, its role, its log group, and the policy the 
 option 2:
 
 ```bash
-aws iam delete-user-policy --user-name <name> --policy-name fin-app-profile-mcp-invoke
+bash mcp-server/allow-local-invoke.sh --remove
 ```
 
 The `CDKToolkit` stack stays, ready for the next deploy. To remove it too: empty the

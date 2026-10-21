@@ -6,7 +6,7 @@
 # Co-residents: Postgres ~150 MB, Kafka -Xmx256m, nginx ~10 MB, OS ~150 MB.
 # Total RSS ~1.14 GB — fits with the 4 GB swapfile created by provision-ec2.sh.
 #
-# Java location: TASK_04 installs Amazon Corretto 21 (java-21-amazon-corretto-headless)
+# Java location: provision-ec2.sh installs Amazon Corretto 21 (java-21-amazon-corretto-headless)
 # which registers /usr/bin/java via the alternatives system. If you ever install
 # a second JDK, double-check with `readlink -f /usr/bin/java` that it still
 # points at a 21.x build.
