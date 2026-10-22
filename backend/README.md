@@ -146,4 +146,7 @@ GROQ_DAILY_QUOTA=50             # per-user requests per day
 AWS_BEARER_TOKEN_BEDROCK=       # Bedrock long-term API key (starts ABSK...) — set an expiry
 AWS_REGION=eu-north-1
 
+# Recruiter chatbot: key for hashing visitor IP addresses. REQUIRED, the app won't start without it.
+ASK_IP_HASH_KEY=                # generate with: openssl rand -hex 32
+
 ```
