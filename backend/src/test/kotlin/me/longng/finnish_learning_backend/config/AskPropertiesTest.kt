@@ -22,6 +22,12 @@ class AskPropertiesTest {
             "app.ask.limits.chat-per-ip-per-day=30",
             "app.ask.limits.fit-checks-per-ip-per-day=3",
             "app.ask.limits.sessions-per-ip-per-hour=5",
+            "app.ask.turnstile.secret-key=turnstile-secret-that-must-not-be-printed",
+            "app.ask.turnstile.verify-url=https://turnstile.test/siteverify",
+            "app.ask.turnstile.connect-timeout-ms=3000",
+            "app.ask.turnstile.read-timeout-ms=5000",
+            "app.ask.session.ttl-minutes=60",
+            "app.ask.session.max-messages=10",
         )
 
     @Test
@@ -31,6 +37,16 @@ class AskPropertiesTest {
 
             assertEquals("secret-value-that-must-not-be-printed", properties.ipHashKey)
             assertEquals(AskProperties.Limits(chatPerIpPerDay = 30, fitChecksPerIpPerDay = 3, sessionsPerIpPerHour = 5), properties.limits)
+            assertEquals(
+                AskProperties.Turnstile(
+                    secretKey = "turnstile-secret-that-must-not-be-printed",
+                    verifyUrl = "https://turnstile.test/siteverify",
+                    connectTimeoutMs = 3000,
+                    readTimeoutMs = 5000,
+                ),
+                properties.turnstile,
+            )
+            assertEquals(AskProperties.Session(ttlMinutes = 60, maxMessages = 10), properties.session)
         }
     }
 
@@ -42,11 +58,20 @@ class AskPropertiesTest {
     }
 
     @Test
-    fun testToString_HidesIpHashKey() {
+    fun testBind_BlankTurnstileSecretAllowed() {
+        // The app must start without a Turnstile secret; only the chatbot needs it.
+        runner.withPropertyValues("app.ask.turnstile.secret-key=").run { context ->
+            assertEquals("", context.getBean(AskProperties::class.java).turnstile.secretKey)
+        }
+    }
+
+    @Test
+    fun testToString_HidesSecrets() {
         runner.run { context ->
             val text = context.getBean(AskProperties::class.java).toString()
 
             assertFalse(text.contains("secret-value"), text)
+            assertFalse(text.contains("turnstile-secret"), text)
         }
     }
 }

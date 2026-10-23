@@ -3,6 +3,8 @@ package me.longng.finnish_learning_backend.config
 
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import me.longng.finnish_learning_backend.service.ask.TurnstileClient
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.validation.annotation.Validated
 
@@ -20,6 +22,8 @@ import org.springframework.validation.annotation.Validated
 data class AskProperties(
     val ipHashKey: String,
     @field:Valid val limits: Limits,
+    @field:Valid val turnstile: Turnstile,
+    @field:Valid val session: Session,
 ) {
 
     /**
@@ -32,6 +36,37 @@ data class AskProperties(
         @field:Min(1) val sessionsPerIpPerHour: Int,
     )
 
+    /**
+     * Cloudflare Turnstile, the bot check a visitor passes before a chat session is created.
+     *
+     * @property secretKey the widget's secret key (env `TURNSTILE_SECRET_KEY`). Never logged. May
+     *   be blank: the app still starts, and [TurnstileClient] refuses to create sessions.
+     * @property verifyUrl Cloudflare's siteverify endpoint
+     */
+    data class Turnstile(
+        val secretKey: String,
+        @field:NotBlank val verifyUrl: String,
+        @field:Min(1) val connectTimeoutMs: Long,
+        @field:Min(1) val readTimeoutMs: Long,
+    ) {
+        /** Hides [secretKey], like [AskProperties.toString] hides the IP hash key. */
+        override fun toString(): String =
+            "Turnstile(secretKey=<hidden>, verifyUrl=$verifyUrl, " +
+                    "connectTimeoutMs=$connectTimeoutMs, readTimeoutMs=$readTimeoutMs)"
+    }
+
+    /**
+     * Chat sessions.
+     *
+     * @property ttlMinutes how long a session lasts after it is created
+     * @property maxMessages chat messages allowed in one session
+     */
+    data class Session(
+        @field:Min(1) val ttlMinutes: Long,
+        @field:Min(1) val maxMessages: Int,
+    )
+
     /** Hides [ipHashKey], so printing the settings (logs, debugger, error messages) never leaks it. */
-    override fun toString(): String = "AskProperties(ipHashKey=<hidden>, limits=$limits)"
+    override fun toString(): String =
+        "AskProperties(ipHashKey=<hidden>, limits=$limits, turnstile=$turnstile, session=$session)"
 }

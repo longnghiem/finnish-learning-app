@@ -1,6 +1,7 @@
 package me.longng.finnish_learning_backend.service.ask
 
 import me.longng.finnish_learning_backend.config.AskProperties
+import me.longng.finnish_learning_backend.config.testAskProperties
 import me.longng.finnish_learning_backend.domain.ask.AskMode
 import me.longng.finnish_learning_backend.persistence.AskSessionRepository
 import me.longng.finnish_learning_backend.persistence.AskTurnRepository
@@ -34,7 +35,7 @@ class AskRateLimiterTest {
     private val limiter = AskRateLimiter(
         sessionRepository = sessionRepository,
         turnRepository = turnRepository,
-        properties = AskProperties(ipHashKey = "unused-in-these-tests", limits = LIMITS),
+        properties = testAskProperties(limits = LIMITS),
         clock = Clock.fixed(JUST_AFTER_HELSINKI_MIDNIGHT, ZoneOffset.UTC),
     )
 
