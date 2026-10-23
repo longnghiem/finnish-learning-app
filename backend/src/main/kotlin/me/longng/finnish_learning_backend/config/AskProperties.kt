@@ -2,8 +2,11 @@ package me.longng.finnish_learning_backend.config
 
 
 import jakarta.validation.Valid
+import jakarta.validation.constraints.DecimalMax
+import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import me.longng.finnish_learning_backend.service.ask.BedrockGuardrailService
 import me.longng.finnish_learning_backend.service.ask.TurnstileClient
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.validation.annotation.Validated
@@ -24,6 +27,7 @@ data class AskProperties(
     @field:Valid val limits: Limits,
     @field:Valid val turnstile: Turnstile,
     @field:Valid val session: Session,
+    @field:Valid val guardrail: Guardrail,
 ) {
 
     /**
@@ -66,7 +70,30 @@ data class AskProperties(
         @field:Min(1) val maxMessages: Int,
     )
 
+    /**
+     * The input guardrail, see [BedrockGuardrailService]. Each check returns a score per category,
+     * in steps of 0.2 from 0.0 to 1.0. A score at or above its threshold blocks the input.
+     *
+     * The thresholds must be above 0.0 (at 0.0 every input would be blocked) and at most 1.0.
+     *
+     * @property contentThreshold for the content filter (violence, hate, sexual, misconduct, insults)
+     * @property chatPromptAttackThreshold for prompt attacks in chat messages
+     * @property fitPromptAttackThreshold for prompt attacks in job descriptions. Higher than the chat
+     *   threshold, because a job description is naturally full of instructions ("You will…")
+     * @property timeoutMs the most one check may take, including the connection
+     */
+    data class Guardrail(
+        @field:DecimalMin(value = "0.0", inclusive = false) @field:DecimalMax("1.0")
+        val contentThreshold: Double,
+        @field:DecimalMin(value = "0.0", inclusive = false) @field:DecimalMax("1.0")
+        val chatPromptAttackThreshold: Double,
+        @field:DecimalMin(value = "0.0", inclusive = false) @field:DecimalMax("1.0")
+        val fitPromptAttackThreshold: Double,
+        @field:Min(1) val timeoutMs: Long,
+    )
+
     /** Hides [ipHashKey], so printing the settings (logs, debugger, error messages) never leaks it. */
     override fun toString(): String =
-        "AskProperties(ipHashKey=<hidden>, limits=$limits, turnstile=$turnstile, session=$session)"
+        "AskProperties(ipHashKey=<hidden>, limits=$limits, turnstile=$turnstile, " +
+                "session=$session, guardrail=$guardrail)"
 }
