@@ -149,4 +149,9 @@ AWS_REGION=eu-north-1
 # Recruiter chatbot: key for hashing visitor IP addresses. REQUIRED, the app won't start without it.
 ASK_IP_HASH_KEY=                # generate with: openssl rand -hex 32
 
+# Recruiter chatbot: Cloudflare Turnstile secret. Blank = the chatbot can't create sessions.
+# For local development use Cloudflare's test secret that always passes, from
+# https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+TURNSTILE_SECRET_KEY=
+
 ```

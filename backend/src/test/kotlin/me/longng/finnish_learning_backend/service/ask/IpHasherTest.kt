@@ -1,6 +1,6 @@
 package me.longng.finnish_learning_backend.service.ask
 
-import me.longng.finnish_learning_backend.config.AskProperties
+import me.longng.finnish_learning_backend.config.testAskProperties
 import me.longng.finnish_learning_backend.domain.ask.AskSession
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -12,12 +12,7 @@ import kotlin.test.assertTrue
 
 class IpHasherTest {
 
-    private fun hasher(key: String) = IpHasher(
-        AskProperties(
-            ipHashKey = key,
-            limits = AskProperties.Limits(chatPerIpPerDay = 30, fitChecksPerIpPerDay = 3, sessionsPerIpPerHour = 5),
-        ),
-    )
+    private fun hasher(key: String) = IpHasher(testAskProperties(ipHashKey = key))
 
     private val keyA = "a".repeat(IpHasher.MIN_KEY_LENGTH)
     private val keyB = "b".repeat(IpHasher.MIN_KEY_LENGTH)
