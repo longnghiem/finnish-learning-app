@@ -28,6 +28,10 @@ class AskPropertiesTest {
             "app.ask.turnstile.read-timeout-ms=5000",
             "app.ask.session.ttl-minutes=60",
             "app.ask.session.max-messages=10",
+            "app.ask.guardrail.content-threshold=0.6",
+            "app.ask.guardrail.chat-prompt-attack-threshold=0.6",
+            "app.ask.guardrail.fit-prompt-attack-threshold=0.8",
+            "app.ask.guardrail.timeout-ms=10000",
         )
 
     @Test
@@ -47,12 +51,37 @@ class AskPropertiesTest {
                 properties.turnstile,
             )
             assertEquals(AskProperties.Session(ttlMinutes = 60, maxMessages = 10), properties.session)
+            assertEquals(
+                AskProperties.Guardrail(
+                    contentThreshold = 0.6,
+                    chatPromptAttackThreshold = 0.6,
+                    fitPromptAttackThreshold = 0.8,
+                    timeoutMs = 10000,
+                ),
+                properties.guardrail,
+            )
         }
     }
 
     @Test
     fun testBind_ZeroLimitFails() {
         runner.withPropertyValues("app.ask.limits.fit-checks-per-ip-per-day=0").run { context ->
+            assertNotNull(context.startupFailure)
+        }
+    }
+
+    @Test
+    fun testBind_ZeroGuardrailThresholdFails() {
+        // At 0.0 every input would be blocked, because every score is at least 0.0.
+        runner.withPropertyValues("app.ask.guardrail.chat-prompt-attack-threshold=0.0").run { context ->
+            assertNotNull(context.startupFailure)
+        }
+    }
+
+    @Test
+    fun testBind_GuardrailThresholdAboveOneFails() {
+        // No score is above 1.0, so nothing would ever be blocked.
+        runner.withPropertyValues("app.ask.guardrail.content-threshold=1.2").run { context ->
             assertNotNull(context.startupFailure)
         }
     }
