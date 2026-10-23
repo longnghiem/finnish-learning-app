@@ -122,6 +122,21 @@ class BedrockGuardrailServiceTest {
             }
             .build()
 
+    /** A complete [answer] whose prompt-attack results are replaced by [entries]. */
+    private fun answerWithPromptAttack(entries: List<GuardrailChecksPromptAttackResultEntry>): InvokeGuardrailChecksResponse {
+        val complete = answer()
+        return complete.toBuilder()
+            .results(
+                complete.results().toBuilder()
+                    .promptAttack(GuardrailChecksPromptAttackResult.builder().results(entries).build())
+                    .build(),
+            )
+            .build()
+    }
+
+    private fun promptAttackEntry(category: String, score: Double?): GuardrailChecksPromptAttackResultEntry =
+        GuardrailChecksPromptAttackResultEntry.builder().category(category).severityScore(score).build()
+
     private fun stubAnswer(answer: InvokeGuardrailChecksResponse) {
         whenever(bedrockRuntimeClient.invokeGuardrailChecks(any<InvokeGuardrailChecksRequest>())).thenReturn(answer)
     }
@@ -248,6 +263,56 @@ class BedrockGuardrailServiceTest {
         )
 
         assertThrows<GuardrailUnavailableException> { service.check(AskMode.CHAT, MESSAGE) }
+    }
+
+    @Test
+    fun testCheck_MissingResultsFailsClosed() {
+        stubAnswer(InvokeGuardrailChecksResponse.builder().usage(answer().usage()).build())
+
+        assertThrows<GuardrailUnavailableException> { service.check(AskMode.CHAT, MESSAGE) }
+    }
+
+    @Test
+    fun testCheck_MissingScoreFailsClosed() {
+        stubAnswer(
+            answerWithPromptAttack(
+                listOf(
+                    promptAttackEntry("JAILBREAK", null),
+                    promptAttackEntry("PROMPT_INJECTION", 0.0),
+                    promptAttackEntry("PROMPT_LEAKAGE", 0.0),
+                ),
+            ),
+        )
+
+        assertThrows<GuardrailUnavailableException> { service.check(AskMode.CHAT, MESSAGE) }
+    }
+
+    @Test
+    fun testCheck_MissingCategoryFailsClosed() {
+        // JAILBREAK is left out and the rest is 0.0: without the check, the input would pass.
+        stubAnswer(
+            answerWithPromptAttack(
+                listOf(promptAttackEntry("PROMPT_INJECTION", 0.0), promptAttackEntry("PROMPT_LEAKAGE", 0.0)),
+            ),
+        )
+
+        val error = assertThrows<GuardrailUnavailableException> { service.check(AskMode.CHAT, MESSAGE) }
+
+        assertTrue(error.message.orEmpty().contains("JAILBREAK"), error.message)
+    }
+
+    @Test
+    fun testCheck_ExtraCategoryKept() {
+        // A category Bedrock may add later still counts towards the verdict.
+        stubAnswer(
+            answerWithPromptAttack(
+                PROMPT_ATTACK_CATEGORIES.map { promptAttackEntry(it, 0.0) } + promptAttackEntry("NEW_ATTACK", 1.0),
+            ),
+        )
+
+        val result = service.check(AskMode.CHAT, MESSAGE)
+
+        assertEquals(GuardrailVerdict.Blocked(listOf("NEW_ATTACK")), result.verdict)
     }
 
     @Test

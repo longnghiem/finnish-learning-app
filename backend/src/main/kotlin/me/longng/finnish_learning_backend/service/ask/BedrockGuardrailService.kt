@@ -104,18 +104,20 @@ class BedrockGuardrailService(
             .build()
 
     /**
-     * Turns the scores into a verdict. A check that is missing from the answer, or a category
-     * without a score, fails closed: the input can't be shown to be safe.
+     * Turns the scores into a verdict. A missing check, or a requested category without a score,
+     * fails closed: the input can't be shown to be safe.
      */
     private fun evaluate(mode: AskMode, response: InvokeGuardrailChecksResponse, textLength: Int): GuardrailCheckResult {
         val results = response.results()
             ?: throw GuardrailUnavailableException("Guardrail answer has no results")
         val contentScores = scoresOf(
             "content filter",
+            CONTENT_FILTER_CATEGORIES.map { it.toString() },
             results.contentFilter()?.results()?.map { it.categoryAsString() to it.severityScore() },
         )
         val promptAttackScores = scoresOf(
             "prompt attack",
+            PROMPT_ATTACK_CATEGORIES.map { it.toString() },
             results.promptAttack()?.results()?.map { it.categoryAsString() to it.severityScore() },
         )
 
@@ -135,13 +137,24 @@ class BedrockGuardrailService(
         )
     }
 
-    private fun scoresOf(check: String, entries: List<Pair<String, Double?>>?): Map<String, Double> {
-        if (entries.isNullOrEmpty()) {
-            throw GuardrailUnavailableException("Guardrail answer has no $check results")
-        }
-        return entries.associate { (category, score) ->
+    /**
+     * The scores of one check, by category. Every [requested] category must have a score: a
+     * category left out of the answer would otherwise never be compared with its threshold.
+     * Extra categories are kept, so a category Bedrock adds later still counts.
+     */
+    private fun scoresOf(
+        check: String,
+        requested: List<String>,
+        entries: List<Pair<String, Double?>>?,
+    ): Map<String, Double> {
+        val scores = entries.orEmpty().associate { (category, score) ->
             category to (score ?: throw GuardrailUnavailableException("Guardrail answer has no score for $category"))
         }
+        val missing = requested - scores.keys
+        if (missing.isNotEmpty()) {
+            throw GuardrailUnavailableException("Guardrail answer has no $check score for $missing")
+        }
+        return scores
     }
 
     /**
@@ -153,29 +166,37 @@ class BedrockGuardrailService(
     companion object {
         private const val CHARS_PER_TEXT_UNIT = 1000
 
+        private val CONTENT_FILTER_CATEGORIES = listOf(
+            GuardrailChecksContentFilterCategory.VIOLENCE,
+            GuardrailChecksContentFilterCategory.HATE,
+            GuardrailChecksContentFilterCategory.SEXUAL,
+            GuardrailChecksContentFilterCategory.MISCONDUCT,
+            GuardrailChecksContentFilterCategory.INSULTS,
+        )
+
+        private val PROMPT_ATTACK_CATEGORIES = listOf(
+            GuardrailChecksPromptAttackCategory.JAILBREAK,
+            GuardrailChecksPromptAttackCategory.PROMPT_INJECTION,
+            GuardrailChecksPromptAttackCategory.PROMPT_LEAKAGE,
+        )
+
         /** Both checks with every category, built once: the request part that never changes. */
         private val CHECKS: GuardrailChecksConfig = GuardrailChecksConfig.builder()
             .contentFilter(
                 GuardrailChecksContentFilterConfig.builder()
                     .categories(
-                        listOf(
-                            GuardrailChecksContentFilterCategory.VIOLENCE,
-                            GuardrailChecksContentFilterCategory.HATE,
-                            GuardrailChecksContentFilterCategory.SEXUAL,
-                            GuardrailChecksContentFilterCategory.MISCONDUCT,
-                            GuardrailChecksContentFilterCategory.INSULTS,
-                        ).map { GuardrailChecksContentFilterCategoryConfig.builder().category(it).build() },
+                        CONTENT_FILTER_CATEGORIES.map {
+                            GuardrailChecksContentFilterCategoryConfig.builder().category(it).build()
+                        },
                     )
                     .build(),
             )
             .promptAttack(
                 GuardrailChecksPromptAttackConfig.builder()
                     .categories(
-                        listOf(
-                            GuardrailChecksPromptAttackCategory.JAILBREAK,
-                            GuardrailChecksPromptAttackCategory.PROMPT_INJECTION,
-                            GuardrailChecksPromptAttackCategory.PROMPT_LEAKAGE,
-                        ).map { GuardrailChecksPromptAttackCategoryConfig.builder().category(it).build() },
+                        PROMPT_ATTACK_CATEGORIES.map {
+                            GuardrailChecksPromptAttackCategoryConfig.builder().category(it).build()
+                        },
                     )
                     .build(),
             )
