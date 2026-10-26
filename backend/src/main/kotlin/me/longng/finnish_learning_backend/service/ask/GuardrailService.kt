@@ -67,6 +67,16 @@ data class GuardrailCheckResult(
             GuardrailVerdict.Passed -> GuardrailOutcome.PASSED
             is GuardrailVerdict.Blocked -> GuardrailOutcome.BLOCKED
         }
+
+    companion object {
+        private const val CHARS_PER_TEXT_UNIT = 1000
+
+        /**
+         * The text units one check bills for a text of [chars] characters: one per started 1,000
+         * characters. Each check is billed separately, so a call with both checks bills this twice.
+         */
+        fun billedTextUnits(chars: Int): Int = Math.ceilDiv(chars, CHARS_PER_TEXT_UNIT)
+    }
 }
 
 /**
