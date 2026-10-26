@@ -1,5 +1,7 @@
 package me.longng.finnish_learning_backend.config
 
+import java.math.BigDecimal
+
 /**
  * An [AskProperties] for unit tests, with the same values as `application.properties`. Each test
  * overrides only what it is about, so adding a setting later changes this one place.
@@ -24,10 +26,34 @@ fun testAskProperties(
         fitPromptAttackThreshold = 0.8,
         timeoutMs = 10000,
     ),
+    agent: AskProperties.Agent = AskProperties.Agent(
+        maxReadsPerRound = 4,
+        chatMaxTokens = 400,
+        chatMaxToolRounds = 3,
+        fitStepMaxTokens = 300,
+        fitReportMaxTokens = 1500,
+        fitMaxToolRounds = 6,
+    ),
+    budget: AskProperties.Budget = AskProperties.Budget(
+        monthlyUsd = BigDecimal("5.00"),
+        dailyUsd = BigDecimal("0.25"),
+        toolResultTokens = 1000,
+    ),
+    price: AskProperties.Price = AskProperties.Price(
+        inputPerMillionTokens = BigDecimal("1.10"),
+        outputPerMillionTokens = BigDecimal("5.50"),
+        cacheReadPerMillionTokens = BigDecimal("0.11"),
+        cacheWritePerMillionTokens = BigDecimal("1.375"),
+        guardrailContentPerKUnits = BigDecimal("0.07"),
+        guardrailPromptAttackPerKUnits = BigDecimal("0.08"),
+    ),
 ) = AskProperties(
     ipHashKey = ipHashKey,
     limits = limits,
     turnstile = turnstile,
     session = session,
     guardrail = guardrail,
+    agent = agent,
+    budget = budget,
+    price = price,
 )

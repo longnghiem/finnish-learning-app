@@ -128,12 +128,14 @@ class BedrockGuardrailService(
         val blockedBy = contentScores.filterValues { it >= settings.contentThreshold }.keys +
                 promptAttackScores.filterValues { it >= promptAttackThreshold }.keys
 
+        // Bedrock may leave out the usage block. Then count the text units ourselves from the
+        // text length (the same rule AWS bills by), so the check's cost is never recorded as $0.
         val usage = response.usage()
         return GuardrailCheckResult(
             verdict = if (blockedBy.isEmpty()) GuardrailVerdict.Passed else GuardrailVerdict.Blocked(blockedBy.toList()),
             scores = contentScores + promptAttackScores,
-            contentFilterTextUnits = usage?.contentFilter()?.textUnits() ?: estimatedTextUnits(textLength),
-            promptAttackTextUnits = usage?.promptAttack()?.textUnits() ?: estimatedTextUnits(textLength),
+            contentFilterTextUnits = usage?.contentFilter()?.textUnits() ?: GuardrailCheckResult.billedTextUnits(textLength),
+            promptAttackTextUnits = usage?.promptAttack()?.textUnits() ?: GuardrailCheckResult.billedTextUnits(textLength),
         )
     }
 
@@ -157,15 +159,7 @@ class BedrockGuardrailService(
         return scores
     }
 
-    /**
-     * The units Bedrock bills when the answer doesn't say: one per started 1,000 characters, per
-     * check. Used so a missing usage block never records the check as free.
-     */
-    private fun estimatedTextUnits(textLength: Int): Int = (textLength + CHARS_PER_TEXT_UNIT - 1) / CHARS_PER_TEXT_UNIT
-
     companion object {
-        private const val CHARS_PER_TEXT_UNIT = 1000
-
         private val CONTENT_FILTER_CATEGORIES = listOf(
             GuardrailChecksContentFilterCategory.VIOLENCE,
             GuardrailChecksContentFilterCategory.HATE,
