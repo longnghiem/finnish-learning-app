@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 /**
  * Runs [BudgetService] against a real PostgreSQL, so the advisory lock and the transactions are
@@ -131,6 +132,15 @@ class BudgetServiceTest {
 
         assertEquals(AskBudgetExhaustedException.Scope.DAILY, error.scope)
         assertAmount("0.20", statsRepository.findByDay(TODAY)?.reservedUsd)
+    }
+
+    @Test
+    fun testReserve_EstimateAboveDailyCapRefused() {
+        // Nothing used yet today, but 0.30 alone is more than the 0.25 cap.
+        val error = assertThrows<AskBudgetExhaustedException> { budgetService.reserve(AskMode.FIT_CHECK, BigDecimal("0.30")) }
+
+        assertEquals(AskBudgetExhaustedException.Scope.DAILY, error.scope)
+        assertNull(statsRepository.findByDay(TODAY), "nothing may be reserved")
     }
 
     @Test
