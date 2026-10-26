@@ -205,6 +205,7 @@ class BudgetServiceTest {
         budgetService.settle(reservation, BigDecimal("0.0125"))
 
         assertAmount("0.0125", statsRepository.findByDay(TODAY)?.spentUsd)
+        assertAmount("0", statsRepository.findByDay(TODAY)?.reservedUsd)
     }
 
     @Test
