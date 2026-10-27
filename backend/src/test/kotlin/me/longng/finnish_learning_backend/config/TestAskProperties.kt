@@ -19,7 +19,7 @@ fun testAskProperties(
         connectTimeoutMs = 3000,
         readTimeoutMs = 5000,
     ),
-    session: AskProperties.Session = AskProperties.Session(ttlMinutes = 60, maxMessages = 10),
+    session: AskProperties.Session = AskProperties.Session(ttlMinutes = 60, maxMessages = 10, maxMessageChars = 500),
     guardrail: AskProperties.Guardrail = AskProperties.Guardrail(
         contentThreshold = 0.6,
         chatPromptAttackThreshold = 0.6,
@@ -54,6 +54,11 @@ fun testAskProperties(
         connectTimeoutMs = 3000,
         requestTimeoutMs = 10000,
     ),
+    model: AskProperties.Model = AskProperties.Model(
+        id = "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+        additionalRequestFields = "",
+        timeoutMs = 30000,
+    ),
 ) = AskProperties(
     ipHashKey = ipHashKey,
     limits = limits,
@@ -64,4 +69,5 @@ fun testAskProperties(
     budget = budget,
     price = price,
     mcp = mcp,
+    model = model,
 )

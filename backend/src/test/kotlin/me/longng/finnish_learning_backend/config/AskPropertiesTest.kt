@@ -29,6 +29,7 @@ class AskPropertiesTest {
             "app.ask.turnstile.read-timeout-ms=5000",
             "app.ask.session.ttl-minutes=60",
             "app.ask.session.max-messages=10",
+            "app.ask.session.max-message-chars=500",
             "app.ask.guardrail.content-threshold=0.6",
             "app.ask.guardrail.chat-prompt-attack-threshold=0.6",
             "app.ask.guardrail.fit-prompt-attack-threshold=0.8",
@@ -53,6 +54,9 @@ class AskPropertiesTest {
             "app.ask.mcp.sign-requests=true",
             "app.ask.mcp.connect-timeout-ms=3000",
             "app.ask.mcp.request-timeout-ms=10000",
+            "app.ask.model.id=eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "app.ask.model.additional-request-fields=",
+            "app.ask.model.timeout-ms=30000",
         )
 
     @Test
@@ -71,7 +75,7 @@ class AskPropertiesTest {
                 ),
                 properties.turnstile,
             )
-            assertEquals(AskProperties.Session(ttlMinutes = 60, maxMessages = 10), properties.session)
+            assertEquals(AskProperties.Session(ttlMinutes = 60, maxMessages = 10, maxMessageChars = 500), properties.session)
             assertEquals(
                 AskProperties.Guardrail(
                     contentThreshold = 0.6,
@@ -116,6 +120,14 @@ class AskPropertiesTest {
                     requestTimeoutMs = 10000,
                 ),
                 properties.mcp,
+            )
+            assertEquals(
+                AskProperties.Model(
+                    id = "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+                    additionalRequestFields = "",
+                    timeoutMs = 30000,
+                ),
+                properties.model,
             )
         }
     }

@@ -7,8 +7,10 @@ import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
+import me.longng.finnish_learning_backend.service.ask.BedrockChatClient
 import me.longng.finnish_learning_backend.service.ask.BedrockGuardrailService
 import me.longng.finnish_learning_backend.service.ask.BudgetService
+import me.longng.finnish_learning_backend.service.ask.ChatService
 import me.longng.finnish_learning_backend.service.ask.CostCalculator
 import me.longng.finnish_learning_backend.service.ask.TurnstileClient
 import me.longng.finnish_learning_backend.service.ask.mcp.SigV4McpProfileClient
@@ -37,6 +39,7 @@ data class AskProperties(
     @field:Valid val budget: Budget,
     @field:Valid val price: Price,
     @field:Valid val mcp: Mcp,
+    @field:Valid val model: Model,
 ) {
 
     /**
@@ -73,10 +76,12 @@ data class AskProperties(
      *
      * @property ttlMinutes how long a session lasts after it is created
      * @property maxMessages chat messages allowed in one session
+     * @property maxMessageChars the longest chat message [ChatService] accepts
      */
     data class Session(
         @field:Min(1) val ttlMinutes: Long,
         @field:Min(1) val maxMessages: Int,
+        @field:Min(1) val maxMessageChars: Int,
     )
 
     /**
@@ -187,8 +192,25 @@ data class AskProperties(
         @field:Min(1) val requestTimeoutMs: Long,
     )
 
+    /**
+     * The model that answers chat messages, called by [BedrockChatClient].
+     *
+     * @property id the Bedrock model or inference profile (env `ASK_MODEL_ID`). If it changes, change
+     *   [Price] too, and check the model's prompt-caching minimum
+     * @property additionalRequestFields JSON object sent as Converse `additionalModelRequestFields`
+     *   (env `ASK_ADDITIONAL_MODEL_FIELDS`), or blank to send none, which is right for Haiku 4.5.
+     *   Checked at startup by [BedrockChatClient]
+     * @property timeoutMs the most one model call may take, the SDK's own retries included
+     */
+    data class Model(
+        @field:NotBlank val id: String,
+        val additionalRequestFields: String,
+        @field:Min(1) val timeoutMs: Long,
+    )
+
     /** Hides [ipHashKey], so printing the settings (logs, debugger, error messages) never leaks it. */
     override fun toString(): String =
         "AskProperties(ipHashKey=<hidden>, limits=$limits, turnstile=$turnstile, " +
-                "session=$session, guardrail=$guardrail, agent=$agent, budget=$budget, price=$price, mcp=$mcp)"
+                "session=$session, guardrail=$guardrail, agent=$agent, budget=$budget, price=$price, " +
+                "mcp=$mcp, model=$model)"
 }
