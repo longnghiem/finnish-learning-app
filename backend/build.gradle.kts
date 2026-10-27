@@ -81,6 +81,11 @@ dependencies {
 		exclude(group = "software.amazon.awssdk", module = "netty-nio-client")
 	}
 	implementation(libs.aws.url.connection.client)
+
+	// MCP client (recruiter chatbot)
+	implementation(libs.mcp.core)
+	implementation(libs.mcp.json.jackson3)
+	implementation(libs.aws.http.auth.aws)
 }
 
 // Load .env at configuration time for JOOQ codegen
@@ -144,6 +149,21 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.test {
+	// Tests tagged "manual" need a running local server; run them with ./gradlew manualTest.
+	useJUnitPlatform { excludeTags("manual") }
+}
+
+// Opt-in tests against real local services, e.g. the profile MCP server of `npm run dev` in
+// mcp-server/ (with ASK_MCP_SIGN=false). Not part of ./gradlew test or build.
+tasks.register<Test>("manualTest") {
+	description = "Runs the tests tagged \"manual\", which need real local services."
+	group = "verification"
+	useJUnitPlatform { includeTags("manual") }
+	testClassesDirs = sourceSets["test"].output.classesDirs
+	classpath = sourceSets["test"].runtimeClasspath
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {

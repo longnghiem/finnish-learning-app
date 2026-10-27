@@ -47,6 +47,13 @@ fun testAskProperties(
         guardrailContentPerKUnits = BigDecimal("0.07"),
         guardrailPromptAttackPerKUnits = BigDecimal("0.08"),
     ),
+    mcp: AskProperties.Mcp = AskProperties.Mcp(
+        url = "http://localhost:3001/mcp",
+        region = "eu-north-1",
+        signRequests = true,
+        connectTimeoutMs = 3000,
+        requestTimeoutMs = 10000,
+    ),
 ) = AskProperties(
     ipHashKey = ipHashKey,
     limits = limits,
@@ -56,4 +63,5 @@ fun testAskProperties(
     agent = agent,
     budget = budget,
     price = price,
+    mcp = mcp,
 )
