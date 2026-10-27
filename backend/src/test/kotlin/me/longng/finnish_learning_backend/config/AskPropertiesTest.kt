@@ -48,6 +48,11 @@ class AskPropertiesTest {
             "app.ask.price.cache-write-per-million-tokens=1.375",
             "app.ask.price.guardrail-content-per-k-units=0.07",
             "app.ask.price.guardrail-prompt-attack-per-k-units=0.08",
+            "app.ask.mcp.url=https://abc123.lambda-url.eu-north-1.on.aws/mcp",
+            "app.ask.mcp.region=eu-north-1",
+            "app.ask.mcp.sign-requests=true",
+            "app.ask.mcp.connect-timeout-ms=3000",
+            "app.ask.mcp.request-timeout-ms=10000",
         )
 
     @Test
@@ -102,6 +107,16 @@ class AskPropertiesTest {
                 ),
                 properties.price,
             )
+            assertEquals(
+                AskProperties.Mcp(
+                    url = "https://abc123.lambda-url.eu-north-1.on.aws/mcp",
+                    region = "eu-north-1",
+                    signRequests = true,
+                    connectTimeoutMs = 3000,
+                    requestTimeoutMs = 10000,
+                ),
+                properties.mcp,
+            )
         }
     }
 
@@ -140,6 +155,14 @@ class AskPropertiesTest {
     fun testBind_ZeroPriceFails() {
         // A zero price would record every call as free, so the caps would never be reached.
         runner.withPropertyValues("app.ask.price.output-per-million-tokens=0").run { context ->
+            assertNotNull(context.startupFailure)
+        }
+    }
+
+    @Test
+    fun testBind_McpUrlWithoutSchemeFails() {
+        // Without http:// or https:// the client couldn't connect; better to fail at startup.
+        runner.withPropertyValues("app.ask.mcp.url=abc123.lambda-url.eu-north-1.on.aws/mcp").run { context ->
             assertNotNull(context.startupFailure)
         }
     }

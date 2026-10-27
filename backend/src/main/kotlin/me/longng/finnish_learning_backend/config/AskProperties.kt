@@ -6,10 +6,12 @@ import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Pattern
 import me.longng.finnish_learning_backend.service.ask.BedrockGuardrailService
 import me.longng.finnish_learning_backend.service.ask.BudgetService
 import me.longng.finnish_learning_backend.service.ask.CostCalculator
 import me.longng.finnish_learning_backend.service.ask.TurnstileClient
+import me.longng.finnish_learning_backend.service.ask.mcp.SigV4McpProfileClient
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.validation.annotation.Validated
 import java.math.BigDecimal
@@ -34,6 +36,7 @@ data class AskProperties(
     @field:Valid val agent: Agent,
     @field:Valid val budget: Budget,
     @field:Valid val price: Price,
+    @field:Valid val mcp: Mcp,
 ) {
 
     /**
@@ -164,8 +167,28 @@ data class AskProperties(
         @field:DecimalMin(value = "0.0", inclusive = false) val guardrailPromptAttackPerKUnits: BigDecimal,
     )
 
+    /**
+     * The connection to the profile MCP server, used by [SigV4McpProfileClient].
+     *
+     * @property url the server's MCP endpoint (env `ASK_MCP_URL`). In production: the Lambda function
+     *   URL with `mcp` appended. Locally: `http://localhost:3001/mcp`, the server of `npm run dev`
+     * @property region the AWS region of the Lambda (env `AWS_REGION`). It is part of every signature
+     * @property signRequests whether to sign every request with AWS SigV4 (env `ASK_MCP_SIGN`). The
+     *   function URL refuses unsigned requests with 403; only the local dev server, which has no
+     *   auth, needs false
+     * @property connectTimeoutMs the most opening a connection may take
+     * @property requestTimeoutMs the most one MCP request may take, a Lambda cold start included
+     */
+    data class Mcp(
+        @field:Pattern(regexp = "https?://.+", message = "must be an http:// or https:// URL") val url: String,
+        @field:NotBlank val region: String,
+        val signRequests: Boolean,
+        @field:Min(1) val connectTimeoutMs: Long,
+        @field:Min(1) val requestTimeoutMs: Long,
+    )
+
     /** Hides [ipHashKey], so printing the settings (logs, debugger, error messages) never leaks it. */
     override fun toString(): String =
         "AskProperties(ipHashKey=<hidden>, limits=$limits, turnstile=$turnstile, " +
-                "session=$session, guardrail=$guardrail, agent=$agent, budget=$budget, price=$price)"
+                "session=$session, guardrail=$guardrail, agent=$agent, budget=$budget, price=$price, mcp=$mcp)"
 }
