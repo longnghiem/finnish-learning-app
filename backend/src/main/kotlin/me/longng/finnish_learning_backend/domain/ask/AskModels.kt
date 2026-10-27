@@ -88,6 +88,14 @@ data class TokenUsage(
         }
     }
 
+    /** The counts of two sets of model calls added up, e.g. a turn's calls so far plus one more. */
+    operator fun plus(other: TokenUsage): TokenUsage = TokenUsage(
+        inputTokens = inputTokens + other.inputTokens,
+        outputTokens = outputTokens + other.outputTokens,
+        cacheReadTokens = cacheReadTokens + other.cacheReadTokens,
+        cacheWriteTokens = cacheWriteTokens + other.cacheWriteTokens,
+    )
+
     companion object {
         /** No model call made (yet). */
         val NONE = TokenUsage(inputTokens = 0, outputTokens = 0, cacheReadTokens = 0, cacheWriteTokens = 0)
