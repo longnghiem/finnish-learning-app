@@ -1,9 +1,16 @@
 package me.longng.finnish_learning_backend.controller
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import me.longng.finnish_learning_backend.controller.dto.ask.AskErrorCode
+import me.longng.finnish_learning_backend.controller.dto.ask.AskErrorEvent
 import me.longng.finnish_learning_backend.service.CardNotFoundException
 import me.longng.finnish_learning_backend.service.InvalidCredentialsException
 import me.longng.finnish_learning_backend.service.TopicNotFoundException
 import me.longng.finnish_learning_backend.service.UsernameAlreadyExistsException
+import me.longng.finnish_learning_backend.service.ask.AskConversationLimitException
+import me.longng.finnish_learning_backend.service.ask.AskRateLimitedException
+import me.longng.finnish_learning_backend.service.ask.AskSessionInvalidException
+import me.longng.finnish_learning_backend.service.ask.TurnstileVerificationException
 import me.longng.finnish_learning_backend.service.bedrock.EssayEvaluationMisconfiguredException
 import me.longng.finnish_learning_backend.service.bedrock.EssayEvaluationQuotaExceededException
 import me.longng.finnish_learning_backend.service.bedrock.EssayEvaluationUpstreamException
@@ -14,6 +21,7 @@ import me.longng.finnish_learning_backend.storage.ImageStorageException
 import org.springframework.security.access.AccessDeniedException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpMediaTypeNotSupportedException
@@ -22,6 +30,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.resource.NoResourceFoundException
@@ -42,6 +52,8 @@ class GlobalExceptionHandler {
         val status: Int,
         val error: String,
         val message: String,
+        @field:JsonInclude(JsonInclude.Include.NON_NULL)
+        val code: String? = null,
     )
 
     @ExceptionHandler(CardNotFoundException::class)
@@ -171,6 +183,67 @@ class GlobalExceptionHandler {
         )
     }
 
+    @ExceptionHandler(AskSessionInvalidException::class)
+    fun handleAskSessionInvalid(ex: AskSessionInvalidException): ResponseEntity<ErrorResponse> {
+        val (status, code) = when (ex.reason) {
+            AskSessionInvalidException.Reason.TURNSTILE_FAILED -> HttpStatus.FORBIDDEN to AskErrorCode.TURNSTILE_FAILED
+            AskSessionInvalidException.Reason.SESSION_EXPIRED -> HttpStatus.UNAUTHORIZED to AskErrorCode.SESSION_EXPIRED
+        }
+        logger.warn("Ask session refused: {}", ex.reason)
+        return buildResponse(status, ex.reason.text, code)
+    }
+
+    @ExceptionHandler(AskRateLimitedException::class)
+    fun handleAskRateLimited(ex: AskRateLimitedException): ResponseEntity<ErrorResponse> {
+        logger.warn("Ask rate limit reached: {}", ex.message)
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, AskErrorEvent.from(ex).message, AskErrorCode.RATE_LIMITED)
+    }
+
+    @ExceptionHandler(AskConversationLimitException::class)
+    fun handleAskConversationLimit(ex: AskConversationLimitException): ResponseEntity<ErrorResponse> {
+        logger.warn("Ask conversation limit reached: {}", ex.message)
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, AskErrorEvent.from(ex).message, AskErrorCode.CONVERSATION_LIMIT)
+    }
+
+    @ExceptionHandler(AskBusyException::class)
+    fun handleAskBusy(ex: AskBusyException): ResponseEntity<ErrorResponse> {
+        logger.warn("Ask request refused: {}", ex.message)
+        return buildResponse(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "The assistant is busy right now. Please try again in a moment.",
+            AskErrorCode.BUSY,
+        )
+    }
+
+    @ExceptionHandler(TurnstileVerificationException::class)
+    fun handleTurnstileVerification(ex: TurnstileVerificationException): ResponseEntity<ErrorResponse> {
+        logger.error("Turnstile verification failed", ex)
+        return buildResponse(
+            HttpStatus.BAD_GATEWAY,
+            "The bot check couldn't be completed right now. Please try again in a moment.",
+            AskErrorCode.UPSTREAM,
+        )
+    }
+
+    /**
+     * A chat stream reached its timeout ([AskEventStream]). Its response has already started as an
+     * event stream, so nothing is written: a JSON error body would only be appended to the stream.
+     * The visitor's browser sees the stream end without `done`.
+     */
+    @ExceptionHandler(AsyncRequestTimeoutException::class)
+    fun handleAsyncRequestTimeout() {
+        logger.info("Streaming response timed out")
+    }
+
+    /**
+     * The visitor left while a chat stream was open ([AskEventStream]), e.g. by closing the tab.
+     * That's a normal ending, not an error, and nothing can be written to the closed connection.
+     */
+    @ExceptionHandler(AsyncRequestNotUsableException::class)
+    fun handleAsyncRequestNotUsable() {
+        logger.info("Streaming response ended, the client disconnected")
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleUnreadableBody(ex: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
         logger.warn("Malformed request body: {}", ex.message)
@@ -207,12 +280,22 @@ class GlobalExceptionHandler {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred")
     }
 
-    private fun buildResponse(status: HttpStatus, message: String?): ResponseEntity<ErrorResponse> =
-        ResponseEntity.status(status).body(
+    /**
+     * The error body, always as JSON. The content type is set explicitly because otherwise Spring
+     * picks it from the request's `Accept` header: a request for `text/event-stream` (the chat
+     * stream) would then get no body at all, since no converter writes JSON as an event stream.
+     */
+    private fun buildResponse(
+        status: HttpStatus,
+        message: String?,
+        code: AskErrorCode? = null,
+    ): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(status).contentType(MediaType.APPLICATION_JSON).body(
             ErrorResponse(
                 status = status.value(),
                 error = status.reasonPhrase,
                 message = message ?: "No details available",
+                code = code?.name,
             ),
         )
 }
