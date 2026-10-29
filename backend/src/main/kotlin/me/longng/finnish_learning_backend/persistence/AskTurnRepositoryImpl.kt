@@ -126,6 +126,13 @@ class AskTurnRepositoryImpl(
             .map { it.toDomain() }
     }
 
+    override fun failPending(): Int {
+        return dsl.update(ASK_TURNS)
+            .set(ASK_TURNS.STATUS, TurnStatus.ERROR.name)
+            .where(ASK_TURNS.STATUS.eq(TurnStatus.PENDING.name))
+            .execute()
+    }
+
     /** CTE with the id of every session that has this IP hash, each id once. */
     private fun sessionsWithIpHash(ipHash: String): CommonTableExpression<Record1<UUID?>> {
         return DSL.name(SESSIONS_CTE_NAME)

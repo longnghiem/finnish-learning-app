@@ -53,6 +53,8 @@ class WebSecurityConfig(
                     .requestMatchers(HttpMethod.POST, "/api/cards/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.PUT, "/api/cards/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/api/cards/**").hasRole("ADMIN")
+                    // Admin-only — chatbot conversations and statistics
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     // Authenticated — quiz and progress
                     .requestMatchers("/api/quiz/**").authenticated()
                     .requestMatchers("/api/progress/**").authenticated()

@@ -81,6 +81,12 @@ class InMemoryAskTurnRepository : AskTurnRepository {
 
     override fun findPage(filter: TurnFilter, limit: Int, offset: Int): List<AskTurn> =
         throw UnsupportedOperationException("Not needed by the service tests")
+
+    override fun failPending(): Int {
+        val pending = turns.values.filter { it.status == TurnStatus.PENDING }
+        pending.forEach { turns[it.id] = it.copy(status = TurnStatus.ERROR) }
+        return pending.size
+    }
 }
 
 /**
@@ -118,6 +124,12 @@ class InMemoryAskDailyStatsRepository : AskDailyStatsRepository {
 
     override fun findByDayRange(from: LocalDate, to: LocalDate): List<DailyAskStats> =
         days.values.filter { it.day in from..to }.sortedBy { it.day }
+
+    override fun clearReservations(): Int {
+        val reserved = days.values.filter { it.reservedUsd.signum() > 0 }
+        reserved.forEach { days[it.day] = it.copy(reservedUsd = BigDecimal.ZERO) }
+        return reserved.size
+    }
 
     private fun update(day: LocalDate, change: (DailyAskStats) -> DailyAskStats) {
         val stats = days[day] ?: DailyAskStats(day, 0, 0, 0, BigDecimal.ZERO, BigDecimal.ZERO)

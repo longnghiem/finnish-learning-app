@@ -121,18 +121,13 @@ class BedrockGuardrailService(
             results.promptAttack()?.results()?.map { it.categoryAsString() to it.severityScore() },
         )
 
-        val promptAttackThreshold = when (mode) {
-            AskMode.CHAT -> settings.chatPromptAttackThreshold
-            AskMode.FIT_CHECK -> settings.fitPromptAttackThreshold
-        }
-        val blockedBy = contentScores.filterValues { it >= settings.contentThreshold }.keys +
-                promptAttackScores.filterValues { it >= promptAttackThreshold }.keys
+        val blockedBy = blockedBy(settings, mode, contentScores, promptAttackScores)
 
         // Bedrock may leave out the usage block. Then count the text units ourselves from the
         // text length (the same rule AWS bills by), so the check's cost is never recorded as $0.
         val usage = response.usage()
         return GuardrailCheckResult(
-            verdict = if (blockedBy.isEmpty()) GuardrailVerdict.Passed else GuardrailVerdict.Blocked(blockedBy.toList()),
+            verdict = if (blockedBy.isEmpty()) GuardrailVerdict.Passed else GuardrailVerdict.Blocked(blockedBy),
             scores = contentScores + promptAttackScores,
             contentFilterTextUnits = usage?.contentFilter()?.textUnits() ?: GuardrailCheckResult.billedTextUnits(textLength),
             promptAttackTextUnits = usage?.promptAttack()?.textUnits() ?: GuardrailCheckResult.billedTextUnits(textLength),
@@ -160,6 +155,42 @@ class BedrockGuardrailService(
     }
 
     companion object {
+        /**
+         * The categories whose score reaches its threshold, content filter first, in the order of
+         * the scores: a content-filter score is compared with
+         * [AskProperties.Guardrail.contentThreshold], a prompt-attack score with the prompt-attack
+         * threshold of [mode]. Empty if the input may pass.
+         */
+        fun blockedBy(
+            settings: AskProperties.Guardrail,
+            mode: AskMode,
+            contentScores: Map<String, Double>,
+            promptAttackScores: Map<String, Double>,
+        ): List<String> {
+            val promptAttackThreshold = when (mode) {
+                AskMode.CHAT -> settings.chatPromptAttackThreshold
+                AskMode.FIT_CHECK -> settings.fitPromptAttackThreshold
+            }
+            return (contentScores.filterValues { it >= settings.contentThreshold }.keys +
+                    promptAttackScores.filterValues { it >= promptAttackThreshold }.keys).toList()
+        }
+
+        /**
+         * [blockedBy] for scores kept in one map, as a turn stores them
+         * ([GuardrailCheckResult.scores]): the prompt-attack categories this class asks for are
+         * judged as prompt attacks, every other category as content. A prompt-attack category
+         * Bedrock might add later would therefore be judged as content here.
+         */
+        fun blockedBy(settings: AskProperties.Guardrail, mode: AskMode, scores: Map<String, Double>): List<String> {
+            val (promptAttack, content) = scores.entries.partition { it.key in PROMPT_ATTACK_CATEGORY_NAMES }
+            return blockedBy(
+                settings,
+                mode,
+                contentScores = content.associate { it.key to it.value },
+                promptAttackScores = promptAttack.associate { it.key to it.value },
+            )
+        }
+
         private val CONTENT_FILTER_CATEGORIES = listOf(
             GuardrailChecksContentFilterCategory.VIOLENCE,
             GuardrailChecksContentFilterCategory.HATE,
@@ -173,6 +204,8 @@ class BedrockGuardrailService(
             GuardrailChecksPromptAttackCategory.PROMPT_INJECTION,
             GuardrailChecksPromptAttackCategory.PROMPT_LEAKAGE,
         )
+
+        private val PROMPT_ATTACK_CATEGORY_NAMES: Set<String> = PROMPT_ATTACK_CATEGORIES.mapTo(HashSet()) { it.toString() }
 
         /** Both checks with every category, built once: the request part that never changes. */
         private val CHECKS: GuardrailChecksConfig = GuardrailChecksConfig.builder()

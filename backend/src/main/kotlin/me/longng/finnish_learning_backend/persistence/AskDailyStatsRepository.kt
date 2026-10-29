@@ -77,4 +77,14 @@ interface AskDailyStatsRepository {
      * views. Days without activity have no row and are missing from the list.
      */
     fun findByDayRange(from: LocalDate, to: LocalDate): List<DailyAskStats>
+
+    /**
+     * Sets the reserved total of every day back to zero and returns how many days had a
+     * reservation. The spent totals stay.
+     *
+     * Only safe when no request can still be running, i.e. at startup
+     * ([me.longng.finnish_learning_backend.service.ask.AskStartupCleanup]): a running request
+     * would later settle a reservation that no longer exists.
+     */
+    fun clearReservations(): Int
 }

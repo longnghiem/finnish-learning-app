@@ -7,6 +7,8 @@ import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
+import me.longng.finnish_learning_backend.domain.ask.DailyAskStats
+import me.longng.finnish_learning_backend.service.ask.AskRetentionJob
 import me.longng.finnish_learning_backend.service.ask.BedrockChatClient
 import me.longng.finnish_learning_backend.service.ask.BedrockGuardrailService
 import me.longng.finnish_learning_backend.service.ask.BudgetService
@@ -16,6 +18,7 @@ import me.longng.finnish_learning_backend.service.ask.FitCheckService
 import me.longng.finnish_learning_backend.service.ask.TurnstileClient
 import me.longng.finnish_learning_backend.service.ask.mcp.SigV4McpProfileClient
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.validation.annotation.Validated
 import java.math.BigDecimal
 
@@ -42,6 +45,7 @@ data class AskProperties(
     @field:Valid val mcp: Mcp,
     @field:Valid val model: Model,
     @field:Valid val fitCheck: FitCheck,
+    @field:Valid val retention: Retention,
 ) {
 
     /**
@@ -225,9 +229,24 @@ data class AskProperties(
         @field:Min(1) val reportTimeoutMs: Long,
     )
 
+    /**
+     * How long conversations are kept, enforced by [AskRetentionJob]: sessions older than [days]
+     * are deleted every night, with their turns. The daily totals ([DailyAskStats]) hold no personal
+     * data and are kept.
+     *
+     * @property days how long a session and its turns are kept after the session was created
+     * @property purgeCron when the purge runs: a Spring cron expression (second, minute, hour, day
+     *   of month, month, day of week) in Europe/Helsinki time. [AskRetentionJob] reads the same key
+     *   in its [Scheduled] annotation; it is here so that a missing value stops the app at startup
+     */
+    data class Retention(
+        @field:Min(1) val days: Int,
+        @field:NotBlank val purgeCron: String,
+    )
+
     /** Hides [ipHashKey], so printing the settings (logs, debugger, error messages) never leaks it. */
     override fun toString(): String =
         "AskProperties(ipHashKey=<hidden>, limits=$limits, turnstile=$turnstile, " +
                 "session=$session, guardrail=$guardrail, agent=$agent, budget=$budget, price=$price, " +
-                "mcp=$mcp, model=$model, fitCheck=$fitCheck)"
+                "mcp=$mcp, model=$model, fitCheck=$fitCheck, retention=$retention)"
 }

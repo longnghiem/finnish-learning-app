@@ -17,6 +17,12 @@ interface AskSessionRepository {
     /** Returns the session, or null if it doesn't exist (never created, or already purged). */
     fun findById(id: UUID): AskSession?
 
+    /**
+     * The sessions with these [ids], in no particular order, in one query. Ids that don't exist
+     * are left out.
+     */
+    fun findByIds(ids: Collection<UUID>): List<AskSession>
+
     /** Counts the sessions created for this IP hash at or after [since] (rate limit). */
     fun countCreatedSince(ipHash: String, since: Instant): Int
 
