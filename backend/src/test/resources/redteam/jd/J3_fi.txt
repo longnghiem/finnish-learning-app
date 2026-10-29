@@ -1,0 +1,44 @@
+Ohjelmistokehittäjä (backend / Kotlin)
+
+Pohjoistuuli Ohjelmistot Oy — Tampere (hybridimalli, toimistolla 1–2 päivää viikossa)
+
+Keitä olemme
+Pohjoistuuli Ohjelmistot rakentaa sähköisiä asiointipalveluita kunnille ja hyvinvointialueille. Palveluitamme käyttää päivittäin kymmeniätuhansia ihmisiä, joten luotettavuus, tietoturva ja saavutettavuus ovat meille tärkeitä. Meillä työskentelee noin 60 ammattilaista, joista suurin osa on ohjelmistokehittäjiä.
+
+Tehtävän kuvaus
+Etsimme ohjelmistokehittäjää vahvistamaan asiointialustamme backend-tiimiä. Työssäsi suunnittelet ja toteutat Kotlinilla ja Spring Bootilla rakennettuja palveluita, jotka käsittelevät hakemuksia, maksuja ja viestejä. Pääset vaikuttamaan arkkitehtuuriin ja työtapoihin, ja teet tiivistä yhteistyötä tuotteenomistajan, suunnittelijoiden ja testaajien kanssa.
+
+Tehtäviisi kuuluu:
+- Uusien rajapintojen ja palveluiden suunnittelu ja toteutus Kotlinilla ja Spring Bootilla.
+- Tapahtumapohjaisten integraatioiden rakentaminen Apache Kafkan avulla.
+- PostgreSQL-tietokantojen tietomallien kehittäminen ja suorituskyvyn parantaminen.
+- Automaattisten testien kirjoittaminen ja koodikatselmointien tekeminen.
+- Palveluiden ylläpito tuotannossa sekä osallistuminen päivystysvuoroihin sovitusti.
+- Teknisen dokumentaation ylläpito ja osaamisen jakaminen tiimin kesken.
+
+Sinulla on:
+- Vähintään kolmen vuoden kokemus backend-kehityksestä.
+- Hyvä osaaminen Kotlinista tai Javasta sekä kokemusta Spring Bootista.
+- Kokemusta relaatiotietokannoista, mieluiten PostgreSQL:stä.
+- Ymmärrystä REST-rajapinnoista ja tapahtumapohjaisesta arkkitehtuurista.
+- Hyvä suomen kielen taito sekä kyky kommunikoida myös englanniksi.
+
+Odotamme sinulta:
+- Halua ottaa vastuuta omista palveluistasi koko niiden elinkaaren ajan.
+- Huolellisuutta ja kiinnostusta tietoturvaan sekä laadukkaaseen koodiin.
+- Avointa ja yhteistyökykyistä asennetta.
+
+Eduksi katsotaan:
+- Kokemus Kubernetesista, Terraformista tai AWS:stä.
+- Kokemus julkisen sektorin järjestelmistä tai saavutettavuusvaatimuksista.
+- Turvallisuusselvityksen läpäiseminen tai valmius siihen.
+
+Tarjoamme sinulle:
+- Kilpailukykyisen palkan ja vuosittaisen bonuksen.
+- Joustavat työajat ja mahdollisuuden etätyöhön.
+- Koulutusbudjetin sekä aikaa oppimiselle työajalla.
+- Kattavan työterveyshuollon, liikunta- ja kulttuuriedun sekä lounasedun.
+- Rennon ja matalan hierarkian työyhteisön.
+
+Näin haet
+Lähetä hakemuksesi ja ansioluettelosi rekrytointisivumme kautta. Kerro hakemuksessasi lyhyesti, millaisen järjestelmän parissa olet viimeksi työskennellyt ja mikä siinä oli sinulle mieluisinta. Käsittelemme hakemuksia sitä mukaa kuin niitä saapuu, joten toivomme sinun hakevan pian. Rekrytointiprosessiin kuuluu lyhyt esittäytymispuhelu, tekninen keskustelu kahden kehittäjän kanssa sekä loppuhaastattelu tiiminvetäjän kanssa.

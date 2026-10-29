@@ -1,0 +1,23 @@
+Lead Platform Engineer (Kubernetes / AWS / Python)
+
+Frostline Data Oy — Helsinki, Finland (on-site)
+
+About the role
+You will lead our platform team of ten engineers and own the infrastructure that runs our data products. You will make the final call on architecture, hire new team members and represent the platform in front of customers.
+
+What you must have:
+- At least 3 years of running Kubernetes clusters in production, including upgrades and incident response.
+- Experience leading a team of 8 or more engineers, including hiring and performance reviews.
+- Expert-level Python for data pipelines (Airflow, pandas).
+- Deep AWS Lambda experience at scale: designing, deploying and operating hundreds of functions with infrastructure as code.
+- Native iOS development in Swift for our field app.
+
+Nice to have:
+- Terraform and AWS CDK.
+- Kotlin or Java.
+
+What we offer:
+- A competitive salary, stock options and a training budget.
+
+How to apply
+Send your CV and tell us about the largest Kubernetes platform you have run in production.
