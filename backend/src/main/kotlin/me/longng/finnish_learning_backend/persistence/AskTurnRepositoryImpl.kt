@@ -87,6 +87,7 @@ class AskTurnRepositoryImpl(
             .from(ASK_TURNS)
             .innerJoin(sessions).on(ASK_TURNS.SESSION_ID.eq(sessions.field(SESSION_ID_FIELD, UUID::class.java)))
             .where(ASK_TURNS.MODE.eq(mode.name))
+            .and(ASK_TURNS.STATUS.ne(TurnStatus.CAPPED.name))
             .and(ASK_TURNS.CREATED_AT.ge(since.atOffset(ZoneOffset.UTC)))
             .fetchSingle()
             .value1()

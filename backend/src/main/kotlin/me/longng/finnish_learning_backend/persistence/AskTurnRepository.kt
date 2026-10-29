@@ -31,7 +31,11 @@ interface AskTurnRepository {
      */
     fun countTurns(sessionId: UUID, mode: AskMode): Int
 
-    /** Counts turns of one [mode] created at or after [since] in any session with this IP hash. */
+    /**
+     * Counts turns of one [mode] created at or after [since] in any session with this IP hash.
+     * [TurnStatus.CAPPED] turns don't count: they were refused before any paid call because the
+     * budget was full, so they cost nothing and the visitor got nothing.
+     */
     fun countForIpSince(ipHash: String, mode: AskMode, since: Instant): Int
 
     /** One page of turns for the admin view, newest first. */

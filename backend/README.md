@@ -100,6 +100,7 @@ which it reads through **MCP tools**. The design is in
 | POST | `/api/ask/session` | Checks the Cloudflare Turnstile token and returns a session id |
 | POST | `/api/ask/chat` | Answers one message as a Server-Sent Events stream: progress steps, then the answer |
 | GET | `/api/ask/stats` | Public totals: answers, blocked attacks, share of this month's budget used |
+| POST | `/api/ask/fit-check` | Checks a pasted job description against the profile, as a Server-Sent Events stream: progress steps, then a verified report |
 
 ### How it uses AI
 
@@ -120,7 +121,12 @@ which it reads through **MCP tools**. The design is in
 - **Grounded answers.** The system prompt allows only facts from the profile and asks the model to
   say when something isn't in it. The conversation history is rebuilt from the database, never
   taken from the browser.
-- System prompt: `src/main/resources/prompts/recruiter-chat-system-prompt.md`
+- **"Check my fit": structured output and hallucination checks.** A pasted job description goes
+  through a two-phase agent: research calls that read entries over MCP, then one call with
+  **forced, strict tool use**, so Bedrock guarantees a JSON-Schema-valid report.`QuoteVerifier` then 
+  checks every quote against the profile and removes any false claims the model invented. 
+- System prompts: `src/main/resources/prompts/recruiter-chat-system-prompt.md`,
+  `src/main/resources/prompts/recruiter-fit-check-system-prompt.md`
 
 ### Cost and abuse control
 

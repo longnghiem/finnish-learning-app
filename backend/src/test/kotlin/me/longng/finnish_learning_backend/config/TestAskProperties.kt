@@ -59,6 +59,7 @@ fun testAskProperties(
         additionalRequestFields = "",
         timeoutMs = 30000,
     ),
+    fitCheck: AskProperties.FitCheck = AskProperties.FitCheck(maxChars = 6000, reportTimeoutMs = 120000),
 ) = AskProperties(
     ipHashKey = ipHashKey,
     limits = limits,
@@ -70,4 +71,5 @@ fun testAskProperties(
     price = price,
     mcp = mcp,
     model = model,
+    fitCheck = fitCheck,
 )

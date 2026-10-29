@@ -12,6 +12,7 @@ import me.longng.finnish_learning_backend.service.ask.BedrockGuardrailService
 import me.longng.finnish_learning_backend.service.ask.BudgetService
 import me.longng.finnish_learning_backend.service.ask.ChatService
 import me.longng.finnish_learning_backend.service.ask.CostCalculator
+import me.longng.finnish_learning_backend.service.ask.FitCheckService
 import me.longng.finnish_learning_backend.service.ask.TurnstileClient
 import me.longng.finnish_learning_backend.service.ask.mcp.SigV4McpProfileClient
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -40,6 +41,7 @@ data class AskProperties(
     @field:Valid val price: Price,
     @field:Valid val mcp: Mcp,
     @field:Valid val model: Model,
+    @field:Valid val fitCheck: FitCheck,
 ) {
 
     /**
@@ -208,9 +210,24 @@ data class AskProperties(
         @field:Min(1) val timeoutMs: Long,
     )
 
+    /**
+     * The fit check ([FitCheckService]): a job description checked against the profile.
+     *
+     * @property maxChars the longest job description accepted
+     * @property reportTimeoutMs the most the report call may take. Longer than
+     *   [Model.timeoutMs]: the report is the longest reply, and on its first use in 24 hours
+     *   Bedrock first compiles the report's schema (≈ 22 s in total measured, of which ≈ 10 s
+     *   compiling). The Bedrock client's read timeout (`app.bedrock.read-timeout-ms`, 120 s)
+     *   caps it too
+     */
+    data class FitCheck(
+        @field:Min(1) val maxChars: Int,
+        @field:Min(1) val reportTimeoutMs: Long,
+    )
+
     /** Hides [ipHashKey], so printing the settings (logs, debugger, error messages) never leaks it. */
     override fun toString(): String =
         "AskProperties(ipHashKey=<hidden>, limits=$limits, turnstile=$turnstile, " +
                 "session=$session, guardrail=$guardrail, agent=$agent, budget=$budget, price=$price, " +
-                "mcp=$mcp, model=$model)"
+                "mcp=$mcp, model=$model, fitCheck=$fitCheck)"
 }
