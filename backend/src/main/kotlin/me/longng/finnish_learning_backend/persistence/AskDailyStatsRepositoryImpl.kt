@@ -86,6 +86,13 @@ class AskDailyStatsRepositoryImpl(
             .map { it.toDomain() }
     }
 
+    override fun clearReservations(): Int {
+        return dsl.update(ASK_DAILY_STATS)
+            .set(ASK_DAILY_STATS.RESERVED_USD, BigDecimal.ZERO)
+            .where(ASK_DAILY_STATS.RESERVED_USD.gt(BigDecimal.ZERO))
+            .execute()
+    }
+
     private fun AskDailyStatsRecord.toDomain() = DailyAskStats(
         day = requireNotNull(day),
         answers = requireNotNull(answers),

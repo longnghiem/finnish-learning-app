@@ -59,6 +59,8 @@ class AskPropertiesTest {
             "app.ask.model.timeout-ms=30000",
             "app.ask.fit-check.max-chars=6000",
             "app.ask.fit-check.report-timeout-ms=120000",
+            "app.ask.retention.days=30",
+            "app.ask.retention.purge-cron=0 15 3 * * *",
         )
 
     @Test
@@ -132,6 +134,15 @@ class AskPropertiesTest {
                 properties.model,
             )
             assertEquals(AskProperties.FitCheck(maxChars = 6000, reportTimeoutMs = 120000), properties.fitCheck)
+            assertEquals(AskProperties.Retention(days = 30, purgeCron = "0 15 3 * * *"), properties.retention)
+        }
+    }
+
+    @Test
+    fun testBind_ZeroRetentionDaysFails() {
+        // 0 days would delete every conversation at the next purge, even one still running.
+        runner.withPropertyValues("app.ask.retention.days=0").run { context ->
+            assertNotNull(context.startupFailure)
         }
     }
 

@@ -84,6 +84,17 @@ class AskSessionRepositoryTest {
     }
 
     @Test
+    fun testFindByIds_KnownOnes() {
+        val first = sessionRepository.create(UUID.randomUUID(), ipHash, Instant.now().plus(Duration.ofHours(2)))
+        val second = sessionRepository.create(UUID.randomUUID(), randomIpHash(), Instant.now().plus(Duration.ofHours(2)))
+
+        val found = sessionRepository.findByIds(listOf(first.id, second.id, UUID.randomUUID()))
+
+        assertEquals(setOf(first, second), found.toSet(), "an unknown id is left out")
+        assertEquals(emptyList(), sessionRepository.findByIds(emptyList()))
+    }
+
+    @Test
     fun testDeleteById_Found() {
         val id = UUID.randomUUID()
         sessionRepository.create(id, ipHash, Instant.now().plus(Duration.ofHours(2)))

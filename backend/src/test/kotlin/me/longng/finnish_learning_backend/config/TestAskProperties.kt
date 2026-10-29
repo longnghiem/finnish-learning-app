@@ -60,6 +60,7 @@ fun testAskProperties(
         timeoutMs = 30000,
     ),
     fitCheck: AskProperties.FitCheck = AskProperties.FitCheck(maxChars = 6000, reportTimeoutMs = 120000),
+    retention: AskProperties.Retention = AskProperties.Retention(days = 30, purgeCron = "0 15 3 * * *"),
 ) = AskProperties(
     ipHashKey = ipHashKey,
     limits = limits,
@@ -72,4 +73,5 @@ fun testAskProperties(
     mcp = mcp,
     model = model,
     fitCheck = fitCheck,
+    retention = retention,
 )

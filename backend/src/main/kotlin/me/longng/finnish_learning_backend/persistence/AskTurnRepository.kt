@@ -40,4 +40,13 @@ interface AskTurnRepository {
 
     /** One page of turns for the admin view, newest first. */
     fun findPage(filter: TurnFilter, limit: Int, offset: Int): List<AskTurn>
+
+    /**
+     * Marks every [TurnStatus.PENDING] turn as [TurnStatus.ERROR] and returns how many there were.
+     * Cost, tokens and latency stay as stored: what such a turn really spent is unknown.
+     *
+     * Only safe when no turn can still be running, i.e. at startup
+     * ([me.longng.finnish_learning_backend.service.ask.AskStartupCleanup]).
+     */
+    fun failPending(): Int
 }

@@ -316,6 +316,33 @@ class BedrockGuardrailServiceTest {
     }
 
     @Test
+    fun testBlockedBy_StoredScoresUseTheModeThresholds() {
+        // Scores as a turn stores them: both checks in one map.
+        val scores = mapOf("HATE" to 0.6, "INSULTS" to 0.2, "PROMPT_INJECTION" to 0.6, "JAILBREAK" to 0.0)
+        val settings = testAskProperties().guardrail
+
+        assertEquals(listOf("HATE", "PROMPT_INJECTION"), BedrockGuardrailService.blockedBy(settings, AskMode.CHAT, scores))
+        assertEquals(
+            listOf("HATE"),
+            BedrockGuardrailService.blockedBy(settings, AskMode.FIT_CHECK, scores),
+            "0.6 is below the job-description prompt-attack threshold (0.8), not below the content one",
+        )
+    }
+
+    @Test
+    fun testBlockedBy_StoredScoresMatchTheCheck() {
+        // The admin view must name the same categories the check blocked on.
+        stubAnswer(answer(mapOf("HATE" to 0.6, "JAILBREAK" to 1.0)))
+
+        val result = service.check(AskMode.CHAT, MESSAGE)
+
+        assertEquals(
+            (result.verdict as GuardrailVerdict.Blocked).categories,
+            BedrockGuardrailService.blockedBy(testAskProperties().guardrail, AskMode.CHAT, result.scores),
+        )
+    }
+
+    @Test
     fun testCheck_BlankTextRejectedWithoutCalling() {
         assertThrows<IllegalArgumentException> { service.check(AskMode.CHAT, " ") }
 

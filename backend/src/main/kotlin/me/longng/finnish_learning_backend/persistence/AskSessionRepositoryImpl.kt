@@ -37,6 +37,14 @@ class AskSessionRepositoryImpl(
             ?.toDomain()
     }
 
+    override fun findByIds(ids: Collection<UUID>): List<AskSession> {
+        if (ids.isEmpty()) return emptyList()
+        return dsl.selectFrom(ASK_SESSIONS)
+            .where(ASK_SESSIONS.ID.`in`(ids))
+            .fetch()
+            .map { it.toDomain() }
+    }
+
     override fun countCreatedSince(ipHash: String, since: Instant): Int {
         return dsl.fetchCount(
             ASK_SESSIONS,

@@ -14,6 +14,7 @@ import java.time.LocalDate
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @SpringBootTest
 @Import(TestcontainersConfiguration::class)
@@ -136,6 +137,24 @@ class AskDailyStatsRepositoryTest {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun testAcquireBudgetLock_WithoutTransactionFails() {
         assertThrows<IllegalStateException> { statsRepository.acquireBudgetLock() }
+    }
+
+    @Test
+    fun testClearReservations_AllDaysKeepsSpent() {
+        val nextDay = day.plusDays(1)
+        statsRepository.addReservation(day, BigDecimal("0.1440"))
+        statsRepository.settleReservation(day, reservedUsd = BigDecimal("0.0400"), actualUsd = BigDecimal("0.0310"))
+        statsRepository.addReservation(nextDay, BigDecimal("0.0460"))
+        statsRepository.incrementCounters(nextDay, answers = 2)
+
+        // "At least": days with reservations committed by other test classes are cleared too.
+        assertTrue(statsRepository.clearReservations() >= 2)
+
+        assertAmount("0", statsRepository.findByDay(day)?.reservedUsd)
+        assertAmount("0.0310", statsRepository.findByDay(day)?.spentUsd)
+        assertAmount("0", statsRepository.findByDay(nextDay)?.reservedUsd)
+        assertEquals(2, statsRepository.findByDay(nextDay)?.answers)
+        assertEquals(0, statsRepository.clearReservations(), "nothing is reserved any more")
     }
 
     @Test

@@ -9,6 +9,7 @@ import me.longng.finnish_learning_backend.service.TopicNotFoundException
 import me.longng.finnish_learning_backend.service.UsernameAlreadyExistsException
 import me.longng.finnish_learning_backend.service.ask.AskConversationLimitException
 import me.longng.finnish_learning_backend.service.ask.AskRateLimitedException
+import me.longng.finnish_learning_backend.service.ask.AskSessionNotFoundException
 import me.longng.finnish_learning_backend.service.ask.AskSessionInvalidException
 import me.longng.finnish_learning_backend.service.ask.TurnstileVerificationException
 import me.longng.finnish_learning_backend.service.bedrock.EssayEvaluationMisconfiguredException
@@ -65,6 +66,12 @@ class GlobalExceptionHandler {
     @ExceptionHandler(TopicNotFoundException::class)
     fun handleTopicNotFound(ex: TopicNotFoundException): ResponseEntity<ErrorResponse> {
         logger.warn("Topic not found: {}", ex.message)
+        return buildResponse(HttpStatus.NOT_FOUND, ex.message)
+    }
+
+    @ExceptionHandler(AskSessionNotFoundException::class)
+    fun handleAskSessionNotFound(ex: AskSessionNotFoundException): ResponseEntity<ErrorResponse> {
+        logger.warn("Ask session not found: {}", ex.message)
         return buildResponse(HttpStatus.NOT_FOUND, ex.message)
     }
 
