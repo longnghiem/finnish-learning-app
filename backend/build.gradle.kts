@@ -153,7 +153,8 @@ tasks.withType<Test> {
 
 tasks.test {
 	// Tests tagged "manual" need a running local server; run them with ./gradlew manualTest.
-	useJUnitPlatform { excludeTags("manual") }
+	// Tests tagged "redteam" call the real Bedrock and cost money; run them with ./gradlew redTeam.
+	useJUnitPlatform { excludeTags("manual", "redteam") }
 }
 
 // Opt-in tests against real local services, e.g. the profile MCP server of `npm run dev` in
@@ -164,6 +165,21 @@ tasks.register<Test>("manualTest") {
 	useJUnitPlatform { includeTags("manual") }
 	testClassesDirs = sourceSets["test"].output.classesDirs
 	classpath = sourceSets["test"].runtimeClasspath
+}
+
+// Opt-in red-team suite of the recruiter chatbot: real Bedrock model and guardrail calls (about
+// $0.40 per run) against the example profile of `npm run dev` in mcp-server/. Needs AWS
+// credentials in the environment. How to run it: src/test/resources/redteam/README.md.
+tasks.register<Test>("redTeam") {
+	description = "Runs the recruiter-chatbot red-team suite against the real Bedrock (costs money)."
+	group = "verification"
+	useJUnitPlatform { includeTags("redteam") }
+	testClassesDirs = sourceSets["test"].output.classesDirs
+	classpath = sourceSets["test"].runtimeClasspath
+	// Every run must really call Bedrock, so Gradle must never skip it as "up to date".
+	outputs.upToDateWhen { false }
+	// The suite prints a summary table of every case at the end.
+	testLogging { showStandardStreams = true }
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
