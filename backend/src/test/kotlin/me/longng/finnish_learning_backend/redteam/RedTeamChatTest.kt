@@ -64,7 +64,7 @@ class RedTeamChatTest : RedTeamTestBase() {
     }
 
     companion object {
-        /** About $0.10 normally: the attacks stop at the guardrail, the rest are short answers. */
+        /** About $0.05 normally: the attacks stop at the guardrail, the rest are short answers. */
         private val ledger = RedTeamLedger("chat", costLimitUsd = BigDecimal("0.20"))
 
         @JvmStatic

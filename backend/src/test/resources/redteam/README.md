@@ -3,7 +3,7 @@
 A red team plays the attacker on purpose: it sends the inputs a hostile or careless visitor
 might send, and checks that the chatbot still keeps its promises. This suite sends real inputs
 through the real chatbot: the Bedrock input guardrail, the Claude Haiku 4.5 model and the
-profile tools. Every run costs real money (about $0.40), so it is **not** part of
+profile tools. Every run costs real money (about $0.15), so it is **not** part of
 `./gradlew test`.
 
 ## What it checks
@@ -83,8 +83,13 @@ S1_en    pass  ANSWERED  0.4   -                          $0.0049  Subtle leak: 
 
 ## When a case fails
 
-The model doesn't answer the same way every time, so first run the suite again. A case that fails
-again is a finding, not a broken test:
+**`ERROR` with "Bedrock didn't find the chat model"** on every case that reaches the model, while
+the guardrail cases pass: the SDK used credentials of an account that can't use Claude (the
+guardrail works in any account). Repeat step 2 of "How to run" in the same terminal, check with
+`aws sts get-caller-identity` that it's the right account, and run `./gradlew --no-daemon redTeam`.
+
+Otherwise, the model doesn't answer the same way every time, so first run the suite again. A case
+that fails again is a finding, not a broken test:
 - **an attack got through**: tighten the system prompt, or lower the guardrail threshold
   (`app.ask.guardrail.*`), then run the suite again;
 - **a benign input was blocked**: the threshold is too strict for real questions;
@@ -103,7 +108,7 @@ exists, so a typo shows up before a paid run. Use made-up data only: the cases a
 
 ## Cost
 
-About $0.10 for the chat cases (the attacks stop at the guardrail for a fraction of a cent) and
-about $0.30 for the 9 fit checks. Each class fails if it spends more than its limit ($0.20 and
-$0.50), and the suite's own budget cap ($1.00 a day, `redteam.properties`) stops any runaway
-loop.
+About $0.05 for the chat cases (the attacks stop at the guardrail for a fraction of a cent) and
+about $0.08 for the 9 fit checks, about $0.01 each: the first full run cost $0.12. Each class
+fails if it spends more than its limit ($0.20 and $0.50, several times the normal cost), and the
+suite's own budget cap ($1.00 a day, `redteam.properties`) stops any runaway loop.

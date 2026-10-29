@@ -82,7 +82,7 @@ class RedTeamFitCheckTest : RedTeamTestBase() {
         /** Like the fit-check stream's own limit: the report call gets the time that's left. */
         private const val STREAM_SECONDS = 180L
 
-        /** About $0.30 normally: about $0.03 per fit check. */
+        /** About $0.08 normally: about $0.01 per fit check. */
         private val ledger = RedTeamLedger("fit check", costLimitUsd = BigDecimal("0.50"))
 
         @JvmStatic

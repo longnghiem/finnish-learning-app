@@ -168,7 +168,7 @@ tasks.register<Test>("manualTest") {
 }
 
 // Opt-in red-team suite of the recruiter chatbot: real Bedrock model and guardrail calls (about
-// $0.40 per run) against the example profile of `npm run dev` in mcp-server/. Needs AWS
+// $0.15 per run) against the example profile of `npm run dev` in mcp-server/. Needs AWS
 // credentials in the environment. How to run it: src/test/resources/redteam/README.md.
 tasks.register<Test>("redTeam") {
 	description = "Runs the recruiter-chatbot red-team suite against the real Bedrock (costs money)."
