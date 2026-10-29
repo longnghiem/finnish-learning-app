@@ -2,6 +2,7 @@ package me.longng.finnish_learning_backend.controller.dto.ask
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import me.longng.finnish_learning_backend.controller.AskController
+import me.longng.finnish_learning_backend.domain.ask.AskMode
 import me.longng.finnish_learning_backend.domain.ask.ToolCall
 import me.longng.finnish_learning_backend.service.ask.AskBudgetExhaustedException
 import me.longng.finnish_learning_backend.service.ask.AskConversationLimitException
@@ -10,28 +11,36 @@ import me.longng.finnish_learning_backend.service.ask.AskModelUnavailableExcepti
 import me.longng.finnish_learning_backend.service.ask.AskRateLimitedException
 import me.longng.finnish_learning_backend.service.ask.AskStep
 import me.longng.finnish_learning_backend.service.ask.ChatAnswer
+import me.longng.finnish_learning_backend.service.ask.FitCheckResult
+import me.longng.finnish_learning_backend.service.ask.FitReport
 import me.longng.finnish_learning_backend.service.ask.GuardrailUnavailableException
 import me.longng.finnish_learning_backend.service.ask.mcp.McpProfileUnavailableException
 
 /**
- * The `event:` names of the recruiter chatbot's SSE stream, as [AskController] sends it. The
+ * The `event:` names of the recruiter chatbot's SSE streams, as [AskController] sends them. The
  * frontend's `frontend/src/schemas/ask.ts` must match the event classes in this file.
  *
  * ```
  * event:step     data:{"kind":"GUARDRAIL"}
  * event:step     data:{"kind":"COMPOSING"}
  * event:step     data:{"kind":"TOOL_CALL","tool":"get_entry","args":{"id":"projects/x"}}
+ * event:step     data:{"kind":"VERIFYING"}                              (fit check only)
  * event:answer   data:{"turnId":123,"text":"…","toolTrace":[{"tool":"get_entry","args":{…},"isError":false}]}
+ * event:report   data:{"turnId":124,"report":{…},"toolTrace":[…]}      (fit check only)
  * event:error    data:{"code":"CAPPED","message":"…","capScope":"DAILY"}
  * event:done     data:{}
+ * :keepalive                                                           (fit check only, every 15 s)
  * ```
  *
- * A stream ends with `answer` then `done`, or with `error` then `done`. A stream that ends without
- * `done` timed out (after 55 s) or broke; the frontend shows a generic "please try again".
+ * A chat stream ends with `answer` then `done`, a fit-check stream with `report` then `done`;
+ * either may end with `error` then `done` instead. A stream that ends without `done` timed out or
+ * broke; the frontend shows a generic "please try again". `:keepalive` is an SSE comment: it keeps
+ * nginx from closing a quiet stream, and clients ignore it.
  */
 object AskSseEventNames {
     const val STEP = "step"
     const val ANSWER = "answer"
+    const val REPORT = "report"
     const val ERROR = "error"
     const val DONE = "done"
 }
@@ -87,14 +96,18 @@ data class AskStepEvent(
         /** A profile tool runs, e.g. `get_entry`. */
         TOOL_CALL,
 
-        /** The model is writing. Sent before every model call, so it can come more than once. */
+        /** The model is writing. In chat sent before every model call, so it can come more than once. */
         COMPOSING,
+
+        /** Fit check: the report's quotes are being checked against the profile. */
+        VERIFYING,
     }
 
     companion object {
         fun from(step: AskStep): AskStepEvent = when (step) {
             AskStep.GuardrailPassed -> AskStepEvent(Kind.GUARDRAIL)
             AskStep.Composing -> AskStepEvent(Kind.COMPOSING)
+            AskStep.Verifying -> AskStepEvent(Kind.VERIFYING)
             is AskStep.ToolCalled -> AskStepEvent(Kind.TOOL_CALL, tool = step.tool, args = step.args)
         }
     }
@@ -121,7 +134,28 @@ data class AskAnswerEvent(
 }
 
 /**
- * One entry of [AskAnswerEvent.toolTrace].
+ * The fit report: `event:report`.
+ *
+ * @property turnId the stored turn, so a bug report can name it
+ * @property report the verified report; every quote in it was found in the profile
+ * @property toolTrace the profile tools that ran during research, shown as "How I found this"
+ */
+data class AskFitReportEvent(
+    val turnId: Long,
+    val report: FitReport,
+    val toolTrace: List<AskToolCall>,
+) {
+    companion object {
+        fun from(result: FitCheckResult) = AskFitReportEvent(
+            turnId = result.turnId,
+            report = result.report,
+            toolTrace = result.toolTrace.map { AskToolCall.from(it) },
+        )
+    }
+}
+
+/**
+ * One entry of [AskAnswerEvent.toolTrace] and [AskFitReportEvent.toolTrace].
  *
  * @property isError whether the tool answered with an error, e.g. an unknown entry id
  */
@@ -148,11 +182,18 @@ data class AskErrorEvent(
     val capScope: AskBudgetExhaustedException.Scope? = null,
 ) {
     companion object {
-        /** The event for an exception thrown while answering. */
-        fun from(ex: Exception): AskErrorEvent = when (ex) {
+        /**
+         * The event for an exception thrown while answering.
+         *
+         * @param mode what was asked; only the text of a blocked input depends on it
+         */
+        fun from(ex: Exception, mode: AskMode = AskMode.CHAT): AskErrorEvent = when (ex) {
             is AskInputBlockedException -> AskErrorEvent(
                 AskErrorCode.BLOCKED,
-                "I can't answer that message. Please ask about Long's work, projects or skills.",
+                when (mode) {
+                    AskMode.CHAT -> "I can't answer that message. Please ask about Long's work, projects or skills."
+                    AskMode.FIT_CHECK -> "I can't check this text. Please paste only the job description."
+                },
             )
             is AskBudgetExhaustedException -> AskErrorEvent(
                 AskErrorCode.CAPPED,

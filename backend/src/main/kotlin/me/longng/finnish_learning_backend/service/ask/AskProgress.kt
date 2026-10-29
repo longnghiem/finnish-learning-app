@@ -17,14 +17,30 @@ import me.longng.finnish_learning_backend.config.AskProperties
  * ```
  * There are at most [AskProperties.Agent.chatMaxToolRounds] rounds. A blocked message ends
  * before [GuardrailPassed]; a direct answer has no [ToolCalled] step.
+ *
+ * For a fit check ([FitCheckService]) the research calls only pick entries to read, so they send
+ * no step of their own:
+ * ```
+ * GuardrailPassed
+ * ToolCalled, ToolCalled, …         the entries read, over at most
+ *                                   [AskProperties.Agent.fitMaxToolRounds] rounds
+ * Composing                         before the one call that writes the report
+ * Verifying                         while the report's quotes are checked against the profile
+ * ```
  */
 sealed interface AskStep {
 
     /** The input guardrail let the message through. */
     data object GuardrailPassed : AskStep
 
-    /** The model is reading what it has and writing; sent before every model call. */
+    /**
+     * The model is reading what it has and writing: sent before every chat model call, and
+     * before the fit check's report call.
+     */
     data object Composing : AskStep
+
+    /** The fit report's quotes are being checked against the profile ([QuoteVerifier]). */
+    data object Verifying : AskStep
 
     /**
      * A profile tool is about to run, e.g. `get_entry` with `{"id": "projects/finnish-learning-app"}`.

@@ -3,12 +3,8 @@ package me.longng.finnish_learning_backend.service.ask
 import me.longng.finnish_learning_backend.config.AskProperties
 import me.longng.finnish_learning_backend.domain.ask.AskMode
 import me.longng.finnish_learning_backend.domain.ask.AskSession
-import me.longng.finnish_learning_backend.domain.ask.GuardrailOutcome
-import me.longng.finnish_learning_backend.domain.ask.TokenUsage
 import me.longng.finnish_learning_backend.domain.ask.ToolCall
-import me.longng.finnish_learning_backend.domain.ask.TurnCompletion
 import me.longng.finnish_learning_backend.domain.ask.TurnStatus
-import me.longng.finnish_learning_backend.persistence.AskDailyStatsRepository
 import me.longng.finnish_learning_backend.persistence.AskTurnRepository
 import me.longng.finnish_learning_backend.service.ask.mcp.McpProfileClient
 import me.longng.finnish_learning_backend.service.ask.mcp.McpProfileUnavailableException
@@ -18,8 +14,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.bedrockruntime.model.Message
-import java.math.BigDecimal
-import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -31,9 +25,9 @@ import java.util.UUID
  *
  * The tool loop. The model sees the system prompt with the profile index, the earlier
  * messages and answers, and the new message. It may ask for tools instead of answering: the
- * service runs at most [AskProperties.Agent.maxReadsPerRound] of them through [McpProfileClient]
- * (any extra request gets an error result), sends all results back in one message and calls the
- * model again. One such ask-and-read step is a round. After
+ * service runs at most [AskProperties.Agent.maxReadsPerRound] of them ([ProfileToolRunner], which
+ * reads through [McpProfileClient]; any extra request gets an error result), sends all results
+ * back in one message and calls the model again. One such ask-and-read step is a round. After
  * [AskProperties.Agent.chatMaxToolRounds] rounds, the results go back with "Tool limit reached.
  * Answer now…", and that last call's text is the answer, even if it asks for more tools.
  *
@@ -45,18 +39,18 @@ import java.util.UUID
  * too heavy for the small server.
  *
  * Every turn ends exactly once as ANSWERED, BLOCKED, CAPPED or ERROR, and its reservation is
- * settled with what was really spent, also when something fails halfway. Logs carry the turn id,
- * counts, tokens, cost and latency, never the message or the answer.
+ * settled with what was really spent, also when something fails halfway ([AskTurnRecorder]).
+ * Logs carry the turn id, counts, tokens, cost and latency, never the message or the answer.
  */
 @Service
 class ChatService(
     private val turnRepository: AskTurnRepository,
-    private val statsRepository: AskDailyStatsRepository,
+    private val recorder: AskTurnRecorder,
     private val rateLimiter: AskRateLimiter,
-    private val budgetService: BudgetService,
     private val costCalculator: CostCalculator,
     private val guardrailService: GuardrailService,
     private val profileClient: McpProfileClient,
+    private val toolRunner: ProfileToolRunner,
     private val chatClient: BedrockChatClient,
     properties: AskProperties,
     @Value("classpath:prompts/recruiter-chat-system-prompt.md") systemPromptResource: Resource,
@@ -112,11 +106,11 @@ class ChatService(
      */
     fun answer(session: AskSession, text: String, listener: AskProgressListener): ChatAnswer {
         checkCanAsk(session, text)
-        val turn = TurnInProgress(turnRepository.insertPending(session.id, AskMode.CHAT, text))
+        val turn = recorder.start(session.id, AskMode.CHAT, text)
         val outcome = try {
             run(turn, session.id, text, listener)
         } catch (ex: Exception) {
-            recordFailure(turn, ex)
+            recorder.recordFailure(turn, ex)
             throw ex
         }
         return when (outcome) {
@@ -128,8 +122,8 @@ class ChatService(
     /** Everything after the turn is stored. Records the turn itself when it is answered or blocked. */
     private fun run(turn: TurnInProgress, sessionId: UUID, text: String, listener: AskProgressListener): TurnOutcome {
         val context = prepare(sessionId)
-        val reservation = budgetService.reserve(
-            AskMode.CHAT,
+        val reservation = recorder.reserve(
+            turn,
             costCalculator.estimateMax(
                 AskMode.CHAT,
                 promptChars = chatClient.promptChars(context.system, context.tools),
@@ -137,22 +131,21 @@ class ChatService(
                 historyChars = context.historyChars,
             ),
         )
-        turn.reservation = reservation
 
         val guardrail = guardrailService.check(AskMode.CHAT, text)
         turn.guardrail = guardrail
         val verdict = guardrail.verdict
         if (verdict is GuardrailVerdict.Blocked) {
-            finish(turn, TurnStatus.BLOCKED, answerText = null)
-            countOutcome(turn, reservation.day, blocked = 1)
+            recorder.finish(turn, TurnStatus.BLOCKED)
+            recorder.countOutcome(turn, reservation.day, blocked = 1)
             logger.info("Chat turn blocked: turnId={} categories={}", turn.id, verdict.categories)
             return TurnOutcome.Blocked(verdict.categories)
         }
         listener.onStep(AskStep.GuardrailPassed)
 
         val answerText = runToolLoop(turn, context, text, listener)
-        finish(turn, TurnStatus.ANSWERED, answerText)
-        countOutcome(turn, reservation.day, answers = 1)
+        recorder.finish(turn, TurnStatus.ANSWERED, answerText = answerText)
+        recorder.countOutcome(turn, reservation.day, answers = 1)
         logger.info(
             "Chat turn answered: turnId={} rounds={} toolCalls={} inputTokens={} outputTokens={} " +
                     "cacheReadTokens={} cacheWriteTokens={} costUsd={} latencyMs={}",
@@ -163,7 +156,7 @@ class ChatService(
             turn.tokens.outputTokens,
             turn.tokens.cacheReadTokens,
             turn.tokens.cacheWriteTokens,
-            costOf(turn),
+            recorder.costOf(turn),
             turn.latencyMs(),
         )
         return TurnOutcome.Answered(answerText)
@@ -203,145 +196,10 @@ class ChatService(
             }
 
             turn.rounds += 1
-            val results = runTools(turn, context, reply.toolRequests, listener)
+            val results = toolRunner.runRound(turn, reply.toolRequests, context.tools, listener)
             val note = if (turn.rounds == agent.chatMaxToolRounds) TOOL_LIMIT_NOTE else null
             messages = messages + reply.message + BedrockChatClient.toolResults(results, note)
         }
-    }
-
-    /**
-     * Runs the first [AskProperties.Agent.maxReadsPerRound] tool requests of one reply and refuses
-     * the rest with an error result. Every request gets a result: Bedrock refuses the next call if
-     * one is missing.
-     */
-    private fun runTools(
-        turn: TurnInProgress,
-        context: ChatContext,
-        requests: List<ModelToolRequest>,
-        listener: AskProgressListener,
-    ): List<ToolOutcome> {
-        val tooMany = "Too many reads in one step; ask for at most ${agent.maxReadsPerRound}."
-        val toolNames = context.tools.mapTo(HashSet()) { it.name }
-        val ran = requests.take(agent.maxReadsPerRound).map { request -> runTool(turn, request, toolNames, listener) }
-        val refused = requests.drop(agent.maxReadsPerRound).map { ToolOutcome(it.toolUseId, tooMany, isError = true) }
-        return ran + refused
-    }
-
-    /**
-     * Runs one tool request. A tool name the server doesn't have still gets its error result from
-     * [McpProfileClient.callTool], so the model can correct itself, but no step and no trace entry:
-     * it read nothing, and the visitor would see a tool that doesn't exist.
-     */
-    private fun runTool(
-        turn: TurnInProgress,
-        request: ModelToolRequest,
-        toolNames: Set<String>,
-        listener: AskProgressListener,
-    ): ToolOutcome {
-        val known = request.name in toolNames
-        if (known) listener.onStep(AskStep.ToolCalled(request.name, request.arguments))
-        val result = profileClient.callTool(request.name, request.arguments)
-        // Added at once, so a failure later in the turn still records the tools that ran.
-        if (known) turn.toolTrace += ToolCall(tool = request.name, args = request.arguments, isError = result.isError)
-        return ToolOutcome(request.toolUseId, result.text, result.isError)
-    }
-
-    /** Stores how the turn ended and settles its reservation with the actual cost. */
-    private fun finish(turn: TurnInProgress, status: TurnStatus, answerText: String?) {
-        turnRepository.complete(turn.id, completionOf(turn, status, answerText, turn.guardrail?.outcome))
-        turn.completed = true
-        settle(turn)
-    }
-
-    /**
-     * Adds the turn to the daily counters. The turn is already stored and its cost settled, so a
-     * failure here loses only a statistic: it is logged, and the visitor still gets the outcome.
-     */
-    private fun countOutcome(turn: TurnInProgress, day: LocalDate, answers: Int = 0, blocked: Int = 0) {
-        try {
-            statsRepository.incrementCounters(day, answers = answers, blocked = blocked)
-        } catch (ex: Exception) {
-            logger.warn("Daily counters not updated: turnId={} error={}", turn.id, ex.javaClass.simpleName)
-        }
-    }
-
-    /**
-     * Records a turn that failed: CAPPED if the budget was full, ERROR otherwise, with what was
-     * spent until then. Problems while recording are attached to [ex], never hide it.
-     */
-    private fun recordFailure(turn: TurnInProgress, ex: Exception) {
-        val status = if (ex is AskBudgetExhaustedException) TurnStatus.CAPPED else TurnStatus.ERROR
-        val guardrailOutcome = if (ex is GuardrailUnavailableException) GuardrailOutcome.ERROR else turn.guardrail?.outcome
-        if (!turn.completed) {
-            try {
-                turnRepository.complete(turn.id, completionOf(turn, status, answerText = null, guardrailOutcome))
-                turn.completed = true
-            } catch (inner: Exception) {
-                ex.addSuppressed(inner)
-            }
-        }
-        try {
-            settle(turn)
-        } catch (inner: Exception) {
-            ex.addSuppressed(inner)
-        }
-        logger.warn(
-            "Chat turn failed: turnId={} status={} error={} costUsd={} latencyMs={}",
-            turn.id,
-            status,
-            ex.javaClass.simpleName,
-            costOf(turn),
-            turn.latencyMs(),
-        )
-    }
-
-    /** Settles the reservation, if any, exactly once: released if nothing was spent. */
-    private fun settle(turn: TurnInProgress) {
-        val reservation = turn.reservation ?: return
-        turn.reservation = null
-        val cost = costOf(turn)
-        if (cost.signum() == 0) budgetService.release(reservation) else budgetService.settle(reservation, cost)
-    }
-
-    /**
-     * The guardrail check plus all model calls so far. A guardrail check that failed is counted as
-     * $0: its price (≈ $0.00015) is too small to matter.
-     */
-    private fun costOf(turn: TurnInProgress): BigDecimal {
-        val guardrailCost = turn.guardrail?.let {
-            costCalculator.guardrailCost(it.contentFilterTextUnits, it.promptAttackTextUnits)
-        } ?: BigDecimal.ZERO
-        return guardrailCost + costCalculator.modelCost(turn.tokens)
-    }
-
-    private fun completionOf(
-        turn: TurnInProgress,
-        status: TurnStatus,
-        answerText: String?,
-        guardrailOutcome: GuardrailOutcome?,
-    ) = TurnCompletion(
-        status = status,
-        answerText = answerText,
-        toolTrace = turn.toolTrace,
-        guardrailOutcome = guardrailOutcome,
-        guardrailScores = turn.guardrail?.scores,
-        tokens = turn.tokens,
-        guardrailTextUnits = turn.guardrail?.textUnits ?: 0,
-        costUsd = costOf(turn),
-        latencyMs = turn.latencyMs(),
-    )
-
-    /** What one turn has done so far, so a failure can still be recorded with what was spent. */
-    private class TurnInProgress(val id: Long) {
-        private val startedAt = System.nanoTime()
-        var reservation: Reservation? = null
-        var guardrail: GuardrailCheckResult? = null
-        var tokens: TokenUsage = TokenUsage.NONE
-        var toolTrace: List<ToolCall> = emptyList()
-        var rounds = 0
-        var completed = false
-
-        fun latencyMs(): Int = ((System.nanoTime() - startedAt) / 1_000_000).toInt()
     }
 
     /**

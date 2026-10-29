@@ -4,6 +4,7 @@ import jakarta.servlet.AsyncEvent
 import me.longng.finnish_learning_backend.TestcontainersConfiguration
 import me.longng.finnish_learning_backend.config.AskExecutorConfig
 import me.longng.finnish_learning_backend.controller.dto.ask.AskChatRequest
+import me.longng.finnish_learning_backend.controller.dto.ask.AskFitCheckRequest
 import me.longng.finnish_learning_backend.controller.dto.ask.CreateAskSessionRequest
 import me.longng.finnish_learning_backend.domain.ask.AskSession
 import me.longng.finnish_learning_backend.domain.ask.ToolCall
@@ -20,11 +21,18 @@ import me.longng.finnish_learning_backend.service.ask.AskStatsService
 import me.longng.finnish_learning_backend.service.ask.AskStep
 import me.longng.finnish_learning_backend.service.ask.ChatAnswer
 import me.longng.finnish_learning_backend.service.ask.ChatService
+import me.longng.finnish_learning_backend.service.ask.FitCheckResult
+import me.longng.finnish_learning_backend.service.ask.FitCheckService
+import me.longng.finnish_learning_backend.service.ask.FitEvidence
+import me.longng.finnish_learning_backend.service.ask.FitReport
+import me.longng.finnish_learning_backend.service.ask.FitRequirement
+import me.longng.finnish_learning_backend.service.ask.FitVerdict
 import me.longng.finnish_learning_backend.service.ask.TurnstileVerificationException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.eq
@@ -48,6 +56,7 @@ import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch
 import tools.jackson.databind.ObjectMapper
+import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -68,6 +77,7 @@ class AskControllerTest {
     companion object {
         private val SESSION_ID: UUID = UUID.fromString("7d1f6f3e-3b5e-4c2a-9a52-0c1f2b3c4d5e")
         private const val MESSAGE = "Has Long used Kafka?"
+        private const val JD = "Senior Backend Engineer. Must have: Kafka in production."
     }
 
     @MockitoBean
@@ -77,7 +87,13 @@ class AskControllerTest {
     private lateinit var chatService: ChatService
 
     @MockitoBean
+    private lateinit var fitCheckService: FitCheckService
+
+    @MockitoBean
     private lateinit var statsService: AskStatsService
+
+    @MockitoBean
+    private lateinit var keepaliveScheduler: AskKeepaliveScheduler
 
     @MockitoBean(name = AskExecutorConfig.ASK_EXECUTOR)
     private lateinit var askExecutor: TaskExecutor
@@ -107,7 +123,13 @@ class AskControllerTest {
             content = objectMapper.writeValueAsString(AskChatRequest(SESSION_ID, message))
         }
 
-    /** The whole SSE body of a chat request that started streaming. */
+    private fun postFitCheck(jobDescription: String = JD): ResultActionsDsl =
+        mockMvc.post("/api/ask/fit-check") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(AskFitCheckRequest(SESSION_ID, jobDescription))
+        }
+
+    /** The whole SSE body of a request that started streaming. */
     private fun streamOf(result: ResultActionsDsl): String {
         val started = result.andExpect { request { asyncStarted() } }.andReturn()
         return mockMvc.perform(asyncDispatch(started)).andReturn().response.contentAsString
@@ -413,5 +435,169 @@ class AskControllerTest {
         }.andExpect {
             status { isUnauthorized() }
         }
+    }
+
+    // ------------------------------------------------------------------ POST /fit-check
+
+    @Test
+    fun testFitCheck_StreamsStepsThenReport() {
+        val read = ToolCall("get_entry", mapOf("id" to "experience/acme-backend"), isError = false)
+        val report = FitReport(
+            requirements = listOf(
+                FitRequirement(
+                    "Kafka in production",
+                    FitVerdict.STRONG,
+                    listOf(FitEvidence("experience/acme-backend", "Owned the Kafka consumers", entryTitle = "Backend developer, Acme Oy")),
+                ),
+                FitRequirement("Kubernetes", FitVerdict.GAP, emptyList()),
+            ),
+            gaps = listOf("Kubernetes"),
+            summary = "Strong backend fit.",
+            unverifiedQuotesRemoved = 1,
+        )
+        whenever(fitCheckService.check(eq(session), eq(JD), any(), any())).thenAnswer { call ->
+            val listener = call.getArgument<AskProgressListener>(3)
+            listener.onStep(AskStep.GuardrailPassed)
+            listener.onStep(AskStep.ToolCalled(read.tool, read.args))
+            listener.onStep(AskStep.Composing)
+            listener.onStep(AskStep.Verifying)
+            FitCheckResult(turnId = 43, report = report, toolTrace = listOf(read))
+        }
+
+        val result = postFitCheck()
+        val started = result.andReturn()
+        val body = streamOf(result)
+
+        assertEquals(
+            "event:step\ndata:{\"kind\":\"GUARDRAIL\"}\n\n" +
+                    "event:step\ndata:{\"kind\":\"TOOL_CALL\",\"tool\":\"get_entry\",\"args\":{\"id\":\"experience/acme-backend\"}}\n\n" +
+                    "event:step\ndata:{\"kind\":\"COMPOSING\"}\n\n" +
+                    "event:step\ndata:{\"kind\":\"VERIFYING\"}\n\n" +
+                    "event:report\ndata:{\"turnId\":43,\"report\":{\"requirements\":[" +
+                    "{\"requirement\":\"Kafka in production\",\"verdict\":\"STRONG\",\"evidence\":" +
+                    "[{\"entryId\":\"experience/acme-backend\",\"quote\":\"Owned the Kafka consumers\",\"entryTitle\":\"Backend developer, Acme Oy\"}]}," +
+                    "{\"requirement\":\"Kubernetes\",\"verdict\":\"GAP\",\"evidence\":[]}]," +
+                    "\"gaps\":[\"Kubernetes\"],\"summary\":\"Strong backend fit.\",\"unverifiedQuotesRemoved\":1,\"requirementsLowered\":0}," +
+                    "\"toolTrace\":[{\"tool\":\"get_entry\",\"args\":{\"id\":\"experience/acme-backend\"},\"isError\":false}]}\n\n" +
+                    "event:done\ndata:{}\n\n",
+            body,
+        )
+        assertEquals("no", started.response.getHeader("X-Accel-Buffering"))
+        assertTrue(started.response.contentType!!.startsWith(MediaType.TEXT_EVENT_STREAM_VALUE))
+    }
+
+    @Test
+    fun testFitCheck_KeepaliveEvery15Seconds() {
+        whenever(fitCheckService.check(eq(session), eq(JD), any(), any()))
+            .thenReturn(FitCheckResult(turnId = 43, report = FitReport(emptyList(), emptyList(), "No requirements found."), toolTrace = emptyList()))
+
+        streamOf(postFitCheck())
+
+        verify(keepaliveScheduler).every(eq(Duration.ofSeconds(15)), any())
+    }
+
+    @Test
+    fun testFitCheck_KeepaliveStartsWhileTheTaskIsQueued() {
+        // The pool is full: the task waits, and nginx must not close the silent stream meanwhile.
+        doAnswer { }.whenever(askExecutor).execute(any())
+
+        postFitCheck().andExpect { request { asyncStarted() } }
+
+        verify(keepaliveScheduler).every(eq(Duration.ofSeconds(15)), any())
+        verify(fitCheckService, never()).check(any(), any(), any(), any())
+    }
+
+    @Test
+    fun testFitCheck_AllWorkersBusy503_NoKeepalive() {
+        doThrow(TaskRejectedException("queue full")).whenever(askExecutor).execute(any())
+
+        postFitCheck().andExpect {
+            status { isServiceUnavailable() }
+            jsonPath("$.code") { value("BUSY") }
+        }
+        verify(keepaliveScheduler, never()).every(any(), any())
+    }
+
+    @Test
+    fun testFitCheck_DeadlineIsTheStreamTimeout() {
+        val deadline = argumentCaptor<Instant>()
+        whenever(fitCheckService.check(eq(session), eq(JD), deadline.capture(), any()))
+            .thenReturn(FitCheckResult(turnId = 43, report = FitReport(emptyList(), emptyList(), "No requirements found."), toolTrace = emptyList()))
+        val before = Instant.now()
+
+        streamOf(postFitCheck())
+
+        val after = Instant.now()
+        val streamTimeout = Duration.ofSeconds(180)
+        assertTrue(deadline.firstValue in before.plus(streamTimeout)..after.plus(streamTimeout), "180 s from the request, like the stream")
+    }
+
+    @Test
+    fun testChat_NoKeepalive() {
+        whenever(chatService.answer(eq(session), eq(MESSAGE), any())).thenReturn(ChatAnswer(turnId = 42, text = "Yes.", toolTrace = emptyList()))
+
+        streamOf(postChat())
+
+        verify(keepaliveScheduler, never()).every(any(), any())
+    }
+
+    @Test
+    fun testFitCheck_TooLong400() {
+        doThrow(IllegalArgumentException("The job description must be at most 6000 characters"))
+            .whenever(fitCheckService).checkCanCheck(eq(session), any())
+
+        postFitCheck("x".repeat(6001)).andExpect {
+            status { isBadRequest() }
+            jsonPath("$.message") { value("The job description must be at most 6000 characters") }
+        }
+        verify(askExecutor, never()).execute(any())
+    }
+
+    @Test
+    fun testFitCheck_PerIpLimit429() {
+        doThrow(AskRateLimitedException(AskRateLimitedException.Kind.FIT_CHECKS_PER_DAY, 3))
+            .whenever(fitCheckService).checkCanCheck(eq(session), eq(JD))
+
+        postFitCheck().andExpect {
+            status { isTooManyRequests() }
+            jsonPath("$.code") { value("RATE_LIMITED") }
+            jsonPath("$.message") { value("You have reached the limit of 3 fit checks per day. Please try again tomorrow.") }
+        }
+    }
+
+    @Test
+    fun testFitCheck_ExpiredSession401() {
+        whenever(sessionService.validate(eq(SESSION_ID), any()))
+            .thenThrow(AskSessionInvalidException(AskSessionInvalidException.Reason.SESSION_EXPIRED))
+
+        postFitCheck().andExpect {
+            status { isUnauthorized() }
+            jsonPath("$.code") { value("SESSION_EXPIRED") }
+        }
+        verify(fitCheckService, never()).check(any(), any(), any(), any())
+    }
+
+    @Test
+    fun testFitCheck_BlockedEmitsFitMessage() {
+        whenever(fitCheckService.check(eq(session), eq(JD), any(), any())).thenThrow(AskInputBlockedException(listOf("PROMPT_INJECTION")))
+
+        val body = streamOf(postFitCheck())
+
+        assertEquals(
+            "event:error\ndata:{\"code\":\"BLOCKED\",\"message\":\"I can't check this text. Please paste only the job description.\"}\n\n" +
+                    "event:done\ndata:{}\n\n",
+            body,
+        )
+    }
+
+    @Test
+    fun testFitCheck_UpstreamErrorLogged(output: CapturedOutput) {
+        whenever(fitCheckService.check(eq(session), eq(JD), any(), any()))
+            .thenThrow(AskModelUnavailableException("The fit report was cut off at 1500 tokens"))
+
+        val body = streamOf(postFitCheck())
+
+        assertTrue(body.startsWith("event:error\ndata:{\"code\":\"UPSTREAM\""), body)
+        assertTrue(output.out.contains("Fit check turn failed: sessionId=$SESSION_ID code=UPSTREAM"), "logged once")
     }
 }

@@ -84,6 +84,23 @@ class BedrockChatClientTest {
             "metrics":{"latencyMs":900}}
         """.trimIndent()
 
+        /**
+         * A report call's answer, shaped like a real one (eu-north-1, 2026-10-18):
+         * one `submit_fit_report` tool request and no text. Shortened to one requirement.
+         */
+        private val REPORT_ANSWER = """
+            {"output":{"message":{"role":"assistant","content":[
+              {"toolUse":{"toolUseId":"tooluse_WhMBfil6zuDyBqEh5t0m3X","name":"submit_fit_report","type":"tool_use","input":{
+                "gaps":["Observability tooling (OpenTelemetry, Prometheus, Grafana): not mentioned in profile"],
+                "requirements":[{"evidence":[{"entryId":"job-acme-backend","quote":"Built REST APIs and nightly batch jobs for a logistics planning platform."}],
+                                 "requirement":"Backend development","verdict":"STRONG"}],
+                "summary":"Strong backend match."}}}
+            ]}},
+            "stopReason":"tool_use",
+            "usage":{"inputTokens":2948,"outputTokens":1136,"totalTokens":4084,"cacheReadInputTokens":0,"cacheWriteInputTokens":0},
+            "metrics":{"latencyMs":21700}}
+        """.trimIndent()
+
         fun textReply(text: String, usage: BedrockTokenUsage = usage(10, 5)): ConverseResponse =
             reply(StopReason.END_TURN, usage, ContentBlock.fromText(text))
 
@@ -118,9 +135,10 @@ class BedrockChatClientTest {
         client: BedrockChatClient = client(),
         messages: List<Message> = listOf(BedrockChatClient.userText("Has Long used Kafka?")),
         tools: List<McpTool> = listOf(GET_ENTRY_TOOL),
+        forcedTool: McpTool? = null,
     ): ConverseRequest {
         whenever(bedrockRuntimeClient.converse(any<ConverseRequest>())).thenReturn(textReply("Yes."))
-        client.converse(SYSTEM, messages, tools, maxTokens = 400)
+        client.converse(SYSTEM, messages, tools, maxTokens = 400, forcedTool = forcedTool)
         return argumentCaptor<ConverseRequest>().also { verify(bedrockRuntimeClient).converse(it.capture()) }.firstValue
     }
 
@@ -187,6 +205,47 @@ class BedrockChatClientTest {
         assertEquals(listOf("get_entry"), request.toolConfig().tools().map { it.toolSpec().name() })
         assertTrue(request.toolConfig().toolChoice().auto() != null)
         assertEquals(Duration.ofMillis(30000), request.overrideConfiguration().get().apiCallTimeout().get())
+    }
+
+    @Test
+    fun testConverse_ForcedToolIsStrictChosenAndAtTemperatureZero() {
+        val request = sentRequest(forcedTool = FitReportTool.TOOL)
+
+        val specs = request.toolConfig().tools().map { it.toolSpec() }
+        assertEquals(listOf("get_entry", "submit_fit_report"), specs.map { it.name() })
+        assertNull(specs[0].strict(), "the profile tools stay as they are")
+        assertEquals(true, specs[1].strict())
+        assertEquals("submit_fit_report", request.toolConfig().toolChoice().tool().name())
+        assertEquals(0f, request.inferenceConfig().temperature())
+    }
+
+    @Test
+    fun testConverse_NormalCallHasNoTemperature() {
+        val request = sentRequest()
+
+        assertNull(request.inferenceConfig().temperature(), "the model's default")
+    }
+
+    @Test
+    fun testConverse_UsesTheCallersTimeout() {
+        whenever(bedrockRuntimeClient.converse(any<ConverseRequest>())).thenReturn(textReply("Yes."))
+
+        client().converse(SYSTEM, listOf(BedrockChatClient.userText("Kafka?")), listOf(GET_ENTRY_TOOL), 1500, timeoutMs = 120_000)
+
+        val request = argumentCaptor<ConverseRequest>().also { verify(bedrockRuntimeClient).converse(it.capture()) }.firstValue
+        assertEquals(Duration.ofMillis(120_000), request.overrideConfiguration().get().apiCallTimeout().get())
+    }
+
+    @Test
+    fun testWithText_AddsATextBlockAtTheEnd() {
+        val results = BedrockChatClient.toolResults(listOf(ToolOutcome("t1", "entry", isError = false)))
+
+        val message = BedrockChatClient.withText(results, "Research is finished.")
+
+        assertEquals(ConversationRole.USER, message.role())
+        assertEquals("t1", message.content()[0].toolResult().toolUseId())
+        assertEquals("Research is finished.", message.content()[1].text())
+        assertEquals(1, results.content().size, "the original message is unchanged")
     }
 
     @Test
@@ -371,6 +430,35 @@ class BedrockChatClientTest {
             assertTrue(sent.path("toolConfig").path("toolChoice").has("auto"))
             assertFalse(sent.has("additionalModelRequestFields"))
             assertEquals(400, sent.path("inferenceConfig").path("maxTokens").asInt())
+        }
+    }
+
+    @Test
+    fun testConverse_ForcedToolWireFormatAndReportInput() {
+        withFakeBedrock(REPORT_ANSWER) { client, requestBody ->
+            val reply = client.converse(
+                SYSTEM,
+                listOf(BedrockChatClient.userText("<job_description>\nKotlin\n</job_description>")),
+                listOf(GET_ENTRY_TOOL),
+                1500,
+                forcedTool = FitReportTool.TOOL,
+                timeoutMs = 120_000,
+            )
+
+            // The JSON Bedrock receives, as in a report call that real Bedrock accepted.
+            val sent = objectMapper.readTree(requestBody.get())
+            val reportSpec = sent.path("toolConfig").path("tools")[1].path("toolSpec")
+            assertEquals("submit_fit_report", reportSpec.path("name").asString())
+            assertTrue(reportSpec.path("strict").asBoolean())
+            assertEquals("object", reportSpec.path("inputSchema").path("json").path("type").asString())
+            assertEquals("submit_fit_report", sent.path("toolConfig").path("toolChoice").path("tool").path("name").asString())
+            assertEquals(0.0, sent.path("inferenceConfig").path("temperature").asDouble())
+
+            // The report comes back as the tool request's input, as plain values.
+            val report = FitReport.fromToolInput(reply.toolRequests.single().arguments)
+            assertEquals(FitVerdict.STRONG, report.requirements.single().verdict)
+            assertEquals("job-acme-backend", report.requirements.single().evidence.single().entryId)
+            assertEquals(1136, reply.usage.outputTokens)
         }
     }
 

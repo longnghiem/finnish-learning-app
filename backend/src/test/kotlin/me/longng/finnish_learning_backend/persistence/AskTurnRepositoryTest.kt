@@ -152,6 +152,19 @@ class AskTurnRepositoryTest {
     }
 
     @Test
+    fun testCountForIpSince_CappedTurnsDontCount() {
+        val ip = randomIpHash()
+        val sessionId = newSession(ip)
+        val capped = turnRepository.insertPending(sessionId, AskMode.FIT_CHECK, "job 1")
+        turnRepository.complete(capped, TurnCompletion(status = TurnStatus.CAPPED))
+        val failed = turnRepository.insertPending(sessionId, AskMode.FIT_CHECK, "job 2")
+        turnRepository.complete(failed, TurnCompletion(status = TurnStatus.ERROR))
+        turnRepository.insertPending(sessionId, AskMode.FIT_CHECK, "job 3")
+
+        assertEquals(2, turnRepository.countForIpSince(ip, AskMode.FIT_CHECK, Instant.now().minus(Duration.ofHours(1))))
+    }
+
+    @Test
     fun testFindPage_NewestFirstWithFilters() {
         val ipA = randomIpHash()
         val sessionA = newSession(ipA)

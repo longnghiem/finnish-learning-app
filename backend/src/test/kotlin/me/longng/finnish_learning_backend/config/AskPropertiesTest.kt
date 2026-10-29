@@ -57,6 +57,8 @@ class AskPropertiesTest {
             "app.ask.model.id=eu.anthropic.claude-haiku-4-5-20251001-v1:0",
             "app.ask.model.additional-request-fields=",
             "app.ask.model.timeout-ms=30000",
+            "app.ask.fit-check.max-chars=6000",
+            "app.ask.fit-check.report-timeout-ms=120000",
         )
 
     @Test
@@ -129,6 +131,7 @@ class AskPropertiesTest {
                 ),
                 properties.model,
             )
+            assertEquals(AskProperties.FitCheck(maxChars = 6000, reportTimeoutMs = 120000), properties.fitCheck)
         }
     }
 
@@ -175,6 +178,14 @@ class AskPropertiesTest {
     fun testBind_McpUrlWithoutSchemeFails() {
         // Without http:// or https:// the client couldn't connect; better to fail at startup.
         runner.withPropertyValues("app.ask.mcp.url=abc123.lambda-url.eu-north-1.on.aws/mcp").run { context ->
+            assertNotNull(context.startupFailure)
+        }
+    }
+
+    @Test
+    fun testBind_ZeroFitCheckMaxCharsFails() {
+        // Every job description would be refused as too long.
+        runner.withPropertyValues("app.ask.fit-check.max-chars=0").run { context ->
             assertNotNull(context.startupFailure)
         }
     }

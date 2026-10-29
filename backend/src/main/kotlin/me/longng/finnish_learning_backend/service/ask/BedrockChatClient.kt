@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse
 import software.amazon.awssdk.services.bedrockruntime.model.InferenceConfiguration
 import software.amazon.awssdk.services.bedrockruntime.model.Message
 import software.amazon.awssdk.services.bedrockruntime.model.ResourceNotFoundException
+import software.amazon.awssdk.services.bedrockruntime.model.SpecificToolChoice
 import software.amazon.awssdk.services.bedrockruntime.model.StopReason
 import software.amazon.awssdk.services.bedrockruntime.model.SystemContentBlock
 import software.amazon.awssdk.services.bedrockruntime.model.Tool
@@ -46,12 +47,18 @@ import java.time.Duration
  *   cache point below that without an error, so short conversations simply aren't cached;
  * - the [McpTool]s as tool specifications with automatic tool choice, on every call: once the
  *   messages contain tool requests and results, Bedrock refuses a request without them;
+ * - optionally one forced tool (the fit report, [FitReportTool]): added as a strict tool, chosen
+ *   with tool choice "this tool", and the call runs at temperature 0. Strict means Bedrock makes
+ *   the tool's input match its schema; forced means the model must call it and no other tool;
+ *   temperature 0 makes the model pick its most likely answer, so the same job description gets
+ *   the same verdicts as far as possible;
  * - `additionalModelRequestFields` only if [AskProperties.Model.additionalRequestFields] is set.
  *   No thinking field: Haiku 4.5 doesn't think unless asked to.
  *
- * Each call may take [AskProperties.Model.timeoutMs], the SDK's own retries included. The SDK
- * retries throttling and server errors by itself; that is kept on purpose (unlike for the
- * guardrail), because a retried model call costs nothing when the first try failed.
+ * Each call may take [AskProperties.Model.timeoutMs] (or the caller's own limit), the SDK's own
+ * retries included. The SDK retries throttling and server errors by itself; that is kept on
+ * purpose (unlike for the guardrail), because a retried model call costs nothing when the first
+ * try failed.
  *
  * Logs the model, the stop reason, the token counts and the latency. Never the messages.
  */
@@ -73,16 +80,27 @@ class BedrockChatClient(
      *
      * @param messages the conversation so far, oldest first, starting and ending with a user message
      * @param maxTokens the longest reply allowed
+     * @param forcedTool a tool the model must call, as a strict tool, at temperature 0; null for
+     *   a normal call where the model chooses
+     * @param timeoutMs the most this call may take, the SDK's own retries included
      * @throws AskModelUnavailableException if Bedrock can't be reached, refuses the call, or takes
-     *   longer than [AskProperties.Model.timeoutMs]
+     *   longer than [timeoutMs]
      */
-    fun converse(system: String, messages: List<Message>, tools: List<McpTool>, maxTokens: Int): ChatModelReply {
+    fun converse(
+        system: String,
+        messages: List<Message>,
+        tools: List<McpTool>,
+        maxTokens: Int,
+        forcedTool: McpTool? = null,
+        timeoutMs: Long = settings.timeoutMs,
+    ): ChatModelReply {
         require(system.isNotBlank()) { "system must not be blank" }
         require(messages.isNotEmpty()) { "messages must not be empty" }
         require(maxTokens > 0) { "maxTokens must be positive" }
+        require(timeoutMs > 0) { "timeoutMs must be positive" }
 
         val startedAt = System.nanoTime()
-        val response = call(buildRequest(system, messages, tools, maxTokens))
+        val response = call(buildRequest(system, messages, tools, maxTokens, forcedTool, timeoutMs))
         val reply = toReply(response)
         logger.info(
             "Chat model call: model={} stopReason={} toolRequests={} inputTokens={} outputTokens={} " +
@@ -108,15 +126,27 @@ class BedrockChatClient(
             tool.name.length + tool.description.length + objectMapper.writeValueAsString(tool.inputSchema).length
         }
 
-    private fun buildRequest(system: String, messages: List<Message>, tools: List<McpTool>, maxTokens: Int): ConverseRequest =
+    private fun buildRequest(
+        system: String,
+        messages: List<Message>,
+        tools: List<McpTool>,
+        maxTokens: Int,
+        forcedTool: McpTool?,
+        timeoutMs: Long,
+    ): ConverseRequest =
         ConverseRequest.builder()
             .modelId(settings.id)
             .system(SystemContentBlock.fromText(system))
             .messages(withCachePointAtEnd(messages))
-            .apply { if (tools.isNotEmpty()) toolConfig(toolConfiguration(tools)) }
-            .inferenceConfig(InferenceConfiguration.builder().maxTokens(maxTokens).build())
+            .apply { if (tools.isNotEmpty() || forcedTool != null) toolConfig(toolConfiguration(tools, forcedTool)) }
+            .inferenceConfig(
+                InferenceConfiguration.builder()
+                    .maxTokens(maxTokens)
+                    .apply { if (forcedTool != null) temperature(0f) }
+                    .build(),
+            )
             .apply { if (additionalRequestFields != null) additionalModelRequestFields(additionalRequestFields) }
-            .overrideConfiguration { config -> config.apiCallTimeout(Duration.ofMillis(settings.timeoutMs)) }
+            .overrideConfiguration { config -> config.apiCallTimeout(Duration.ofMillis(timeoutMs)) }
             .build()
 
     private fun call(request: ConverseRequest): ConverseResponse =
@@ -207,6 +237,16 @@ class BedrockChatClient(
         fun assistantText(text: String): Message = textMessage(ConversationRole.ASSISTANT, text)
 
         /**
+         * [message] with one more text block at its end, e.g. an instruction added to the last
+         * user message. Bedrock wants user and assistant messages to take turns, so an extra
+         * instruction can't be a message of its own after a user message.
+         */
+        fun withText(message: Message, text: String): Message {
+            require(text.isNotBlank()) { "A message text must not be blank" }
+            return message.toBuilder().content(message.content() + ContentBlock.fromText(text)).build()
+        }
+
+        /**
          * The user message that answers the model's tool requests: one tool result per request, in
          * the order of [results], each matched to its request by [ToolOutcome.toolUseId]. Bedrock
          * wants all results of one reply in one message.
@@ -233,12 +273,15 @@ class BedrockChatClient(
          * The MCP tool as a Bedrock tool specification. The schema's top-level `$schema` line is
          * removed: it only names the JSON Schema version, means nothing to the model, and Bedrock
          * was never tested with it.
+         *
+         * @param strict whether Bedrock must make the model's input match the schema exactly
          */
-        internal fun toolSpecification(tool: McpTool): ToolSpecification =
+        internal fun toolSpecification(tool: McpTool, strict: Boolean = false): ToolSpecification =
             ToolSpecification.builder()
                 .name(tool.name)
                 .apply { if (tool.description.isNotBlank()) description(tool.description) }
                 .inputSchema(ToolInputSchema.fromJson((tool.inputSchema - JSON_SCHEMA_KEY).toDocument()))
+                .apply { if (strict) strict(true) }
                 .build()
 
         /**
@@ -260,11 +303,16 @@ class BedrockChatClient(
             return messages.dropLast(1) + latest.toBuilder().content(latest.content() + CACHE_POINT).build()
         }
 
-        private fun toolConfiguration(tools: List<McpTool>): ToolConfiguration =
-            ToolConfiguration.builder()
-                .tools(tools.map { Tool.fromToolSpec(toolSpecification(it)) })
-                .toolChoice(ToolChoice.fromAuto(AutoToolChoice.builder().build()))
-                .build()
+        private fun toolConfiguration(tools: List<McpTool>, forcedTool: McpTool?): ToolConfiguration {
+            val forcedSpec = forcedTool?.let { toolSpecification(it, strict = true) }
+            val specs = tools.map { toolSpecification(it) } + listOfNotNull(forcedSpec)
+            val choice = if (forcedTool == null) {
+                ToolChoice.fromAuto(AutoToolChoice.builder().build())
+            } else {
+                ToolChoice.fromTool(SpecificToolChoice.builder().name(forcedTool.name).build())
+            }
+            return ToolConfiguration.builder().tools(specs.map { Tool.fromToolSpec(it) }).toolChoice(choice).build()
+        }
 
         @Suppress("UNCHECKED_CAST")
         private fun Any?.asArguments(): Map<String, Any?> = (this as? Map<String, Any?>).orEmpty()

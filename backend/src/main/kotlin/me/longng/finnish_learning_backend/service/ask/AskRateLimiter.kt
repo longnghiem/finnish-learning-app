@@ -18,8 +18,11 @@ import java.time.ZoneId
  * - New sessions: at most [AskProperties.Limits.sessionsPerIpPerHour] in any rolling hour.
  * - Messages: at most [AskProperties.Limits.chatPerIpPerDay] chat messages and
  *   [AskProperties.Limits.fitChecksPerIpPerDay] fit checks per Europe/Helsinki calendar day,
- *   across all sessions of the same IP hash. Every stored turn counts, whatever its status: a
- *   blocked or failed message still used up a try.
+ *   across all sessions of the same IP hash. Blocked and failed (ERROR) turns count: a blocked
+ *   one still paid for the guardrail, and a failed one may have paid for model calls, e.g. when
+ *   the visitor closed the page halfway, so not counting them would let one IP spend without
+ *   limit. CAPPED turns don't count: the full budget refused them before any paid call, and
+ *   with only a few fit checks a day, a full budget shouldn't use up the visitor's tries.
  *
  * Each check counts first; the caller stores the new session or turn afterwards. That isn't
  * atomic: two requests from one IP at the same moment can both pass, so a limit can be exceeded
