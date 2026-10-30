@@ -31,23 +31,20 @@ refactor that spans them.
 5. **Nav matching compares path SEGMENTS.** `pathname.startsWith(linkTo)` is a
    defect — `/pick_tasks` must not match `/pick`. Split on `/` and compare
    segment by segment.
-6. **Logging.** Application logging goes through `createLogger` from
-   `@react-commons/utils/logging.ts`. Never `console.log` / `warn` / `error` —
-   console output is not persisted and cannot be submitted for debugging.
-7. **JVM file I/O.** Use `java.nio.file.Path` with `kotlin.io.path` extensions.
+6. **JVM file I/O.** Use `java.nio.file.Path` with `kotlin.io.path` extensions.
    `java.io.File` is forbidden except where a third-party API demands it, and
    then only via `.toFile()` at the call site.
-8. **jOOQ optional filters are conditional CTEs.** Build them with
+7. **jOOQ optional filters are conditional CTEs.** Build them with
    `DSL.selectDistinct` + `nullIfEmpty()?.let`, collect with `listOfNotNull`,
    and `innerJoin` each non-null CTE. A direct join to the child table
    multiplies parent rows and is a defect.
-9. **`useState`, not `useRef`, for component-owned values.** `useRef` is for DOM
+8. **`useState`, not `useRef`, for component-owned values.** `useRef` is for DOM
    nodes, timer ids, and previous-render tracking only. A component must never
    be defined inside a hook or inside another component — that causes
    unmount/remount on every render and silently resets state and focus.
-10. **Test naming.** Unit tests use `testMethod_Condition`, e.g.
-    `testRegister_DuplicateUsername`. Sentence-style backtick names are wrong.
-11. **No synchronous `setState` in `useEffect`.** Reset state during render via
+9. **Test naming.** Unit tests use `testMethod_Condition`, e.g.
+   `testRegister_DuplicateUsername`. Sentence-style backtick names are wrong.
+10. **No synchronous `setState` in `useEffect`.** Reset state during render via
     previous-prop comparison, derive values inline, or remount the subtree with
     a `key`. Effects synchronize with external systems (DOM, timers,
     subscriptions) — not with other state.

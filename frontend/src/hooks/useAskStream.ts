@@ -43,9 +43,15 @@ export function useAskStream() {
    * Runs one stream, unless one is already running. Steps are collected in `currentSteps` until
    * the stream ends; every other event goes to `onEvent`. An `error` event or a thrown
    * {@link AskError} ends with `status` `error`.
+   *
+   * @returns how the stream ended: `null` with its result, the {@link AskError} without one, or
+   *   `undefined` if it didn't run to the end (another stream was running, or it was aborted)
    */
-  const run = async (start: StartStream, onEvent: (event: AskStreamEvent) => void) => {
-    if (controllerRef.current !== null) return
+  const run = async (
+    start: StartStream,
+    onEvent: (event: AskStreamEvent) => void,
+  ): Promise<AskError | null | undefined> => {
+    if (controllerRef.current !== null) return undefined
     const controller = new AbortController()
     controllerRef.current = controller
     setStatus('streaming')
@@ -60,7 +66,7 @@ export function useAskStream() {
         else onEvent(event)
       }, controller.signal)
     } catch (thrown) {
-      if (controller.signal.aborted) return
+      if (controller.signal.aborted) return undefined
       failure = thrown instanceof AskError ? thrown : AskError.generic()
       if (!(thrown instanceof AskError))
         console.error('[useAskStream] Unexpected stream failure', {
@@ -72,6 +78,7 @@ export function useAskStream() {
     setCurrentSteps([])
     setError(failure)
     setStatus(failure === null ? 'idle' : 'error')
+    return failure
   }
 
   return { status, error, currentSteps, run, isRunning }

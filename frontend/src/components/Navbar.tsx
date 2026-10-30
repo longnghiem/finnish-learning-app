@@ -28,7 +28,10 @@ export function Navbar() {
 
   return (
     <nav className="flex items-center justify-between bg-nav-bg px-7 py-3.5 shadow-[0_2px_12px_rgb(0_0_0/0.2)] sticky top-0 z-20">
-      <Link to="/" className="text-[1.2rem] font-extrabold text-nav-text no-underline tracking-[-0.3px]">
+      <Link
+        to="/"
+        className="text-[1.2rem] font-extrabold text-nav-text no-underline tracking-[-0.3px]"
+      >
         {L.appName}
       </Link>
 
@@ -44,13 +47,19 @@ export function Navbar() {
         </button>
 
         {/* About me - public portfolio */}
-        <Link to="/portfolio" className={`${pillClassName(isPortfolioRoute)} no-underline inline-block`}>
+        <Link
+          to="/portfolio"
+          className={`${pillClassName(isPortfolioRoute)} no-underline inline-block`}
+        >
           {L.aboutMe}
         </Link>
 
         {/* Dashboard - any authenticated user */}
         {isLoggedIn && (
-          <Link to="/dashboard" className={`${pillClassName(isDashboardRoute)} no-underline inline-block`}>
+          <Link
+            to="/dashboard"
+            className={`${pillClassName(isDashboardRoute)} no-underline inline-block`}
+          >
             {L.dashboard}
           </Link>
         )}

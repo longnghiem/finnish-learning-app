@@ -25,5 +25,12 @@ export type {
   EssayIssueKind,
   EvaluateEssayResponse,
 } from './evaluation'
-export { createAskSession, fetchAskStats, streamChat, streamFitCheck, AskError } from './ask'
+export {
+  createAskSession,
+  fetchAskStats,
+  streamChat,
+  streamFitCheck,
+  AskError,
+  MAX_CHAT_MESSAGE_LENGTH,
+} from './ask'
 export type { AskErrorCode } from './ask'
