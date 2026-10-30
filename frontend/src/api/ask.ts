@@ -97,6 +97,9 @@ export class AskError extends Error {
   }
 }
 
+/** The longest chat message the backend accepts (`app.ask.session.max-message-chars`). */
+export const MAX_CHAT_MESSAGE_LENGTH = 500
+
 /** Shown when the frontend has no better text, e.g. the backend can't be reached. */
 const GENERIC_MESSAGE = 'Something went wrong. Please try again.'
 

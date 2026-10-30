@@ -145,3 +145,43 @@ export const askStreamEventSchema = z.discriminatedUnion('event', [
   z.object({ event: z.literal('done'), data: z.object({}) }),
 ])
 export type AskStreamEvent = z.infer<typeof askStreamEventSchema>
+
+/*
+ * The shapes below are the frontend's own: the chat as the page keeps it in `sessionStorage`, so a
+ * reload shows the conversation again. They are checked when read back, like the stored session.
+ */
+
+/**
+ * What became of a visitor's message: `sending` while the answer streams, then `answered`,
+ * `blocked` by the guardrail, or `failed` for any other error. The backend counts `sending`,
+ * `answered` and `blocked` messages toward the session's limit, `failed` ones not.
+ */
+export const chatMessageStatusSchema = z.enum(['sending', 'answered', 'blocked', 'failed'])
+export type ChatMessageStatus = z.infer<typeof chatMessageStatusSchema>
+
+/**
+ * One message of the conversation, as the chat shows it. An assistant message carries the tools
+ * the model used, for "How I found this".
+ */
+export const chatMessageSchema = z.discriminatedUnion('role', [
+  z.object({
+    id: z.string(),
+    role: z.literal('user'),
+    text: z.string(),
+    status: chatMessageStatusSchema,
+  }),
+  z.object({
+    id: z.string(),
+    role: z.literal('assistant'),
+    text: z.string(),
+    turnId: z.number().int(),
+    toolTrace: z.array(askToolCallSchema),
+  }),
+])
+export type ChatMessage = z.infer<typeof chatMessageSchema>
+
+/** The conversation kept in `sessionStorage`, with the session it belongs to. */
+export const storedChatSchema = z.object({
+  sessionId: z.string(),
+  messages: z.array(chatMessageSchema),
+})

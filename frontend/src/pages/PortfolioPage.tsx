@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import avatarUrl from '../assets/avatar.png'
+import { CONTACT } from '../contact.ts'
 
 const CV = {
   name: 'Long Nghiem',
@@ -8,7 +9,6 @@ const CV = {
   greetingEn: "Hi, I'm Long",
   location: 'Helsinki, Finland',
   phone: '044 359 7091',
-  email: 'longsuomi@gmail.com',
   summary:
     "I'm a full-stack developer with 7 years of experience across frontend, backend, mobile and DevOps. " +
     'I like contributing to every stage of a project — from data modelling and implementation, to deployment ' +
@@ -218,18 +218,14 @@ export function PortfolioPage() {
 
         {/* Contact strip */}
         <div className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2.5">
-          <ContactLink label="Email" value={CV.email} href={`mailto:${CV.email}`} />
+          <ContactLink label="Email" value={CONTACT.email} href={`mailto:${CONTACT.email}`} />
           <ContactLink
             label="Phone"
             value={CV.phone}
             href={`tel:${CV.phone.replace(/\s+/g, '')}`}
           />
           <ContactLink label="Location" value={CV.location} />
-          <ContactLink
-            label="LinkedIn"
-            value="/in/longnghiem"
-            href="https://www.linkedin.com/in/longnghiem/"
-          />
+          <ContactLink label="LinkedIn" value={CONTACT.linkedInLabel} href={CONTACT.linkedInUrl} />
           <ContactLink label="GitHub" value="@longnghiem" href="https://github.com/longnghiem" />
         </div>
       </section>

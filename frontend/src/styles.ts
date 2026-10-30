@@ -73,3 +73,22 @@ export const evalTextareaCls = `${inputCls} resize-y leading-[1.55] text-[0.95re
 export const evalErrorBoxCls =
   'rounded-lg border border-red/40 bg-red/10 text-red px-3.5 py-2.5 text-[0.85rem] ' +
   'font-semibold animate-[fadeIn_220ms_ease]'
+export const evalPanelTitleCls = 'text-[1.02rem] font-extrabold text-text-primary m-0'
+export const evalPanelIntroCls = 'text-[0.86rem] text-text-sub m-0 leading-[1.5]'
+
+// Small texts and controls shared by the panels
+export const statusErrorTextCls = 'm-0 text-[0.85rem] font-semibold text-red'
+export const statusMutedTextCls = 'm-0 text-[0.85rem] font-semibold text-text-muted'
+export const fieldHintCls = 'text-[0.75rem] font-semibold text-text-muted tabular-nums'
+export const textLinkCls = 'font-bold text-accent no-underline hover:underline'
+export const secondaryButtonCls =
+  'rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[0.85rem] font-bold ' +
+  'text-text-primary cursor-pointer font-[inherit] transition-[border-color] duration-150 hover:border-amber'
+
+// Tabs: the tab list, and each tab with tabCls plus its active or inactive classes
+export const tabListCls = 'flex gap-1 mb-4 rounded-xl border border-border bg-surface-alt p-1'
+export const tabCls =
+  'flex-1 rounded-lg px-4 py-2 text-[0.88rem] font-extrabold border-none cursor-pointer ' +
+  'font-[inherit] transition-[background,color] duration-150'
+export const tabActiveCls = 'bg-surface text-text-primary shadow-card'
+export const tabInactiveCls = 'bg-transparent text-text-muted hover:text-text-primary'

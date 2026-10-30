@@ -17,12 +17,17 @@ import {
   backNavigationBtnCls,
   dashSectionLabelCls,
   evalPanelCls,
+  evalPanelIntroCls,
+  evalPanelTitleCls,
   evalResultCls,
   evalTextareaCls,
+  fieldHintCls,
   inputCls,
   labelCls,
   pageContainerCls,
   pageTitleCls,
+  statusErrorTextCls,
+  statusMutedTextCls,
 } from '../styles.ts'
 import {
   AiBadge,
@@ -98,14 +103,11 @@ export function EssayPage() {
         <header className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <AiBadge />
-            <h2
-              id="essay-panel-title"
-              className="text-[1.02rem] font-extrabold text-text-primary m-0"
-            >
+            <h2 id="essay-panel-title" className={evalPanelTitleCls}>
               {L.essayTitle}
             </h2>
           </div>
-          <p className="text-[0.86rem] text-text-sub m-0 leading-[1.5]">{L.essayIntro}</p>
+          <p className={evalPanelIntroCls}>{L.essayIntro}</p>
         </header>
 
         <PromptPicker
@@ -129,9 +131,7 @@ export function EssayPage() {
             className={`${evalTextareaCls} min-h-[220px]`}
           />
           <div className="mt-1.5 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-[0.75rem] font-semibold text-text-muted tabular-nums">
-              {L.essayCounter(length, MAX_ESSAY_LENGTH)}
-            </span>
+            <span className={fieldHintCls}>{L.essayCounter(length, MAX_ESSAY_LENGTH)}</span>
             {missing > 0 && (
               <span className="text-[0.75rem] font-semibold text-amber">
                 {L.essayNeedMore(missing)}
@@ -187,9 +187,9 @@ function PromptPicker({
       </label>
 
       {prompts.isError ? (
-        <p className="m-0 text-[0.85rem] font-semibold text-red">{L.essayPromptsError}</p>
+        <p className={statusErrorTextCls}>{L.essayPromptsError}</p>
       ) : isEmpty ? (
-        <p className="m-0 text-[0.85rem] font-semibold text-text-muted">{L.essayNoPrompts}</p>
+        <p className={statusMutedTextCls}>{L.essayNoPrompts}</p>
       ) : (
         <>
           <select

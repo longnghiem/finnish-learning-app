@@ -13,6 +13,7 @@ import { QuizPage } from './pages/QuizPage.tsx'
 import { DashboardPage } from './pages/DashboardPage.tsx'
 import { PortfolioPage } from './pages/PortfolioPage.tsx'
 import { EssayPage } from './pages/EssayPage.tsx'
+import { AskPage } from './pages/AskPage.tsx'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,7 @@ function AppInner() {
           <Route path="/essay/:topicId" element={<EssayPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/ask" element={<AskPage />} />
         </Routes>
       </main>
     </div>
