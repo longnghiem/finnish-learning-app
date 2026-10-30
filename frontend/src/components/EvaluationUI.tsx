@@ -31,9 +31,7 @@ export function AiBadge() {
  * Leading ✓ / ✕ glyph signals state at a glance.
  */
 export function Chip({ ok, label }: { ok: boolean; label: string }) {
-  const cls = ok
-    ? 'bg-green/15 text-green border-green/40'
-    : 'bg-red/15 text-red border-red/40'
+  const cls = ok ? 'bg-green/15 text-green border-green/40' : 'bg-red/15 text-red border-red/40'
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px]
@@ -69,12 +67,18 @@ export function LevelPill({ level, className = '' }: { level: FinnishLevel; clas
  * Titled feedback block — used for corrections and for AI prose feedback.
  * `mono` styles the body as italic accent text (used for corrections).
  */
-export function FeedbackBlock({ title, body, mono }: { title: string; body: string; mono?: boolean }) {
+export function FeedbackBlock({
+  title,
+  body,
+  mono,
+}: {
+  title: string
+  body: string
+  mono?: boolean
+}) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className={dashSectionLabelCls}>
-        {title}
-      </span>
+      <span className={dashSectionLabelCls}>{title}</span>
       <p
         className={`text-[0.92rem] m-0 leading-[1.55] whitespace-pre-wrap ${
           mono ? 'italic text-accent font-semibold' : 'text-text-primary'
@@ -90,12 +94,12 @@ export function FeedbackBlock({ title, body, mono }: { title: string; body: stri
  * Submit button with a built-in pending spinner and label swap.
  */
 export function EvalSubmitButton({
- enabled,
- pending,
- onClick,
- label,
- pendingLabel,
- className = '',
+  enabled,
+  pending,
+  onClick,
+  label,
+  pendingLabel,
+  className = '',
 }: {
   enabled: boolean
   pending: boolean
@@ -111,10 +115,10 @@ export function EvalSubmitButton({
       onClick={onClick}
       className={`rounded-lg px-[22px] py-2.5 text-[0.9rem] font-extrabold border-none font-[inherit]
         transition-[background-color,opacity] duration-150 inline-flex items-center justify-center gap-2 ${
-        enabled
-          ? 'bg-accent text-white cursor-pointer hover:opacity-90'
-          : 'bg-surface-alt text-text-muted cursor-not-allowed'
-      } ${pending ? 'opacity-70' : ''} ${className}`}
+          enabled
+            ? 'bg-accent text-white cursor-pointer hover:opacity-90'
+            : 'bg-surface-alt text-text-muted cursor-not-allowed'
+        } ${pending ? 'opacity-70' : ''} ${className}`}
     >
       {pending && <Spinner />}
       {pending ? pendingLabel : label}

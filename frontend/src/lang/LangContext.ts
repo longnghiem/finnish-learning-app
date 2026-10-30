@@ -7,6 +7,10 @@ interface LangContextType {
   toggleLang: () => void
 }
 
-export const LangContext = createContext<LangContextType>({ lang: 'en', L: I18N.en, toggleLang: () => {} })
+export const LangContext = createContext<LangContextType>({
+  lang: 'en',
+  L: I18N.en,
+  toggleLang: () => {},
+})
 
 export const useLang = () => useContext(LangContext)

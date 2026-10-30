@@ -1,4 +1,4 @@
-import {z} from "zod";
+import { z } from 'zod'
 
 /** Maximum length for card name, matching backend varchar(255). */
 const MAX_NAME_LENGTH = 255
@@ -17,13 +17,13 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024
  * Validates that the file has an accepted MIME type and does not exceed the size limit.
  */
 const imageFileSchema = z
-    .instanceof(File, { message: 'Image is required' })
-    .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
-        message: `Image must be one of: ${ACCEPTED_IMAGE_TYPES.join(', ')}`,
-    })
-    .refine((file) => file.size <= MAX_IMAGE_SIZE, {
-        message: `Image must be smaller than ${MAX_IMAGE_SIZE / 1024 / 1024} MB`,
-    })
+  .instanceof(File, { message: 'Image is required' })
+  .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file.type), {
+    message: `Image must be one of: ${ACCEPTED_IMAGE_TYPES.join(', ')}`,
+  })
+  .refine((file) => file.size <= MAX_IMAGE_SIZE, {
+    message: `Image must be smaller than ${MAX_IMAGE_SIZE / 1024 / 1024} MB`,
+  })
 
 /**
  * Zod schema for the Create Card form.
@@ -32,24 +32,24 @@ const imageFileSchema = z
  * Text field constraints mirror the backend database column limits.
  */
 export const createCardSchema = z.object({
-    name: z
-        .string()
-        .trim()
-        .min(1, 'Card name must not be blank')
-        .max(MAX_NAME_LENGTH, `Card name must be at most ${MAX_NAME_LENGTH} characters`),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Card name must not be blank')
+    .max(MAX_NAME_LENGTH, `Card name must be at most ${MAX_NAME_LENGTH} characters`),
 
-    exampleSentence: z
-        .string()
-        .trim()
-        .min(1, 'Example sentence must not be blank'),
+  exampleSentence: z.string().trim().min(1, 'Example sentence must not be blank'),
 
-    translation: z
-        .string()
-        .trim()
-        .min(1, 'Translation must not be blank')
-        .max(MAX_TRANSLATION_LENGTH, `Translation must be at most ${MAX_TRANSLATION_LENGTH} characters`),
+  translation: z
+    .string()
+    .trim()
+    .min(1, 'Translation must not be blank')
+    .max(
+      MAX_TRANSLATION_LENGTH,
+      `Translation must be at most ${MAX_TRANSLATION_LENGTH} characters`,
+    ),
 
-    image: imageFileSchema,
+  image: imageFileSchema,
 })
 export type CreateCardFormData = z.infer<typeof createCardSchema>
 
@@ -60,24 +60,24 @@ export type CreateCardFormData = z.infer<typeof createCardSchema>
  * The image is optional — only validated when a new file is selected.
  */
 export const editCardSchema = z.object({
-    name: z
-        .string()
-        .trim()
-        .min(1, 'Card name must not be blank')
-        .max(MAX_NAME_LENGTH, `Card name must be at most ${MAX_NAME_LENGTH} characters`),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Card name must not be blank')
+    .max(MAX_NAME_LENGTH, `Card name must be at most ${MAX_NAME_LENGTH} characters`),
 
-    exampleSentence: z
-        .string()
-        .trim()
-        .min(1, 'Example sentence must not be blank'),
+  exampleSentence: z.string().trim().min(1, 'Example sentence must not be blank'),
 
-    translation: z
-        .string()
-        .trim()
-        .min(1, 'Translation must not be blank')
-        .max(MAX_TRANSLATION_LENGTH, `Translation must be at most ${MAX_TRANSLATION_LENGTH} characters`),
+  translation: z
+    .string()
+    .trim()
+    .min(1, 'Translation must not be blank')
+    .max(
+      MAX_TRANSLATION_LENGTH,
+      `Translation must be at most ${MAX_TRANSLATION_LENGTH} characters`,
+    ),
 
-    /** Card image file (optional for edits — only sent when a new file is selected) */
-    image: imageFileSchema.optional(),
+  /** Card image file (optional for edits — only sent when a new file is selected) */
+  image: imageFileSchema.optional(),
 })
 export type EditCardFormData = z.infer<typeof editCardSchema>

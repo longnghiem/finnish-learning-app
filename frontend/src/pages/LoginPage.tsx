@@ -1,9 +1,9 @@
-import {useAuth} from '../auth/useAuth.ts'
-import {Link, useNavigate} from 'react-router-dom'
-import {useEffect, useState, type SubmitEvent} from 'react'
-import {useLang} from '../lang'
-import {inputCls, labelCls, submitButtonCls} from '../styles'
-import {loginUser} from "../api";
+import { useAuth } from '../auth/useAuth.ts'
+import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { useLang } from '../lang'
+import { inputCls, labelCls, submitButtonCls } from '../styles'
+import { loginUser } from '../api'
 
 export function LoginPage() {
   const { isLoggedIn, loginWithToken } = useAuth()
@@ -23,7 +23,7 @@ export function LoginPage() {
     e.preventDefault()
     setError(null)
     if (!username.trim() || !password.trim()) {
-      setError(L.enterCreds);
+      setError(L.enterCreds)
       return
     }
 
@@ -51,7 +51,10 @@ export function LoginPage() {
             <input
               type="text"
               value={username}
-              onChange={e => { setUsername(e.target.value); setError(null) }}
+              onChange={(e) => {
+                setUsername(e.target.value)
+                setError(null)
+              }}
               className={inputCls}
               placeholder={L.username}
               autoComplete="username"
@@ -62,7 +65,10 @@ export function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={e => { setPassword(e.target.value); setError(null) }}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setError(null)
+              }}
               className={inputCls}
               placeholder={L.password}
               autoComplete="current-password"
@@ -73,11 +79,7 @@ export function LoginPage() {
               {error}
             </div>
           )}
-          <button
-            type="submit"
-            disabled={submitting}
-            className={submitButtonCls}
-          >
+          <button type="submit" disabled={submitting} className={submitButtonCls}>
             {L.login}
           </button>
           <p className="text-center text-[0.8rem] text-text-sub mt-2">

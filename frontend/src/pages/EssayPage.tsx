@@ -77,7 +77,7 @@ export function EssayPage() {
 
   const handleSubmit = () => {
     if (!canSubmit) return
-    evaluation.mutate({promptId: selectedPromptId, essay: trimmedEssay})
+    evaluation.mutate({ promptId: selectedPromptId, essay: trimmedEssay })
   }
 
   return (
@@ -201,7 +201,7 @@ function PromptPicker({
             aria-describedby={selectedPrompt ? 'essay-prompt-full' : undefined}
           >
             {prompts.isLoading && <option value="">{L.essayPromptsLoading}</option>}
-            {promptList?.map(p => (
+            {promptList?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title}
               </option>
@@ -268,7 +268,9 @@ function IssueRow({ issue }: { issue: EssayIssue }) {
       </span>
       <p className="m-0 text-[0.92rem] leading-[1.55]">
         <span className="line-through text-red font-semibold">{issue.original}</span>
-        <span aria-hidden="true" className="px-1.5 text-text-muted">→</span>
+        <span aria-hidden="true" className="px-1.5 text-text-muted">
+          →
+        </span>
         <span className="text-green font-bold">{issue.suggestion}</span>
       </p>
     </li>

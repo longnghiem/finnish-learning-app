@@ -8,10 +8,10 @@ import { LandingPage } from './pages/LandingPage.tsx'
 import { LoginPage } from './pages/LoginPage.tsx'
 import { TopicPage } from './pages/TopicPage.tsx'
 import { AdminPage } from './pages/AdminPage.tsx'
-import {RegisterPage} from "./pages/RegisterPage.tsx";
-import {QuizPage} from "./pages/QuizPage.tsx";
-import {DashboardPage} from "./pages/DashboardPage.tsx";
-import {PortfolioPage} from "./pages/PortfolioPage.tsx";
+import { RegisterPage } from './pages/RegisterPage.tsx'
+import { QuizPage } from './pages/QuizPage.tsx'
+import { DashboardPage } from './pages/DashboardPage.tsx'
+import { PortfolioPage } from './pages/PortfolioPage.tsx'
 import { EssayPage } from './pages/EssayPage.tsx'
 
 const queryClient = new QueryClient({

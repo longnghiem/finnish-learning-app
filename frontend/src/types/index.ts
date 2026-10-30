@@ -1,24 +1,24 @@
 export interface CardResponse {
-    id: number
-    topicId: number
-    name: string
-    exampleSentence: string
-    translation: string
-    imageUrl: string       // relative path, e.g. "/api/images/uuid.png"
-    createdAt: string
-    updatedAt: string
+  id: number
+  topicId: number
+  name: string
+  exampleSentence: string
+  translation: string
+  imageUrl: string // relative path, e.g. "/api/images/uuid.png"
+  createdAt: string
+  updatedAt: string
 }
 
 export interface TopicResponse {
-    id: number
-    name: string
-    totalCards: number
+  id: number
+  name: string
+  totalCards: number
 }
 
 export interface ErrorResponse {
-    status: number
-    error: string
-    message: string
+  status: number
+  error: string
+  message: string
 }
 
 /** Matches the backend SearchType enum */

@@ -82,16 +82,16 @@ npm run lint      # Run ESLint
 The frontend reads a single build-time variable, `VITE_API_BASE_URL`, which is baked
 into the JS bundle by `vite build`. Vite picks env files by mode automatically.
 
-| File                  | Loaded by         | Value                       | Purpose                                          |
-|-----------------------|-------------------|-----------------------------|--------------------------------------------------|
-| `.env`                | `vite dev`        | `http://localhost:8080`     | Local development against a backend on :8080.    |
-| `.env.production`     | `vite build`      | *(empty)*                   | Same-origin requests behind nginx reverse proxy. |
-| `.env.local`          | all modes         | *(your override)*           | Per-developer overrides; not committed.          |
+| File              | Loaded by    | Value                   | Purpose                                          |
+| ----------------- | ------------ | ----------------------- | ------------------------------------------------ |
+| `.env`            | `vite dev`   | `http://localhost:8080` | Local development against a backend on :8080.    |
+| `.env.production` | `vite build` | _(empty)_               | Same-origin requests behind nginx reverse proxy. |
+| `.env.local`      | all modes    | _(your override)_       | Per-developer overrides; not committed.          |
 
 Resolution rules (see `src/api/config.ts`):
 
 - `undefined` → dev fallback `http://localhost:8080`.
-- `""`        → same-origin (production behind reverse proxy).
+- `""` → same-origin (production behind reverse proxy).
 - absolute URL → cross-origin to that backend.
 
 ---
@@ -110,7 +110,5 @@ src/
 ├── schemas/      # Zod validation schemas
 ├── theme/        # Theme context, provider, and hook
 └── types/        # Shared TypeScript types
-└── styles.ts     # Shared Tailwind class strings 
+└── styles.ts     # Shared Tailwind class strings
 ```
-
-

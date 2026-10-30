@@ -1,15 +1,17 @@
-import {useMutation, useQuery} from "@tanstack/react-query";
-import {fetchQuizCards, type QuizCard, submitAnswer, type SubmitAnswerResponse} from "../api/quiz.ts";
+import { useMutation, useQuery } from '@tanstack/react-query'
+import {
+  fetchQuizCards,
+  type QuizCard,
+  submitAnswer,
+  type SubmitAnswerResponse,
+} from '../api/quiz.ts'
 
 const QUIZ_QUERY_KEY = ['quiz'] as const
 
 /**
  * React Query hook for the quiz card batch.
  */
-export function useQuizCards(
-  topicId: number,
-  enabled: boolean = true
-) {
+export function useQuizCards(topicId: number, enabled: boolean = true) {
   return useQuery<QuizCard[], Error>({
     queryKey: [...QUIZ_QUERY_KEY, 'cards', topicId],
     queryFn: () => fetchQuizCards(topicId),
@@ -28,7 +30,7 @@ export function useQuizCards(
  * next quiz session (handled by `useQuizCards` + `staleTime: 0`).
  */
 export function useSubmitAnswer() {
-  return useMutation<SubmitAnswerResponse, Error, {cardId: number, quality: number}>({
-    mutationFn: ({cardId, quality}) => submitAnswer(cardId, quality),
+  return useMutation<SubmitAnswerResponse, Error, { cardId: number; quality: number }>({
+    mutationFn: ({ cardId, quality }) => submitAnswer(cardId, quality),
   })
 }

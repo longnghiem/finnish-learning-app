@@ -1,5 +1,5 @@
-import {AuthContext, type AuthContextType} from "./AuthContext.tsx";
-import {useContext} from "react";
+import { AuthContext, type AuthContextType } from './AuthContext.tsx'
+import { useContext } from 'react'
 
 /**
  * Custom hook to access authentication state and actions.
@@ -11,9 +11,9 @@ import {useContext} from "react";
  * `username`, `role`, `isAdmin`, `loginWithToken`, and `logout`.
  */
 export function useAuth(): AuthContextType {
-    const context = useContext(AuthContext);
-    if (context === null) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
+  const context = useContext(AuthContext)
+  if (context === null) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
 }

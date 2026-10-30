@@ -1,5 +1,5 @@
-import {API_BASE_URL, getAuthHeaders} from "./config.ts";
-import type {ErrorResponse} from "../types";
+import { API_BASE_URL, getAuthHeaders } from './config.ts'
+import type { ErrorResponse } from '../types'
 
 /**
  * Per-topic progress for the authenticated user.
@@ -43,10 +43,9 @@ export interface DashboardStats {
  * touched (counters all zero).
  */
 export async function fetchTopicProgress(): Promise<TopicProgress[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/progress/topics`,
-    { headers: { ...getAuthHeaders() } },
-  )
+  const response = await fetch(`${API_BASE_URL}/api/progress/topics`, {
+    headers: { ...getAuthHeaders() },
+  })
 
   if (!response.ok) {
     const err: ErrorResponse = await response.json()
@@ -64,10 +63,9 @@ export async function fetchTopicProgress(): Promise<TopicProgress[]> {
  * snapshot — both numbers come from the same database read.
  */
 export async function fetchDashboard(): Promise<DashboardStats> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/progress/dashboard`,
-    { headers: { ...getAuthHeaders() } },
-  )
+  const response = await fetch(`${API_BASE_URL}/api/progress/dashboard`, {
+    headers: { ...getAuthHeaders() },
+  })
 
   if (!response.ok) {
     const err: ErrorResponse = await response.json()

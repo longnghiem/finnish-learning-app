@@ -205,7 +205,8 @@ export const I18N = {
     colDueToday: 'Tänään',
     cards: 'korttia',
     demoHintIntro: 'Haluatko kokeilla kirjautuneen käyttäjän ominaisuuksia —',
-    demoHintFeatures: 'tietovisa, edistymisen seuranta, hallintapaneeli ja tekoälyn lause- ja esseearviointi',
+    demoHintFeatures:
+      'tietovisa, edistymisen seuranta, hallintapaneeli ja tekoälyn lause- ja esseearviointi',
     demoHintRegister: 'Rekisteröi oma tili',
     demoHintOr: ' tai kirjaudu sisään demotunnuksilla',
     // — Sentence evaluation —

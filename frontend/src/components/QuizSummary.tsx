@@ -1,5 +1,5 @@
-import {useLang} from "../lang";
-import {useNavigate} from "react-router-dom";
+import { useLang } from '../lang'
+import { useNavigate } from 'react-router-dom'
 
 export interface QuizAnswerLog {
   quality: number
@@ -34,14 +34,14 @@ export function QuizSummary({ answers, topicId, onQuizAgain }: QuizSummaryProps)
   const navigate = useNavigate()
 
   const total = answers.length
-  const correctCount = answers.filter(a => a.correct).length
+  const correctCount = answers.filter((a) => a.correct).length
   const accuracyPct = total === 0 ? 0 : Math.round((correctCount / total) * 100)
 
   const counts = {
-    again: answers.filter(a => a.quality === 1).length,
-    hard: answers.filter(a => a.quality === 3).length,
-    good: answers.filter(a => a.quality === 4).length,
-    easy: answers.filter(a => a.quality === 5).length,
+    again: answers.filter((a) => a.quality === 1).length,
+    hard: answers.filter((a) => a.quality === 3).length,
+    good: answers.filter((a) => a.quality === 4).length,
+    easy: answers.filter((a) => a.quality === 5).length,
   }
 
   const breakdownRow = (label: string, count: number, colorClass: string) => (
