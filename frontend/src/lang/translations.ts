@@ -1,5 +1,3 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
-
 export const I18N = {
   en: {
     appName: 'Finnish Learning App',
@@ -255,34 +253,3 @@ export const I18N = {
 
 export type Lang = 'en' | 'fi'
 export type I18nStrings = typeof I18N.en
-
-interface LangContextType {
-  lang: Lang
-  L: I18nStrings
-  toggleLang: () => void
-}
-
-const LangContext = createContext<LangContextType>({ lang: 'en', L: I18N.en, toggleLang: () => {} })
-
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>(
-    () => (localStorage.getItem('lang') as Lang) || 'en',
-  )
-  const L = I18N[lang]
-
-  const toggleLang = () => {
-    setLang(prev => {
-      const next: Lang = prev === 'en' ? 'fi' : 'en'
-      localStorage.setItem('lang', next)
-      return next
-    })
-  }
-
-  return (
-    <LangContext.Provider value={{ lang, L, toggleLang }}>
-      {children}
-    </LangContext.Provider>
-  )
-}
-
-export const useLang = () => useContext(LangContext)
