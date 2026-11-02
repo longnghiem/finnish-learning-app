@@ -112,7 +112,7 @@ check isn't set up.
 ```
 src/
 ├── api/          # API client (auth, cards, topics, config)
-├── assets/       # Static assets (topic images)
+├── assets/       # Static assets (topic images, Himmel's artwork in mascot/)
 ├── auth/         # Auth context, provider, and hook
 ├── components/   # Reusable UI components (Navbar, Flashcard, modals…)
 ├── hooks/        # Custom React hooks (useCards, useTopics)

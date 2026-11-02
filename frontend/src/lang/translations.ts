@@ -213,6 +213,12 @@ export const I18N = {
     askFitErrRateLimited: (n: number) =>
       `You've used today's ${n} fit checks. Please come back tomorrow.`,
     askFitErrBadRequest: 'The job description was rejected. Check its length and try again.',
+    himmelLabel: (state: string) => `Himmel the Birman cat, ${state}`,
+    himmelIdle: 'relaxing with a coffee',
+    himmelListening: 'listening',
+    himmelThinking: 'thinking',
+    himmelTalking: 'answering',
+    himmelSleeping: 'sleeping',
   },
   fi: {
     appName: 'Suomen Oppiminen',
@@ -432,6 +438,12 @@ export const I18N = {
       `Päivän ${n} sopivuustarkistusta on käytetty. Palaa huomenna.`,
     askFitErrBadRequest:
       'Työpaikkailmoitusta ei hyväksytty. Tarkista sen pituus ja yritä uudelleen.',
+    himmelLabel: (state: string) => `Himmel, birmankissa, ${state}`,
+    himmelIdle: 'rentoutuu kahvin kanssa',
+    himmelListening: 'kuuntelee',
+    himmelThinking: 'miettii',
+    himmelTalking: 'vastaa',
+    himmelSleeping: 'nukkuu',
   },
 }
 

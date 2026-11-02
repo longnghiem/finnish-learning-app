@@ -106,3 +106,6 @@ export function useChatStream(sessionId: string | null) {
 
   return { messages, currentSteps, status, error, send }
 }
+
+/** What {@link useChatStream} returns. */
+export type ChatStream = ReturnType<typeof useChatStream>
