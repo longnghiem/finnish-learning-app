@@ -2,17 +2,27 @@ import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '../lang'
 import { useChatStream } from '../hooks'
-import { MAX_CHAT_MESSAGE_LENGTH } from '../api'
+import { AskError, MAX_CHAT_MESSAGE_LENGTH } from '../api'
 import type { AskSession, ChatMessage } from '../schemas'
 import {
   evalPanelCls,
   evalPanelIntroCls,
   evalTextareaCls,
   fieldHintCls,
+  finePrintCls,
   textLinkCls,
 } from '../styles.ts'
 import { EvalSubmitButton } from './EvaluationUI.tsx'
 import { AskErrorView, MessageText, ProgressSteps, ToolTrace } from './AskUI.tsx'
+
+/**
+ * The limit notice once the counter reaches 0. The backend answers `CONVERSATION_LIMIT` only to
+ * one more message, and the panel never sends one, so it shows the notice itself.
+ */
+const CONVERSATION_FULL = new AskError(
+  'CONVERSATION_LIMIT',
+  'This conversation has used all its messages.',
+)
 
 interface ChatPanelProps {
   /** The current session. Render the panel with `key={session.sessionId}`. */
@@ -21,6 +31,8 @@ interface ChatPanelProps {
   onSessionExpired: () => void
   /** Called for "Start a new conversation" after the conversation limit. */
   onNewConversation: () => void
+  /** False while another tab is shown: the panel stays mounted, so an answer keeps streaming. */
+  active: boolean
 }
 
 /**
@@ -32,23 +44,31 @@ interface ChatPanelProps {
  * - "x of 10 messages left" counts what the backend counts: messages that were answered,
  *   declined by the guardrail, or are still being answered. The backend has the last word with
  *   `CONVERSATION_LIMIT`.
+ * - At 0 left, or on `CONVERSATION_LIMIT`, the input switches off and {@link AskErrorView}
+ *   shows the limit notice, the contact links and "Start a new conversation".
  * - A message that wasn't answered is marked. The newest of the visitor's messages also gets
  *   "Try again": an older one was followed by other questions, so resending it would be out of
  *   place.
  * - The newest answer shows its "How I found this" list open.
  */
-export function ChatPanel({ session, onSessionExpired, onNewConversation }: ChatPanelProps) {
+export function ChatPanel({
+  session,
+  onSessionExpired,
+  onNewConversation,
+  active,
+}: ChatPanelProps) {
   const { L } = useLang()
   const chat = useChatStream(session.sessionId)
   const [draft, setDraft] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
 
   // Keeps the newest message and step in view: the list is a scroll box of its own, so the page
-  // itself doesn't jump.
+  // itself doesn't jump. A hidden box can't scroll and loses its position, so this runs again
+  // when the tab is shown.
   useEffect(() => {
     const list = listRef.current
-    if (list) list.scrollTop = list.scrollHeight
-  }, [chat.messages, chat.currentSteps])
+    if (active && list) list.scrollTop = list.scrollHeight
+  }, [chat.messages, chat.currentSteps, active])
 
   const used = chat.messages.filter(
     (message) => message.role === 'user' && message.status !== 'failed',
@@ -99,8 +119,11 @@ export function ChatPanel({ session, onSessionExpired, onNewConversation }: Chat
         {streaming && chat.currentSteps.length > 0 && <ProgressSteps steps={chat.currentSteps} />}
       </div>
 
-      {chat.error && chat.error.code !== 'SESSION_EXPIRED' && (
-        <AskErrorView error={chat.error} onNewConversation={onNewConversation} />
+      {chat.error &&
+        chat.error.code !== 'SESSION_EXPIRED' &&
+        chat.error.code !== 'CONVERSATION_LIMIT' && <AskErrorView error={chat.error} />}
+      {limitReached && (
+        <AskErrorView error={CONVERSATION_FULL} onNewConversation={onNewConversation} />
       )}
 
       <div className="flex flex-col">
@@ -131,7 +154,7 @@ export function ChatPanel({ session, onSessionExpired, onNewConversation }: Chat
       </div>
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="m-0 text-[0.75rem] text-text-muted leading-[1.5] flex-1 min-w-[200px]">
+        <p className={`${finePrintCls} flex-1 min-w-[200px]`}>
           {L.askNotice}{' '}
           <Link to="/privacy" className={textLinkCls}>
             {L.askPrivacyLink}
@@ -234,8 +257,7 @@ function MessageBubble({
               <button
                 type="button"
                 onClick={() => onRetry(message.text)}
-                className="bg-transparent border-none p-0 font-[inherit] font-bold text-accent
-                  cursor-pointer hover:underline"
+                className={`bg-transparent border-none p-0 font-[inherit] cursor-pointer ${textLinkCls}`}
               >
                 {L.askTryAgain}
               </button>

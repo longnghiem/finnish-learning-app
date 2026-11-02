@@ -46,12 +46,12 @@ export function Navbar() {
           {dark ? '☀️' : '🌙'}
         </button>
 
-        {/* About me - public portfolio */}
+        {/* Portfolio - public page */}
         <Link
           to="/portfolio"
           className={`${pillClassName(isPortfolioRoute)} no-underline inline-block`}
         >
-          {L.aboutMe}
+          {L.portfolio}
         </Link>
 
         {/* Dashboard - any authenticated user */}

@@ -1,6 +1,12 @@
 export { createCardSchema, editCardSchema } from './cards'
 export type { CreateCardFormData, EditCardFormData } from './cards'
-export { askSessionSchema, askToolCallSchema, fitReportSchema, storedChatSchema } from './ask'
+export {
+  askSessionSchema,
+  askToolCallSchema,
+  fitReportSchema,
+  storedChatSchema,
+  storedFitCheckSchema,
+} from './ask'
 export type {
   AskSession,
   AskStats,
@@ -14,4 +20,5 @@ export type {
   FitRequirement,
   FitEvidence,
   FitVerdict,
+  StoredFitCheck,
 } from './ask'

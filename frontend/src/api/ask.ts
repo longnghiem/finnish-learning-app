@@ -100,6 +100,22 @@ export class AskError extends Error {
 /** The longest chat message the backend accepts (`app.ask.session.max-message-chars`). */
 export const MAX_CHAT_MESSAGE_LENGTH = 500
 
+/** The longest job description the backend accepts (`app.ask.fit-check.max-chars`). */
+export const MAX_FIT_CHECK_LENGTH = 6000
+
+/**
+ * Fit checks per visitor's IP per day (`app.ask.limits.fit-checks-per-ip-per-day`). Shown as a
+ * hint; the backend enforces it with `RATE_LIMITED`.
+ */
+export const FIT_CHECKS_PER_DAY = 3
+
+/**
+ * Chat messages per visitor's IP per day, over all conversations
+ * (`app.ask.limits.chat-per-ip-per-day`). Shown in the conversation limit notice; the backend
+ * enforces it with `RATE_LIMITED`.
+ */
+export const CHAT_MESSAGES_PER_DAY = 30
+
 /** Shown when the frontend has no better text, e.g. the backend can't be reached. */
 const GENERIC_MESSAGE = 'Something went wrong. Please try again.'
 
