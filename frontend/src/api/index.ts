@@ -32,5 +32,8 @@ export {
   streamFitCheck,
   AskError,
   MAX_CHAT_MESSAGE_LENGTH,
+  MAX_FIT_CHECK_LENGTH,
+  FIT_CHECKS_PER_DAY,
+  CHAT_MESSAGES_PER_DAY,
 } from './ask'
 export type { AskErrorCode } from './ask'

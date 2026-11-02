@@ -16,11 +16,13 @@ import {
 import {
   backNavigationBtnCls,
   dashSectionLabelCls,
+  evalListItemCls,
   evalPanelCls,
   evalPanelIntroCls,
   evalPanelTitleCls,
   evalResultCls,
   evalTextareaCls,
+  evalWaitHintCls,
   fieldHintCls,
   inputCls,
   labelCls,
@@ -141,9 +143,7 @@ export function EssayPage() {
         </div>
 
         <div className="flex items-center justify-end gap-3 flex-wrap">
-          {evaluation.isPending && (
-            <span className="text-[0.78rem] text-text-muted font-semibold">{L.essayWaitHint}</span>
-          )}
+          {evaluation.isPending && <span className={evalWaitHintCls}>{L.essayWaitHint}</span>}
           <EvalSubmitButton
             enabled={canSubmit}
             pending={evaluation.isPending}
@@ -262,7 +262,7 @@ function EssayResultView({ data }: { data: EvaluateEssayResponse }) {
 function IssueRow({ issue }: { issue: EssayIssue }) {
   const { L } = useLang()
   return (
-    <li className="rounded-lg border border-border bg-surface-alt px-3 py-2.5 flex flex-col gap-1">
+    <li className={evalListItemCls}>
       <span className={dashSectionLabelCls}>
         {issue.kind === 'TYPO' ? L.essayIssueTypo : L.essayIssueGrammar}
       </span>

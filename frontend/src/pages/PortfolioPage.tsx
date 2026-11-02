@@ -121,7 +121,7 @@ const CV = {
 
 const sectionLabelCls = 'text-[11px] font-bold text-amber tracking-[1px] uppercase m-0'
 const cardCls = 'bg-surface border border-border rounded-[14px] px-6 py-[22px] shadow-card'
-const pillCls =
+const tagCls =
   'inline-flex items-center bg-surface-alt text-text-primary border border-border rounded-full ' +
   'px-[11px] py-[5px] text-xs font-semibold font-mono tracking-[-0.2px]'
 
@@ -255,7 +255,7 @@ export function PortfolioPage() {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {c.items.map((item) => (
-                  <span key={item} className={pillCls}>
+                  <span key={item} className={tagCls}>
                     {item}
                   </span>
                 ))}
@@ -357,7 +357,7 @@ export function PortfolioPage() {
           <h3 className="text-[14.5px] font-extrabold text-text-primary mt-3.5 mb-3">Hobbies</h3>
           <div className="flex flex-wrap gap-2">
             {CV.hobbies.map((h) => (
-              <span key={h} className={pillCls}>
+              <span key={h} className={tagCls}>
                 {h}
               </span>
             ))}

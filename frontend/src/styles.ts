@@ -75,11 +75,15 @@ export const evalErrorBoxCls =
   'font-semibold animate-[fadeIn_220ms_ease]'
 export const evalPanelTitleCls = 'text-[1.02rem] font-extrabold text-text-primary m-0'
 export const evalPanelIntroCls = 'text-[0.86rem] text-text-sub m-0 leading-[1.5]'
+export const evalListItemCls =
+  'rounded-lg border border-border bg-surface-alt px-3 py-2.5 flex flex-col gap-1'
+export const evalWaitHintCls = 'text-[0.78rem] text-text-muted font-semibold'
 
 // Small texts and controls shared by the panels
 export const statusErrorTextCls = 'm-0 text-[0.85rem] font-semibold text-red'
 export const statusMutedTextCls = 'm-0 text-[0.85rem] font-semibold text-text-muted'
 export const fieldHintCls = 'text-[0.75rem] font-semibold text-text-muted tabular-nums'
+export const finePrintCls = 'm-0 text-[0.75rem] text-text-muted leading-[1.5]'
 export const textLinkCls = 'font-bold text-accent no-underline hover:underline'
 export const secondaryButtonCls =
   'rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[0.85rem] font-bold ' +
@@ -92,3 +96,12 @@ export const tabCls =
   'font-[inherit] transition-[background,color] duration-150'
 export const tabActiveCls = 'bg-surface text-text-primary shadow-card'
 export const tabInactiveCls = 'bg-transparent text-text-muted hover:text-text-primary'
+
+// Pills: small rounded labels, pillCls plus one colour
+export const pillCls =
+  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[3px] text-[0.7rem] ' +
+  'font-extrabold uppercase tracking-[0.3px]'
+export const pillGreenCls = 'bg-green/15 text-green border-green/40'
+export const pillAmberCls = 'bg-amber/20 text-text-primary border-amber/60'
+export const pillRedCls = 'bg-red/15 text-red border-red/40'
+export const pillNeutralCls = 'bg-surface-alt text-text-muted border-border'

@@ -4,10 +4,10 @@
  */
 import type { ReactNode } from 'react'
 import { useLang } from '../lang'
-import type { AskError } from '../api'
+import { type AskError, CHAT_MESSAGES_PER_DAY, FIT_CHECKS_PER_DAY } from '../api'
 import type { AskStep, AskToolCall } from '../schemas'
 import { CONTACT } from '../contact.ts'
-import { evalErrorBoxCls, secondaryButtonCls, textLinkCls } from '../styles.ts'
+import { evalErrorBoxCls, finePrintCls, secondaryButtonCls, textLinkCls } from '../styles.ts'
 
 /**
  * A tool call as one line of code, each argument as `name: value`, e.g.
@@ -51,9 +51,25 @@ function groupsOf(text: string): readonly TextGroup[] {
 }
 
 /**
+ * `**bold**` within one line: two stars, then text without stars, then two stars. The group is
+ * the bold text; a lone `**` doesn't match and stays as it is.
+ */
+const BOLD = /\*\*([^*\n]+)\*\*/
+
+/**
+ * One line or paragraph with its `**bold**` parts as `<strong>`. Splitting on {@link BOLD}, whose
+ * group is kept, gives plain text at even indexes and bold text at odd ones. Both stay text nodes.
+ * Used for the chat's answers and for the fit report's model-written texts.
+ */
+export function InlineText({ text }: { text: string }) {
+  return text.split(BOLD).map((part, i) => (i % 2 === 1 ? <strong key={i}>{part}</strong> : part))
+}
+
+/**
  * A chatbot answer as text. The model is told to write plain text: short paragraphs separated by
  * a blank line, and `- ` bullets. A paragraph becomes `<p>` (single line breaks kept), and a run
- * of bullet lines becomes `<ul>`.
+ * of bullet lines becomes `<ul>`. The model still writes `**bold**` now and then, despite the
+ * prompt, so {@link InlineText} shows that as bold instead of as stars.
  *
  * Everything is rendered as text nodes, never as HTML, so an answer that contains markup (or an
  * attack that made the model write some) shows the characters and runs nothing.
@@ -65,12 +81,14 @@ export function MessageText({ text }: { text: string }) {
         group.bullets ? (
           <ul key={i} className="m-0 pl-5 list-disc flex flex-col gap-1">
             {group.lines.map((line, lineIndex) => (
-              <li key={lineIndex}>{line}</li>
+              <li key={lineIndex}>
+                <InlineText text={line} />
+              </li>
             ))}
           </ul>
         ) : (
           <p key={i} className="m-0 whitespace-pre-line">
-            {group.lines.join('\n')}
+            <InlineText text={group.lines.join('\n')} />
           </p>
         ),
       )}
@@ -78,19 +96,30 @@ export function MessageText({ text }: { text: string }) {
   )
 }
 
+/** Which tab a shared view is shown in: some texts differ between the chat and the fit check. */
+export type AskMode = 'chat' | 'fit'
+
 /**
  * The live progress of an answer: one row per step the backend reported, the newest last.
  * Earlier steps are done (✓); the newest one is still running (pulsing dot).
  *
  * `aria-live="polite"` makes a screen reader announce each new step when it is idle.
+ *
+ * @param mode `fit`: the input is a job description, and `COMPOSING` comes once, for the report
  */
-export function ProgressSteps({ steps }: { steps: readonly AskStep[] }) {
+export function ProgressSteps({
+  steps,
+  mode = 'chat',
+}: {
+  steps: readonly AskStep[]
+  mode?: AskMode
+}) {
   const { L } = useLang()
 
   const labelOf = (step: AskStep): ReactNode => {
     switch (step.kind) {
       case 'GUARDRAIL':
-        return L.askStepGuardrail
+        return mode === 'fit' ? L.askFitStepGuardrail : L.askStepGuardrail
       case 'TOOL_CALL':
         return (
           <>
@@ -101,7 +130,7 @@ export function ProgressSteps({ steps }: { steps: readonly AskStep[] }) {
           </>
         )
       case 'COMPOSING':
-        return L.askStepComposing
+        return mode === 'fit' ? L.askFitStepComposing : L.askStepComposing
       case 'VERIFYING':
         return L.askStepVerifying
     }
@@ -152,7 +181,7 @@ export function ToolTrace({
   const { L } = useLang()
 
   if (calls.length === 0) {
-    return <p className="m-0 text-[0.75rem] text-text-muted font-semibold">{L.askNoTools}</p>
+    return <p className={finePrintCls}>{L.askNoTools}</p>
   }
   return (
     <details open={defaultOpen} className="text-[0.78rem]">
@@ -203,33 +232,39 @@ export function ContactLinks() {
  * - `BLOCKED`: a neutral sentence; the guardrail's reasons are never shown;
  * - everything else: a "try again" text.
  *
+ * In `fit` mode, `BLOCKED`, `RATE_LIMITED` (3 checks per day, not the chat's messages) and
+ * `BAD_REQUEST` speak of the job description.
+ *
  * `SESSION_EXPIRED` and `TURNSTILE_FAILED` never reach this view: the page handles them.
  */
 export function AskErrorView({
   error,
   onNewConversation,
+  mode = 'chat',
 }: {
   error: AskError
   onNewConversation?: () => void
+  mode?: AskMode
 }) {
   const { L } = useLang()
+  const fit = mode === 'fit'
 
   let message: string
   let showContact = false
   switch (error.code) {
     case 'BLOCKED':
-      message = L.askErrBlocked
+      message = fit ? L.askFitErrBlocked : L.askErrBlocked
       break
     case 'CAPPED':
       message = error.capScope === 'MONTHLY' ? L.askErrCappedMonthly : L.askErrCappedDaily
       showContact = true
       break
     case 'RATE_LIMITED':
-      message = L.askErrRateLimited
+      message = fit ? L.askFitErrRateLimited(FIT_CHECKS_PER_DAY) : L.askErrRateLimited
       showContact = true
       break
     case 'CONVERSATION_LIMIT':
-      message = L.askErrConversationLimit
+      message = L.askErrConversationLimit(L.askNewConversation, CHAT_MESSAGES_PER_DAY)
       showContact = true
       break
     case 'BUSY':
@@ -242,7 +277,7 @@ export function AskErrorView({
       message = L.askErrInterrupted
       break
     case 'BAD_REQUEST':
-      message = L.askErrBadRequest
+      message = fit ? L.askFitErrBadRequest : L.askErrBadRequest
       break
     default:
       message = L.askErrGeneric

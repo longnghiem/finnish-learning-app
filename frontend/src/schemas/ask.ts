@@ -185,3 +185,10 @@ export const storedChatSchema = z.object({
   sessionId: z.string(),
   messages: z.array(chatMessageSchema),
 })
+
+/** The last fit check kept in `sessionStorage`: the job description and its report. */
+export const storedFitCheckSchema = z.object({
+  jobDescription: z.string(),
+  result: askReportSchema,
+})
+export type StoredFitCheck = z.infer<typeof storedFitCheckSchema>

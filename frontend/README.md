@@ -41,7 +41,7 @@ The design was implemented by **Claude Design**
 - `/admin` — Card management page (admin only)
 - `/dashboard` — Progress dashboard (authenticated users only): per-topic stats, streaks, accuracy, due cards
 - `/essay/:topicId` — Short-essay writing page (authenticated users only): prompt dropdown, 300–2,500 character editor with live counter, and the AI evaluation result — CEFR level, on-topic flag, and per-issue fixes
-- `/ask` — "Ask Himmel", the recruiter chatbot (public, no login): Cloudflare Turnstile check -> chat about Long's professional background with live progress steps. `?tab=fit` opens the "Check my fit" tab
+- `/ask` — "Ask Himmel", the recruiter chatbot (public, no login): Cloudflare Turnstile check -> chat about Long's professional background with live progress steps. `?tab=fit` opens "Check my fit": paste a job description (up to 6,000 characters, 3 checks per day) and get a report per requirement
 
 ---
 

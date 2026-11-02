@@ -11,7 +11,7 @@ export const I18N = {
     alreadyHaveAccount: 'Already have an account?',
     noAccount: "Don't have an account?",
     dashboard: 'Dashboard',
-    aboutMe: 'About me',
+    portfolio: 'Portfolio',
     allTopics: '← All topics',
     word: 'Word',
     sentence: 'Sentence',
@@ -128,7 +128,6 @@ export const I18N = {
     askIntro: "Ask about Long's work, projects and skills. Answers come only from his profile.",
     askTabChat: 'Chat',
     askTabFit: 'Check my fit',
-    askFitComingSoon: "Coming soon: paste a job description and see how Long's profile matches it.",
     askGateTitle: "Quick check that you're human",
     askGateWhy: "It keeps bots from using up the chatbot's budget. One check per visit.",
     askGateStarting: 'Starting your chat…',
@@ -171,7 +170,8 @@ export const I18N = {
     askErrCappedMonthly:
       "I'm resting until next month: this month's budget for answers is used up.",
     askErrRateLimited: "You've reached today's message limit. Please come back tomorrow.",
-    askErrConversationLimit: 'This conversation has reached its message limit.',
+    askErrConversationLimit: (button: string, perDay: number) =>
+      `This conversation has reached its message limit. To keep asking, press "${button}". You can send up to ${perDay} messages a day.`,
     askNewConversation: 'Start a new conversation',
     askErrBusy: 'The assistant is busy right now. Please try again in a moment.',
     askErrUpstream: 'The assistant is unavailable right now. Please try again in a moment.',
@@ -179,6 +179,40 @@ export const I18N = {
     askErrBadRequest: 'That message was rejected. Check its length and try again.',
     askErrGeneric: 'Something went wrong. Please try again.',
     askContactIntro: 'You can reach Long directly:',
+    askFitTitle: 'Does Long fit your role?',
+    askFitIntro:
+      "Paste a job description. Each requirement is checked against Long's profile, with quotes as evidence.",
+    askFitLabel: 'Job description',
+    askFitPlaceholder: 'Paste the job description here…',
+    askFitPerDay: (n: number) => `Up to ${n} checks per day`,
+    askFitTooLong: (max: number) => `Too long: please shorten it to ${max} characters.`,
+    askFitCheck: 'Check my fit',
+    askFitChecking: 'Checking…',
+    askFitWaitHint: 'A check can take up to 3 minutes.',
+    askFitStepGuardrail: 'Checked the job description',
+    askFitStepComposing: 'Writing the report…',
+    askFitSummary: 'Summary',
+    askFitRequirements: 'Requirements',
+    askFitNoRequirements: 'No requirements could be read from the text.',
+    askFitGaps: 'Gaps',
+    askFitNoGaps: 'No explicit gaps found in the profile.',
+    askFitFootnote:
+      'Every quote was checked word for word against the profile. Requirements without a verified quote are shown as Not in profile.',
+    askFitQuotesRemoved: (n: number) =>
+      n === 1
+        ? "1 quote couldn't be found in the profile and was removed."
+        : `${n} quotes couldn't be found in the profile and were removed.`,
+    askFitCopy: 'Copy report',
+    askFitCopied: 'Copied',
+    askFitCopyFailed: "Couldn't copy. Please select the text and copy it yourself.",
+    askVerdictStrong: 'Strong',
+    askVerdictPartial: 'Partial',
+    askVerdictGap: 'Gap',
+    askVerdictNotInProfile: 'Not in profile',
+    askFitErrBlocked: "I can't check this text. Please paste only the job description.",
+    askFitErrRateLimited: (n: number) =>
+      `You've used today's ${n} fit checks. Please come back tomorrow.`,
+    askFitErrBadRequest: 'The job description was rejected. Check its length and try again.',
   },
   fi: {
     appName: 'Suomen Oppiminen',
@@ -192,7 +226,7 @@ export const I18N = {
     alreadyHaveAccount: 'Onko sinulla jo tili?',
     noAccount: 'Eikö sinulla ole tiliä?',
     dashboard: 'Hallintapaneeli',
-    aboutMe: 'Tietoja minusta',
+    portfolio: 'Portfolio',
     allTopics: '← Kaikki aiheet',
     word: 'Sana',
     sentence: 'Lause',
@@ -311,8 +345,6 @@ export const I18N = {
       'Kysy Longin työstä, projekteista ja osaamisesta. Vastaukset perustuvat vain hänen profiiliinsa.',
     askTabChat: 'Keskustelu',
     askTabFit: 'Tarkista sopivuus',
-    askFitComingSoon:
-      'Tulossa pian: liitä työpaikkailmoitus ja näe, miten Longin profiili vastaa sitä.',
     askGateTitle: 'Nopea tarkistus, että olet ihminen',
     askGateWhy:
       'Se estää botteja kuluttamasta chatbotin budjettia. Yksi tarkistus vierailua kohden.',
@@ -356,7 +388,8 @@ export const I18N = {
     askErrCappedDaily: 'Lepään huomiseen asti: tämän päivän vastausbudjetti on käytetty.',
     askErrCappedMonthly: 'Lepään ensi kuuhun asti: tämän kuun vastausbudjetti on käytetty.',
     askErrRateLimited: 'Päivän viestiraja on täynnä. Palaa huomenna.',
-    askErrConversationLimit: 'Tämä keskustelu on saavuttanut viestirajansa.',
+    askErrConversationLimit: (button: string, perDay: number) =>
+      `Tämä keskustelu on saavuttanut viestirajansa. Jatka kysymistä painamalla "${button}". Voit lähettää enintään ${perDay} viestiä päivässä.`,
     askNewConversation: 'Aloita uusi keskustelu',
     askErrBusy: 'Avustaja on juuri nyt varattu. Yritä hetken kuluttua uudelleen.',
     askErrUpstream: 'Avustaja ei ole juuri nyt käytettävissä. Yritä hetken kuluttua uudelleen.',
@@ -364,6 +397,41 @@ export const I18N = {
     askErrBadRequest: 'Viestiä ei hyväksytty. Tarkista sen pituus ja yritä uudelleen.',
     askErrGeneric: 'Jotain meni pieleen. Yritä uudelleen.',
     askContactIntro: 'Voit ottaa yhteyttä Longiin suoraan:',
+    askFitTitle: 'Sopiiko Long rooliisi?',
+    askFitIntro:
+      'Liitä työpaikkailmoitus. Jokainen vaatimus tarkistetaan Longin profiilia vasten, ja todisteeksi näytetään lainaukset.',
+    askFitLabel: 'Työpaikkailmoitus',
+    askFitPlaceholder: 'Liitä työpaikkailmoitus tähän…',
+    askFitPerDay: (n: number) => `Enintään ${n} tarkistusta päivässä`,
+    askFitTooLong: (max: number) => `Liian pitkä: lyhennä teksti ${max} merkkiin.`,
+    askFitCheck: 'Tarkista sopivuus',
+    askFitChecking: 'Tarkistetaan…',
+    askFitWaitHint: 'Tarkistus voi kestää jopa 3 minuuttia.',
+    askFitStepGuardrail: 'Työpaikkailmoitus tarkistettu',
+    askFitStepComposing: 'Kirjoitetaan raporttia…',
+    askFitSummary: 'Yhteenveto',
+    askFitRequirements: 'Vaatimukset',
+    askFitNoRequirements: 'Tekstistä ei löytynyt vaatimuksia.',
+    askFitGaps: 'Puutteet',
+    askFitNoGaps: 'Profiilista ei löytynyt selviä puutteita.',
+    askFitFootnote:
+      'Jokainen lainaus on tarkistettu sanasta sanaan profiilia vasten. Vaatimukset ilman tarkistettua lainausta näkyvät merkinnällä Ei profiilissa.',
+    askFitQuotesRemoved: (n: number) =>
+      n === 1
+        ? 'Yhtä lainausta ei löytynyt profiilista, joten se poistettiin.'
+        : `${n} lainausta ei löytynyt profiilista, joten ne poistettiin.`,
+    askFitCopy: 'Kopioi raportti',
+    askFitCopied: 'Kopioitu',
+    askFitCopyFailed: 'Kopiointi ei onnistunut. Valitse teksti ja kopioi se itse.',
+    askVerdictStrong: 'Vahva',
+    askVerdictPartial: 'Osittainen',
+    askVerdictGap: 'Puute',
+    askVerdictNotInProfile: 'Ei profiilissa',
+    askFitErrBlocked: 'En voi tarkistaa tätä tekstiä. Liitä vain työpaikkailmoitus.',
+    askFitErrRateLimited: (n: number) =>
+      `Päivän ${n} sopivuustarkistusta on käytetty. Palaa huomenna.`,
+    askFitErrBadRequest:
+      'Työpaikkailmoitusta ei hyväksytty. Tarkista sen pituus ja yritä uudelleen.',
   },
 }
 
