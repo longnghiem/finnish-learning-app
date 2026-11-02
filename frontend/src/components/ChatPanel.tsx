@@ -1,7 +1,7 @@
-import { type KeyboardEvent, useEffect, useRef, useState } from 'react'
+import { type KeyboardEvent, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '../lang'
-import { useChatStream } from '../hooks'
+import type { ChatStream } from '../hooks'
 import { AskError, MAX_CHAT_MESSAGE_LENGTH } from '../api'
 import type { AskSession, ChatMessage } from '../schemas'
 import {
@@ -25,8 +25,16 @@ const CONVERSATION_FULL = new AskError(
 )
 
 interface ChatPanelProps {
-  /** The current session. Render the panel with `key={session.sessionId}`. */
+  /** The current session: the panel shows how many of its messages are left. */
   session: AskSession
+  /**
+   * The conversation and its stream ({@link ChatStream}), made by the page, which also shows
+   * Himmel's state from it.
+   */
+  chat: ChatStream
+  /** The message being typed; kept in the page, which shows Himmel listening while it has text. */
+  draft: string
+  onDraftChange: (draft: string) => void
   /** Called when the backend says the session has expired: the page asks for a new one. */
   onSessionExpired: () => void
   /** Called for "Start a new conversation" after the conversation limit. */
@@ -53,13 +61,14 @@ interface ChatPanelProps {
  */
 export function ChatPanel({
   session,
+  chat,
+  draft,
+  onDraftChange,
   onSessionExpired,
   onNewConversation,
   active,
 }: ChatPanelProps) {
   const { L } = useLang()
-  const chat = useChatStream(session.sessionId)
-  const [draft, setDraft] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
 
   // Keeps the newest message and step in view: the list is a scroll box of its own, so the page
@@ -83,7 +92,7 @@ export function ChatPanel({
   const send = async (text: string) => {
     const trimmed = text.trim()
     if (!canSend || trimmed === '') return
-    setDraft('')
+    onDraftChange('')
     const failure = await chat.send(trimmed)
     if (failure?.code === 'SESSION_EXPIRED') onSessionExpired()
   }
@@ -136,7 +145,7 @@ export function ChatPanel({
           value={draft}
           maxLength={MAX_CHAT_MESSAGE_LENGTH}
           disabled={limitReached}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => onDraftChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={L.askPlaceholder}
           aria-describedby="ask-chat-hint"
