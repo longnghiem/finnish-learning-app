@@ -37,3 +37,12 @@ export {
   CHAT_MESSAGES_PER_DAY,
 } from './ask'
 export type { AskErrorCode } from './ask'
+export {
+  fetchAdminTurns,
+  fetchAdminSession,
+  deleteAdminSession,
+  fetchAdminDailyStats,
+  AdminAskError,
+  ADMIN_TURNS_PAGE_SIZE,
+} from './adminAsk'
+export type { AdminTurnFilters } from './adminAsk'
