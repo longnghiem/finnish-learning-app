@@ -4,6 +4,7 @@ import { AuthProvider } from './auth/AuthProvider.tsx'
 import { ThemeProvider } from './theme'
 import { LangProvider } from './lang'
 import { Navbar } from './components/Navbar.tsx'
+import { PeekingCatLink } from './components/PeekingCatLink.tsx'
 import { LandingPage } from './pages/LandingPage.tsx'
 import { LoginPage } from './pages/LoginPage.tsx'
 import { TopicPage } from './pages/TopicPage.tsx'
@@ -39,6 +40,7 @@ function AppInner() {
           <Route path="/ask" element={<AskPage />} />
         </Routes>
       </main>
+      <PeekingCatLink />
     </div>
   )
 }

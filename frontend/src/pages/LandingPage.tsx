@@ -1,10 +1,25 @@
 import { useTopicProgress, useTopics } from '../hooks'
 import { TopicCard } from '../components/TopicCard.tsx'
+import { RecruiterBanner } from '../components/RecruiterBanner.tsx'
 import { useLang } from '../lang'
 import { useAuth } from '../auth/useAuth.ts'
 import { Link } from 'react-router-dom'
 
+/**
+ * The home page: the recruiter banner, then the topics. The banner comes first and doesn't wait
+ * for the topics, so recruiters see it even while they load or when the backend is down.
+ */
 export function LandingPage() {
+  return (
+    <div className="page-enter max-w-275 mx-auto px-6 pt-12 pb-16">
+      <RecruiterBanner className="max-w-[720px] mx-auto mb-10" />
+      <Topics />
+    </div>
+  )
+}
+
+/** The topic grid, with its heading, the counts and the demo hint for logged-out visitors. */
+function Topics() {
   const { data: topics, isLoading, isError } = useTopics()
   const { isLoggedIn } = useAuth()
   // Only fire the progress query when authenticated
@@ -30,7 +45,7 @@ export function LandingPage() {
   const totalCardsAll = topics?.reduce((s, t) => s + t.totalCards, 0) ?? 0
 
   return (
-    <div className="page-enter max-w-275 mx-auto px-6 pt-12 pb-16">
+    <>
       <h1 className="text-center text-[1.75rem] font-extrabold text-text-primary mb-2">
         {L.chooseATopic}
       </h1>
@@ -87,6 +102,6 @@ export function LandingPage() {
           return <TopicCard key={topic.id} topic={topic} dueCards={due} />
         })}
       </div>
-    </div>
+    </>
   )
 }

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import avatarUrl from '../assets/avatar.png'
 import { CONTACT } from '../contact.ts'
+import { RecruiterBanner } from '../components/RecruiterBanner.tsx'
 
 const CV = {
   name: 'Long Nghiem',
@@ -229,6 +230,9 @@ export function PortfolioPage() {
           <ContactLink label="GitHub" value="@longnghiem" href="https://github.com/longnghiem" />
         </div>
       </section>
+
+      {/* RECRUITER CHATBOT */}
+      <RecruiterBanner className="mb-10" />
 
       {/* COMPETENCIES */}
       <section className="mb-10">

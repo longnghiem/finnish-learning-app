@@ -2,6 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.ts'
 import { useTheme } from '../theme/useTheme'
 import { useLang } from '../lang'
+import { isPathActive } from '../utils/routeUtils.ts'
+import { AiBadge } from './EvaluationUI.tsx'
 
 const pillClassName = (active: boolean) =>
   `rounded-lg px-4 py-[7px] text-[0.8rem] font-bold text-nav-text border cursor-pointer font-[inherit] transition-[background,border-color] duration-150 ${
@@ -17,9 +19,10 @@ export function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const isAdminRoute = location.pathname === '/admin'
-  const isDashboardRoute = location.pathname === '/dashboard'
-  const isPortfolioRoute = location.pathname === '/portfolio'
+  const isAdminRoute = isPathActive(location.pathname, '/admin')
+  const isDashboardRoute = isPathActive(location.pathname, '/dashboard')
+  const isPortfolioRoute = isPathActive(location.pathname, '/portfolio')
+  const isAskRoute = isPathActive(location.pathname, '/ask')
 
   const handleLogout = () => {
     logout()
@@ -27,7 +30,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className="flex items-center justify-between bg-nav-bg px-7 py-3.5 shadow-[0_2px_12px_rgb(0_0_0/0.2)] sticky top-0 z-20">
+    <nav className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 bg-nav-bg px-7 py-3.5 shadow-[0_2px_12px_rgb(0_0_0/0.2)] sticky top-0 z-20">
       <Link
         to="/"
         className="text-[1.2rem] font-extrabold text-nav-text no-underline tracking-[-0.3px]"
@@ -35,7 +38,7 @@ export function Navbar() {
         {L.appName}
       </Link>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
         {/* Language toggle */}
         <button onClick={toggleLang} className={pillClassName(false)} title="Toggle language">
           {lang === 'en' ? '🇫🇮 Suomi' : '🇬🇧 English'}
@@ -52,6 +55,15 @@ export function Navbar() {
           className={`${pillClassName(isPortfolioRoute)} no-underline inline-block`}
         >
           {L.portfolio}
+        </Link>
+
+        {/* Ask Himmel - the recruiter chatbot, public */}
+        <Link
+          to="/ask"
+          className={`${pillClassName(isAskRoute)} no-underline inline-flex items-center gap-1.5`}
+        >
+          {L.askTitle}
+          <AiBadge />
         </Link>
 
         {/* Dashboard - any authenticated user */}
