@@ -85,6 +85,8 @@ export const statusMutedTextCls = 'm-0 text-[0.85rem] font-semibold text-text-mu
 export const fieldHintCls = 'text-[0.75rem] font-semibold text-text-muted tabular-nums'
 export const finePrintCls = 'm-0 text-[0.75rem] text-text-muted leading-[1.5]'
 export const textLinkCls = 'font-bold text-accent no-underline hover:underline'
+export const bulletListCls =
+  'm-0 pl-5 list-disc flex flex-col gap-1 text-[0.86rem] text-text-sub leading-[1.5]'
 export const secondaryButtonCls =
   'rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[0.85rem] font-bold ' +
   'text-text-primary cursor-pointer font-[inherit] transition-[border-color] duration-150 hover:border-amber'
