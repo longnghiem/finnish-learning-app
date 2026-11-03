@@ -91,6 +91,14 @@ export const secondaryButtonCls =
   'rounded-lg border border-border bg-surface-alt px-3.5 py-2 text-[0.85rem] font-bold ' +
   'text-text-primary cursor-pointer font-[inherit] transition-[border-color] duration-150 hover:border-amber'
 
+// Admin tables: header and body cells, shared by the cards table and the chatbot tables
+export const adminThCls =
+  'px-4 py-2.5 text-xs font-bold text-text-muted uppercase tracking-[0.5px] text-left border-b border-border bg-surface-alt'
+export const adminTdCls =
+  'px-4 py-[13px] text-sm text-text-primary border-b border-border align-middle'
+export const adminTableWrapCls =
+  'bg-surface rounded-2xl border border-border overflow-hidden shadow-card'
+
 // Tabs: the tab list, and each tab with tabCls plus its active or inactive classes
 export const tabListCls = 'flex gap-1 mb-4 rounded-xl border border-border bg-surface-alt p-1'
 export const tabCls =

@@ -15,18 +15,19 @@
  *   It owns the conversation and the message being typed, as the chat's hook expects, and works
  *   out Himmel's state from both tabs while rendering.
  */
-import { type KeyboardEvent, useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useLang } from '../lang'
 import { type FitCheckStream, useAskSession, useChatStream, useFitCheckStream } from '../hooks'
 import type { AskSession } from '../schemas'
-import { pageContainerCls, tabActiveCls, tabCls, tabInactiveCls, tabListCls } from '../styles.ts'
+import { pageContainerCls } from '../styles.ts'
 import { AiBadge } from '../components/EvaluationUI.tsx'
 import { AskStatsPanel } from '../components/AskStatsPanel.tsx'
 import { HowItWorks } from '../components/HowItWorks.tsx'
 import { ChatPanel } from '../components/ChatPanel.tsx'
 import { FitCheckPanel } from '../components/FitCheckPanel.tsx'
 import { HimmelMascot } from '../components/HimmelMascot.tsx'
+import { Tabs } from '../components/Tabs.tsx'
 import { mascotStateOf, type TabActivity } from '../components/mascotState.ts'
 import { TurnstileGate } from '../components/TurnstileGate.tsx'
 
@@ -139,7 +140,15 @@ function AskPageContent({
         </p>
       </header>
 
-      <AskTabs selected={tab} onSelect={selectTab} allPanels={session !== null} />
+      <Tabs
+        tabs={TABS}
+        labels={{ chat: L.askTabChat, fit: L.askTabFit }}
+        selected={tab}
+        onSelect={selectTab}
+        idPrefix="ask"
+        label={L.askTitle}
+        allPanels={session !== null}
+      />
 
       {session === null ? (
         <div role="tabpanel" id={`ask-panel-${tab}`} aria-labelledby={`ask-tab-${tab}`}>
@@ -182,56 +191,5 @@ function AskPageContent({
         </>
       )}
     </>
-  )
-}
-
-/**
- * The tab buttons, as an ARIA tab list: Tab moves focus into the list and out of it, and the
- * arrow keys move between the tabs, as screen-reader users expect.
- *
- * @param allPanels false before the human check: then only the selected tab has a panel (the
- *   check), so only that tab points at one
- */
-function AskTabs({
-  selected,
-  onSelect,
-  allPanels,
-}: {
-  selected: AskTab
-  onSelect: (tab: AskTab) => void
-  allPanels: boolean
-}) {
-  const { L } = useLang()
-  const labels: Record<AskTab, string> = { chat: L.askTabChat, fit: L.askTabFit }
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
-    const step = event.key === 'ArrowRight' ? 1 : -1
-    const next = TABS[(TABS.indexOf(selected) + step + TABS.length) % TABS.length]
-    onSelect(next)
-    document.getElementById(`ask-tab-${next}`)?.focus()
-  }
-
-  return (
-    <div role="tablist" aria-label={L.askTitle} onKeyDown={handleKeyDown} className={tabListCls}>
-      {TABS.map((tab) => {
-        const active = tab === selected
-        return (
-          <button
-            key={tab}
-            id={`ask-tab-${tab}`}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            aria-controls={allPanels || active ? `ask-panel-${tab}` : undefined}
-            tabIndex={active ? 0 : -1}
-            onClick={() => onSelect(tab)}
-            className={`${tabCls} ${active ? tabActiveCls : tabInactiveCls}`}
-          >
-            {labels[tab]}
-          </button>
-        )
-      })}
-    </div>
   )
 }

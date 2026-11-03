@@ -22,3 +22,13 @@ export type {
   FitVerdict,
   StoredFitCheck,
 } from './ask'
+export type {
+  AskMode,
+  TurnStatus,
+  GuardrailOutcome,
+  TokenUsage,
+  AdminTurn,
+  AdminTurnPage,
+  AdminSession,
+  AdminDailyStats,
+} from './adminAsk'
