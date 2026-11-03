@@ -219,6 +219,15 @@ export const I18N = {
     himmelThinking: 'thinking',
     himmelTalking: 'answering',
     himmelSleeping: 'sleeping',
+    // — Ways to the chatbot: the recruiter banner and the peeking cat —
+    recruiterTitle: "Recruiter? Ask Himmel about Long's experience",
+    recruiterText:
+      "He answers only from Long's profile and shows where each answer comes from. Or paste a job description and see how Long fits.",
+    recruiterAsk: 'Ask about Long',
+    recruiterFit: 'Paste job description',
+    recruiterTech: 'Built with MCP · AWS Bedrock · Guardrails',
+    peekLabel: 'Ask Himmel about Long',
+    peekBubble: 'Ask me about Long!',
   },
   fi: {
     appName: 'Suomen Oppiminen',
@@ -444,6 +453,15 @@ export const I18N = {
     himmelThinking: 'miettii',
     himmelTalking: 'vastaa',
     himmelSleeping: 'nukkuu',
+    // — Ways to the chatbot: the recruiter banner and the peeking cat —
+    recruiterTitle: 'Rekrytoija? Kysy Himmeliltä Longin kokemuksesta',
+    recruiterText:
+      'Hän vastaa vain Longin profiilin perusteella ja näyttää, mistä kukin vastaus tulee. Tai liitä työpaikkailmoitus ja katso, miten Long sopii rooliin.',
+    recruiterAsk: 'Kysy Longista',
+    recruiterFit: 'Liitä työpaikkailmoitus',
+    recruiterTech: 'Tekniikat: MCP · AWS Bedrock · Guardrails',
+    peekLabel: 'Kysy Himmeliltä Longista',
+    peekBubble: 'Kysy minulta Longista!',
   },
 }
 

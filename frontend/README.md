@@ -34,7 +34,8 @@ The design was implemented by **Claude Design**
 
 ## Pages
 
-- `/` — Landing page (topic selection grid)
+- `/` — Landing page: the recruiter banner, then the topic selection grid
+- `/portfolio` — Long's CV, with the recruiter banner under the introduction
 - `/topics/:topicId` — Flashcard viewer with search and pagination
 - `/register` — Registration page (creates account + auto-login)
 - `/login` — Login page
