@@ -243,7 +243,7 @@ export const I18N = {
     howSteps: [
       {
         title: 'Cloudflare Turnstile',
-        text: "A human check, once per visit, so bots can't use up the budget.",
+        text: "Cloudflare's bot detection service.",
       },
       {
         title: 'Spring Boot backend',
@@ -255,7 +255,7 @@ export const I18N = {
       },
       {
         title: 'Claude Haiku 4.5 on Amazon Bedrock',
-        text: 'Writes the answer, in the EU. Before that, it can ask for profile entries, a few at a time.',
+        text: 'Writes the answer by querying profile entries.',
       },
       {
         title: 'MCP server on AWS Lambda',
@@ -264,14 +264,14 @@ export const I18N = {
       },
       {
         title: "Long's profile",
-        text: 'Markdown entries that Long wrote and checked. The answers come only from here.',
+        text: 'The Markdown entries (work experience, education, and more) that Long wrote.',
       },
     ],
     howSafetyTitle: 'Safety layers',
     howSafety: (chatPerDay: number, fitPerDay: number) => [
       'Input check: every message and job description goes through Bedrock Guardrails first.',
-      "Curated, read-only data: Himmel's only tools read the profile. Even a manipulated model can't change anything or reach other data.",
-      "Verified quotes: in a fit check, each quote is compared word for word with the profile. A quote that isn't there is removed.",
+      "Read-only access: Himmel can only read Long's profile. Even if someone tricks the AI, it can't change anything or see any other data.",
+      "Checked quotes: in \"Check my fit\", every quote in the report is looked up in Long's profile. A quote that isn't really there is removed, so Himmel can't make up evidence.",
       `Limits: ${chatPerDay} messages and ${fitPerDay} fit checks a day per connection, and a message limit per conversation.`,
       'A hard daily and monthly spending cap: when it is reached, Himmel rests until the next day or month.',
     ],
@@ -568,7 +568,7 @@ export const I18N = {
     howSteps: [
       {
         title: 'Cloudflare Turnstile',
-        text: 'Ihmistarkistus kerran käynnin aikana, jotta botit eivät kuluta budjettia.',
+        text: 'Cloudflaren bottien tunnistuspalvelu.',
       },
       {
         title: 'Spring Boot -taustapalvelu',
@@ -580,7 +580,7 @@ export const I18N = {
       },
       {
         title: 'Claude Haiku 4.5 Amazon Bedrockissa',
-        text: 'Kirjoittaa vastauksen EU:ssa. Sitä ennen se voi pyytää profiilin merkintöjä, muutaman kerrallaan.',
+        text: 'Kirjoittaa vastauksen hakemalla profiilin merkintöjä.',
       },
       {
         title: 'MCP-palvelin AWS Lambdassa',
@@ -589,14 +589,14 @@ export const I18N = {
       },
       {
         title: 'Longin profiili',
-        text: 'Longin kirjoittamia ja tarkistamia Markdown-merkintöjä. Vastaukset tulevat vain täältä.',
+        text: 'Longin kirjoittamat Markdown-merkinnät (työkokemus, koulutus ja muuta).',
       },
     ],
     howSafetyTitle: 'Turvakerrokset',
     howSafety: (chatPerDay: number, fitPerDay: number) => [
       'Syötteen tarkistus: jokainen viesti ja työpaikkailmoitus kulkee ensin Bedrock Guardrailsin läpi.',
-      'Valittu, vain luettava data: Himmelin ainoat työkalut lukevat profiilia. Manipuloitukaan malli ei voi muuttaa mitään eikä päästä muuhun dataan.',
-      'Tarkistetut lainaukset: sopivuustarkistuksessa jokaista lainausta verrataan profiiliin sana sanalta. Lainaus, jota profiilissa ei ole, poistetaan.',
+      'Vain lukuoikeus: Himmel voi ainoastaan lukea Longin profiilia. Vaikka joku huijaisi tekoälyä, se ei voi muuttaa mitään eikä nähdä muuta dataa.',
+      'Tarkistetut lainaukset: Tarkista sopivuus -toiminnossa jokainen raportin lainaus haetaan Longin profiilista. Lainaus, jota profiilissa ei oikeasti ole, poistetaan, joten Himmel ei voi keksiä näyttöä.',
       `Rajat: ${chatPerDay} viestiä ja ${fitPerDay} sopivuustarkistusta päivässä yhteyttä kohden sekä viestiraja keskustelua kohden.`,
       'Tiukka päivä- ja kuukausikohtainen kulukatto: kun se täyttyy, Himmel lepää seuraavaan päivään tai kuukauteen.',
     ],
