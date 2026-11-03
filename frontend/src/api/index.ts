@@ -35,8 +35,8 @@ export {
   MAX_FIT_CHECK_LENGTH,
   FIT_CHECKS_PER_DAY,
   CHAT_MESSAGES_PER_DAY,
-} from './ask'
-export type { AskErrorCode } from './ask'
+} from './chatbot/ask'
+export type { AskErrorCode } from './chatbot/ask'
 export {
   fetchAdminTurns,
   fetchAdminSession,
@@ -44,5 +44,5 @@ export {
   fetchAdminDailyStats,
   AdminAskError,
   ADMIN_TURNS_PAGE_SIZE,
-} from './adminAsk'
-export type { AdminTurnFilters } from './adminAsk'
+} from './admin/adminAsk'
+export type { AdminTurnFilters } from './admin/adminAsk'

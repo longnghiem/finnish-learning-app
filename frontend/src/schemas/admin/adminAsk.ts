@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { askToolCallSchema, fitReportSchema } from './ask.ts'
+import { askToolCallSchema, fitReportSchema } from '../chatbot/ask.ts'
 
 /*
  * Zod schemas of the chatbot's admin API (`/api/admin/ask`, `ROLE_ADMIN` only). They mirror the

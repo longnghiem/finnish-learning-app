@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useLang } from '../lang'
-import { AdminAskError } from '../api'
-import { useAdminSession, useDeleteAdminSession } from '../hooks'
-import type { AdminTurn } from '../schemas'
+import { useLang } from '../../lang'
+import { AdminAskError } from '../../api'
+import { useAdminSession, useDeleteAdminSession } from '../../hooks'
+import type { AdminTurn } from '../../schemas'
 import {
   adminTdCls,
   adminThCls,
@@ -17,10 +17,10 @@ import {
   pillNeutralCls,
   statusErrorTextCls,
   statusMutedTextCls,
-} from '../styles.ts'
-import { ConfirmModal } from './ConfirmModal.tsx'
-import { FitReportView } from './FitReportView.tsx'
-import { ToolTrace } from './AskUI.tsx'
+} from '../../styles.ts'
+import { ConfirmModal } from '../ConfirmModal.tsx'
+import { FitReportView } from '../chatbot/FitReportView.tsx'
+import { ToolTrace } from '../chatbot/AskUI.tsx'
 import { GuardrailPill, TurnStatusPill } from './AskTurnTable.tsx'
 import { formatHelsinkiTime, formatUsd, localeOf } from './adminAskFormat.ts'
 

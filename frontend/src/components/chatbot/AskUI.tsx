@@ -3,11 +3,11 @@
  * chat and the fit check. They only show what the hooks give them.
  */
 import type { ReactNode } from 'react'
-import { useLang } from '../lang'
-import { type AskError, CHAT_MESSAGES_PER_DAY, FIT_CHECKS_PER_DAY } from '../api'
-import type { AskStep, AskToolCall } from '../schemas'
-import { CONTACT } from '../contact.ts'
-import { evalErrorBoxCls, finePrintCls, secondaryButtonCls, textLinkCls } from '../styles.ts'
+import { useLang } from '../../lang'
+import { type AskError, CHAT_MESSAGES_PER_DAY, FIT_CHECKS_PER_DAY } from '../../api'
+import type { AskStep, AskToolCall } from '../../schemas'
+import { CONTACT } from '../../contact.ts'
+import { evalErrorBoxCls, finePrintCls, secondaryButtonCls, textLinkCls } from '../../styles.ts'
 
 /**
  * A tool call as one line of code, each argument as `name: value`, e.g.

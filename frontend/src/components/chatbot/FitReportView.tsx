@@ -3,8 +3,8 @@
  * note on how the quotes were checked. Used by the "Check my fit" tab.
  */
 import { useState } from 'react'
-import { type I18nStrings, useLang } from '../lang'
-import type { FitEvidence, FitReport, FitRequirement, FitVerdict } from '../schemas'
+import { type I18nStrings, useLang } from '../../lang'
+import type { FitEvidence, FitReport, FitRequirement, FitVerdict } from '../../schemas'
 import {
   dashSectionLabelCls,
   evalListItemCls,
@@ -18,9 +18,9 @@ import {
   secondaryButtonCls,
   statusErrorTextCls,
   statusMutedTextCls,
-} from '../styles.ts'
+} from '../../styles.ts'
 import { InlineText } from './AskUI.tsx'
-import { FeedbackBlock } from './EvaluationUI.tsx'
+import { FeedbackBlock } from '../EvaluationUI.tsx'
 
 /** The order of the rows: the strongest matches first. */
 const VERDICT_ORDER: readonly FitVerdict[] = ['STRONG', 'PARTIAL', 'GAP', 'NOT_IN_PROFILE']

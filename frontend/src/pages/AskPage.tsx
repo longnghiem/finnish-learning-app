@@ -22,14 +22,14 @@ import { type FitCheckStream, useAskSession, useChatStream, useFitCheckStream } 
 import type { AskSession } from '../schemas'
 import { pageContainerCls } from '../styles.ts'
 import { AiBadge } from '../components/EvaluationUI.tsx'
-import { AskStatsPanel } from '../components/AskStatsPanel.tsx'
-import { HowItWorks } from '../components/HowItWorks.tsx'
-import { ChatPanel } from '../components/ChatPanel.tsx'
-import { FitCheckPanel } from '../components/FitCheckPanel.tsx'
-import { HimmelMascot } from '../components/HimmelMascot.tsx'
+import { AskStatsPanel } from '../components/chatbot/AskStatsPanel.tsx'
+import { HowItWorks } from '../components/chatbot/HowItWorks.tsx'
+import { ChatPanel } from '../components/chatbot/ChatPanel.tsx'
+import { FitCheckPanel } from '../components/chatbot/FitCheckPanel.tsx'
+import { HimmelMascot } from '../components/chatbot/HimmelMascot.tsx'
 import { Tabs } from '../components/Tabs.tsx'
-import { mascotStateOf, type TabActivity } from '../components/mascotState.ts'
-import { TurnstileGate } from '../components/TurnstileGate.tsx'
+import { mascotStateOf, type TabActivity } from '../components/chatbot/mascotState.ts'
+import { TurnstileGate } from '../components/chatbot/TurnstileGate.tsx'
 
 /** The tabs, in order. The URL keeps the open one as `?tab=chat|fit`, so a link can open either. */
 const TABS = ['chat', 'fit'] as const

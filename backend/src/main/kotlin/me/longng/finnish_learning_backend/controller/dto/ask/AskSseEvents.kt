@@ -18,7 +18,7 @@ import me.longng.finnish_learning_backend.service.ask.mcp.McpProfileUnavailableE
 
 /**
  * The `event:` names of the recruiter chatbot's SSE streams, as [AskController] sends them. The
- * frontend's `frontend/src/schemas/ask.ts` must match the event classes in this file.
+ * frontend's `frontend/src/schemas/chatbot/ask.ts` must match the event classes in this file.
  *
  * ```
  * event:step     data:{"kind":"GUARDRAIL"}

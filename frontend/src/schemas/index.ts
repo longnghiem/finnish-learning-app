@@ -1,12 +1,12 @@
-export { createCardSchema, editCardSchema } from './cards'
-export type { CreateCardFormData, EditCardFormData } from './cards'
+export { createCardSchema, editCardSchema } from './admin/cards'
+export type { CreateCardFormData, EditCardFormData } from './admin/cards'
 export {
   askSessionSchema,
   askToolCallSchema,
   fitReportSchema,
   storedChatSchema,
   storedFitCheckSchema,
-} from './ask'
+} from './chatbot/ask'
 export type {
   AskSession,
   AskStats,
@@ -21,7 +21,7 @@ export type {
   FitEvidence,
   FitVerdict,
   StoredFitCheck,
-} from './ask'
+} from './chatbot/ask'
 export type {
   AskMode,
   TurnStatus,
@@ -31,4 +31,4 @@ export type {
   AdminTurnPage,
   AdminSession,
   AdminDailyStats,
-} from './adminAsk'
+} from './admin/adminAsk'

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { useLang } from '../lang'
-import { useAskStats } from '../hooks'
-import { evalPanelTitleCls } from '../styles.ts'
-import { StatCard } from './StatCard.tsx'
+import { useLang } from '../../lang'
+import { useAskStats } from '../../hooks'
+import { evalPanelTitleCls } from '../../styles.ts'
+import { StatCard } from '../StatCard.tsx'
 
 /** Shown in a tile while the numbers load. */
 const PLACEHOLDER = '—'

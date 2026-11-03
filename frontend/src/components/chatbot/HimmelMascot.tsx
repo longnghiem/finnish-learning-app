@@ -4,7 +4,7 @@
  * SVG drawing stands in. Both are animated by the same CSS (`HimmelMascot.module.css`).
  */
 import { useId } from 'react'
-import { useLang } from '../lang'
+import { useLang } from '../../lang'
 import type { MascotState } from './mascotState.ts'
 import styles from './HimmelMascot.module.css'
 
@@ -12,7 +12,7 @@ import styles from './HimmelMascot.module.css'
  * The artwork that exists, by file name. Vite resolves the pattern when it builds: every match
  * becomes a URL, and no match gives an empty object, so a build without the files still works.
  */
-const FRAMES: Readonly<Record<string, string>> = import.meta.glob('../assets/mascot/*.webp', {
+const FRAMES: Readonly<Record<string, string>> = import.meta.glob('../../assets/mascot/*.webp', {
   eager: true,
   query: '?url',
   import: 'default',
@@ -20,7 +20,7 @@ const FRAMES: Readonly<Record<string, string>> = import.meta.glob('../assets/mas
 
 /** The URL of one frame, e.g. `bust-eyes-open`, or undefined if the file isn't there. */
 function frameUrl(name: string): string | undefined {
-  return FRAMES[`../assets/mascot/${name}.webp`]
+  return FRAMES[`../../assets/mascot/${name}.webp`]
 }
 
 interface HimmelMascotProps {

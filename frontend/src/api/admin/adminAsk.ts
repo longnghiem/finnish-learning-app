@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { API_BASE_URL, getAuthHeaders } from './config.ts'
+import { API_BASE_URL, getAuthHeaders } from '../config.ts'
 import {
   type AdminDailyStats,
   type AdminSession,
@@ -9,13 +9,13 @@ import {
   adminDailyStatsSchema,
   adminSessionSchema,
   adminTurnPageSchema,
-} from '../schemas/adminAsk.ts'
+} from '../../schemas/admin/adminAsk.ts'
 
 /*
  * Client of the chatbot's admin API (`/api/admin/ask`). Every call sends the admin's JWT; the
  * backend answers 401 without a valid token and 403 for a user who isn't an admin. The backend
  * side is `backend/.../controller/AdminAskController.kt`, the response shapes are in
- * `schemas/adminAsk.ts`.
+ * `schemas/admin/adminAsk.ts`.
  */
 
 /** Turns per page of the admin table. The backend allows 1 to 100. */

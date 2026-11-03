@@ -6,16 +6,16 @@ export { useTopicProgress, useDashboard } from './useProgress'
 export { useSentenceEvaluation } from './useSentenceEvaluation'
 export { useEssayTopics } from './useEssayTopics'
 export { useEssayEvaluation } from './useEssayEvaluation'
-export { useAskSession } from './useAskSession'
-export { useChatStream } from './useChatStream'
-export type { ChatStream } from './useChatStream'
-export { useFitCheckStream } from './useFitCheckStream'
-export type { FitCheckStream } from './useFitCheckStream'
-export { useAskStats } from './useAskStats'
-export type { AskStreamStatus } from './useAskStream'
+export { useAskSession } from './chatbot/useAskSession'
+export { useChatStream } from './chatbot/useChatStream'
+export type { ChatStream } from './chatbot/useChatStream'
+export { useFitCheckStream } from './chatbot/useFitCheckStream'
+export type { FitCheckStream } from './chatbot/useFitCheckStream'
+export { useAskStats } from './chatbot/useAskStats'
+export type { AskStreamStatus } from './chatbot/useAskStream'
 export {
   useAdminTurns,
   useAdminSession,
   useAdminDailyStats,
   useDeleteAdminSession,
-} from './useAdminAsk'
+} from './admin/useAdminAsk'

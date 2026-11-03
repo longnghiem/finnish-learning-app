@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import avatarUrl from '../assets/avatar.png'
 import { CONTACT } from '../contact.ts'
-import { RecruiterBanner } from '../components/RecruiterBanner.tsx'
+import { RecruiterBanner } from '../components/chatbot/RecruiterBanner.tsx'
 
 const CV = {
   name: 'Long Nghiem',

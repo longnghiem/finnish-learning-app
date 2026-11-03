@@ -1,7 +1,7 @@
 /*
  * Client of the recruiter chatbot's API ("Ask Himmel", `/api/ask`). The endpoints are anonymous:
  * no auth header. The backend side is `backend/.../controller/AskController.kt`, and the shapes of
- * every response and event are in `schemas/ask.ts`.
+ * every response and event are in `schemas/chatbot/ask.ts`.
  *
  * The chat and the fit check answer with Server-Sent Events (SSE): one POST, then a stream of
  * events that stays open until the answer is ready.
@@ -22,7 +22,7 @@
  * Problems are logged to the browser console, prefixed `[api/ask]`, with paths, status codes and
  * counts only: never what the visitor typed or what the chatbot answered.
  */
-import { API_BASE_URL } from './config.ts'
+import { API_BASE_URL } from '../config.ts'
 import { SseParser } from './sse.ts'
 import {
   type AskSession,
@@ -33,7 +33,7 @@ import {
   askSessionSchema,
   askStatsSchema,
   askStreamEventSchema,
-} from '../schemas/ask.ts'
+} from '../../schemas/chatbot/ask.ts'
 
 /**
  * Why a chatbot call failed:

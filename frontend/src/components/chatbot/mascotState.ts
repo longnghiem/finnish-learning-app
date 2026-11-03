@@ -1,5 +1,5 @@
-import type { AskErrorCode } from '../api'
-import type { AskStreamStatus } from '../hooks'
+import type { AskErrorCode } from '../../api'
+import type { AskStreamStatus } from '../../hooks'
 
 /** Himmel's moods, from calm to busy. Each one has its own animation. */
 export type MascotState = 'idle' | 'listening' | 'thinking' | 'talking' | 'sleeping'

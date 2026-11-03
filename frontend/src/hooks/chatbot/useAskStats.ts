@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchAskStats } from '../api'
-import type { AskStats } from '../schemas'
+import { fetchAskStats } from '../../api'
+import type { AskStats } from '../../schemas'
 
 /**
  * React Query hook for the chatbot's public totals (`GET /api/ask/stats`). The backend caches

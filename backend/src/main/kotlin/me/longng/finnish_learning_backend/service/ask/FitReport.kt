@@ -125,8 +125,9 @@ data class FitReport(
  * Bedrock guarantees the input matches [SCHEMA], and the model can't call any other tool.
  *
  * Keep [SCHEMA] in sync with [FitReport.fromToolInput] and with the report schema of the
- * frontend (`frontend/src/schemas/ask.ts`). Bedrock compiles a new schema on first use (≈ 10 s
- * for this one) and keeps it for 24 hours, so changing it makes the next report slower once.
+ * frontend (`frontend/src/schemas/chatbot/ask.ts`). Bedrock compiles a new schema on first use
+ * (≈ 10 s for this one) and keeps it for 24 hours, so changing it makes the next report slower
+ * once.
  */
 object FitReportTool {
     const val NAME = "submit_fit_report"

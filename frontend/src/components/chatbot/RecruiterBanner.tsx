@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { Link } from 'react-router-dom'
-import { useLang } from '../lang'
-import { finePrintCls, secondaryButtonCls } from '../styles.ts'
+import { useLang } from '../../lang'
+import { finePrintCls, secondaryButtonCls } from '../../styles.ts'
 import { HimmelMascot } from './HimmelMascot.tsx'
 
 const primaryLinkCls =

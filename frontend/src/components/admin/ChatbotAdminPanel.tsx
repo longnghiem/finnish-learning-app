@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useLang } from '../lang'
-import type { AdminTurnFilters } from '../api'
-import { useAdminDailyStats, useAdminTurns } from '../hooks'
-import type { AdminDailyStats, AdminTurn, AskMode, TurnStatus } from '../schemas'
+import { useLang } from '../../lang'
+import type { AdminTurnFilters } from '../../api'
+import { useAdminDailyStats, useAdminTurns } from '../../hooks'
+import type { AdminDailyStats, AdminTurn, AskMode, TurnStatus } from '../../schemas'
 import {
   adminTableWrapCls,
   adminTdCls,
@@ -16,7 +16,7 @@ import {
   secondaryButtonCls,
   statusErrorTextCls,
   statusMutedTextCls,
-} from '../styles.ts'
+} from '../../styles.ts'
 import { AskTurnTable } from './AskTurnTable.tsx'
 import { AskSessionDetail } from './AskSessionDetail.tsx'
 import { formatUsd } from './adminAskFormat.ts'

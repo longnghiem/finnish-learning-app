@@ -6,8 +6,8 @@ import {
   fetchAdminDailyStats,
   fetchAdminSession,
   fetchAdminTurns,
-} from '../api'
-import type { AdminDailyStats, AdminSession } from '../schemas'
+} from '../../api'
+import type { AdminDailyStats, AdminSession } from '../../schemas'
 
 /** Every admin chatbot query key starts with this, so one prefix reaches all of them. */
 const ADMIN_ASK_KEY = ['admin', 'ask'] as const

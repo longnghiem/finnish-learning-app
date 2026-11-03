@@ -1,14 +1,14 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
-import { useLang } from '../lang'
-import { useTheme } from '../theme/useTheme'
-import { AskError } from '../api'
+import { useLang } from '../../lang'
+import { useTheme } from '../../theme/useTheme'
+import { AskError } from '../../api'
 import {
   evalPanelCls,
   evalPanelIntroCls,
   evalPanelTitleCls,
   statusErrorTextCls,
   statusMutedTextCls,
-} from '../styles.ts'
+} from '../../styles.ts'
 import { AskErrorView, ContactLinks } from './AskUI.tsx'
 
 /** The part of Cloudflare's Turnstile script API this page uses. */

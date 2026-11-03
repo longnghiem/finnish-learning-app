@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useLang } from '../lang'
-import { CHAT_MESSAGES_PER_DAY, FIT_CHECKS_PER_DAY } from '../api'
+import { useLang } from '../../lang'
+import { CHAT_MESSAGES_PER_DAY, FIT_CHECKS_PER_DAY } from '../../api'
 import {
   bulletListCls,
   evalListItemCls,
@@ -9,7 +9,7 @@ import {
   evalPanelTitleCls,
   finePrintCls,
   textLinkCls,
-} from '../styles.ts'
+} from '../../styles.ts'
 
 /** The public repository; the same URL as the backend's systemd unit (`Documentation=`). */
 const SOURCE_CODE_URL = 'https://github.com/longnghiem/finnish-learning-app'

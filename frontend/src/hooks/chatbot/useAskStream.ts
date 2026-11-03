@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { AskError } from '../api'
-import type { AskStep, AskStreamEvent } from '../schemas'
+import { AskError } from '../../api'
+import type { AskStep, AskStreamEvent } from '../../schemas'
 
 /** Where a stream stands: nothing running, waiting for the answer, or ended with an error. */
 export type AskStreamStatus = 'idle' | 'streaming' | 'error'

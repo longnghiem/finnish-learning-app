@@ -1,5 +1,5 @@
-import { useLang } from '../lang'
-import type { AdminTurn, GuardrailOutcome, TurnStatus } from '../schemas'
+import { useLang } from '../../lang'
+import type { AdminTurn, GuardrailOutcome, TurnStatus } from '../../schemas'
 import {
   adminTdCls,
   adminThCls,
@@ -9,7 +9,7 @@ import {
   pillNeutralCls,
   pillRedCls,
   textLinkCls,
-} from '../styles.ts'
+} from '../../styles.ts'
 import { formatHelsinkiTime, formatUsd, preview } from './adminAskFormat.ts'
 
 /** The colour of each status: answered green, refused or failed red, capped amber. */

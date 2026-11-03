@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { type AskError, streamFitCheck } from '../api'
-import { type StoredFitCheck, storedFitCheckSchema } from '../schemas'
+import { type AskError, streamFitCheck } from '../../api'
+import { type StoredFitCheck, storedFitCheckSchema } from '../../schemas'
 import { useAskStream } from './useAskStream.ts'
 
 /** The `sessionStorage` key of the last fit check. */

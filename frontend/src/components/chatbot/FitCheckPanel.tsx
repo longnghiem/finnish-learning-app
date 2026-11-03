@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
-import { useLang } from '../lang'
-import type { FitCheckStream } from '../hooks'
-import { FIT_CHECKS_PER_DAY, MAX_FIT_CHECK_LENGTH } from '../api'
+import { useLang } from '../../lang'
+import type { FitCheckStream } from '../../hooks'
+import { FIT_CHECKS_PER_DAY, MAX_FIT_CHECK_LENGTH } from '../../api'
 import {
   evalPanelCls,
   evalPanelIntroCls,
@@ -14,8 +14,8 @@ import {
   labelCls,
   statusErrorTextCls,
   textLinkCls,
-} from '../styles.ts'
-import { AiBadge, EvalSubmitButton } from './EvaluationUI.tsx'
+} from '../../styles.ts'
+import { AiBadge, EvalSubmitButton } from '../EvaluationUI.tsx'
 import { AskErrorView, ProgressSteps, ToolTrace } from './AskUI.tsx'
 import { FitReportView } from './FitReportView.tsx'
 

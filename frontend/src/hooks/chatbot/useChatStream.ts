@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { type AskError, streamChat } from '../api'
-import { type ChatMessage, type ChatMessageStatus, storedChatSchema } from '../schemas'
+import { type AskError, streamChat } from '../../api'
+import { type ChatMessage, type ChatMessageStatus, storedChatSchema } from '../../schemas'
 import { useAskStream } from './useAskStream.ts'
 
 /** The `sessionStorage` key of the conversation. */

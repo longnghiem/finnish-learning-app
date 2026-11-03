@@ -3,8 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth.ts'
 import { useLang } from '../lang'
 import { Tabs } from '../components/Tabs.tsx'
-import { CardsAdminPanel } from '../components/CardsAdminPanel.tsx'
-import { ChatbotAdminPanel } from '../components/ChatbotAdminPanel.tsx'
+import { CardsAdminPanel } from '../components/admin/CardsAdminPanel.tsx'
+import { ChatbotAdminPanel } from '../components/admin/ChatbotAdminPanel.tsx'
 
 /** The tabs, in order. The URL keeps the open one as `?tab=cards|chatbot`. */
 const TABS = ['cards', 'chatbot'] as const

@@ -1,6 +1,6 @@
 import { useTopicProgress, useTopics } from '../hooks'
 import { TopicCard } from '../components/TopicCard.tsx'
-import { RecruiterBanner } from '../components/RecruiterBanner.tsx'
+import { RecruiterBanner } from '../components/chatbot/RecruiterBanner.tsx'
 import { useLang } from '../lang'
 import { useAuth } from '../auth/useAuth.ts'
 import { Link } from 'react-router-dom'

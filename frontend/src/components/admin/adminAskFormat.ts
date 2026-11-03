@@ -1,4 +1,4 @@
-import type { Lang } from '../lang'
+import type { Lang } from '../../lang'
 
 /*
  * Formatting shared by the admin page's chatbot views. Times are shown in Europe/Helsinki time,

@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import { useCards, useDeleteCard, useTopics } from '../hooks'
+import { useCards, useDeleteCard, useTopics } from '../../hooks'
 import { CardModal } from './CardModal.tsx'
-import { ConfirmModal } from './ConfirmModal.tsx'
-import { useLang } from '../lang'
-import type { CardResponse } from '../types'
-import { adminTableWrapCls, adminTdCls, adminThCls } from '../styles.ts'
+import { ConfirmModal } from '../ConfirmModal.tsx'
+import { useLang } from '../../lang'
+import type { CardResponse } from '../../types'
+import { adminTableWrapCls, adminTdCls, adminThCls } from '../../styles.ts'
 
 /**
  * The "Cards" tab of the admin page: every flash card in a table, with a topic filter, and

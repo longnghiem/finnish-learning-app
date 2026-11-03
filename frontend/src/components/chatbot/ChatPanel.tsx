@@ -1,9 +1,9 @@
 import { type KeyboardEvent, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { useLang } from '../lang'
-import type { ChatStream } from '../hooks'
-import { AskError, MAX_CHAT_MESSAGE_LENGTH } from '../api'
-import type { AskSession, ChatMessage } from '../schemas'
+import { useLang } from '../../lang'
+import type { ChatStream } from '../../hooks'
+import { AskError, MAX_CHAT_MESSAGE_LENGTH } from '../../api'
+import type { AskSession, ChatMessage } from '../../schemas'
 import {
   evalPanelCls,
   evalPanelIntroCls,
@@ -11,8 +11,8 @@ import {
   fieldHintCls,
   finePrintCls,
   textLinkCls,
-} from '../styles.ts'
-import { EvalSubmitButton } from './EvaluationUI.tsx'
+} from '../../styles.ts'
+import { EvalSubmitButton } from '../EvaluationUI.tsx'
 import { AskErrorView, MessageText, ProgressSteps, ToolTrace } from './AskUI.tsx'
 
 /**

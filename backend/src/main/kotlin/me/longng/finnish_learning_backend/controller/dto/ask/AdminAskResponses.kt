@@ -19,8 +19,8 @@ private const val IP_HASH_PREFIX_LENGTH = 8
 
 /**
  * One stored turn with everything that was recorded about it, as the admin API
- * ([AdminAskController]) returns it. The frontend's `frontend/src/schemas/adminAsk.ts` must match
- * the classes in this file.
+ * ([AdminAskController]) returns it. The frontend's `frontend/src/schemas/admin/adminAsk.ts` must
+ * match the classes in this file.
  *
  * @property ipHashPrefix the first characters of the session's IP hash, to see which sessions
  *   came from the same visitor; null if the session was deleted while the page was loaded

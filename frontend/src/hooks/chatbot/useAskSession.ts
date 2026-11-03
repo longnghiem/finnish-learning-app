@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { createAskSession } from '../api'
-import { type AskSession, askSessionSchema } from '../schemas'
+import { createAskSession } from '../../api'
+import { type AskSession, askSessionSchema } from '../../schemas'
 
 /** The `sessionStorage` key of the current chat session. */
 const STORAGE_KEY = 'ask_session'

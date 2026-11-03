@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useLang } from '../lang'
-import { isPathActive } from '../utils/routeUtils.ts'
+import { useLang } from '../../lang'
+import { isPathActive } from '../../utils/routeUtils.ts'
 import { HimmelMascot } from './HimmelMascot.tsx'
 
 /** Pages that already invite recruiters (the banner) or are the chatbot itself. */

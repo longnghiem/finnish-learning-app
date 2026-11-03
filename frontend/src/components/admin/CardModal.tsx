@@ -1,11 +1,11 @@
-import type { CardResponse } from '../types'
-import { useCreateCard, useUpdateCard } from '../hooks'
+import type { CardResponse } from '../../types'
+import { useCreateCard, useUpdateCard } from '../../hooks'
 import { useEffect, useMemo, useRef, useState, type SubmitEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { getImageUrl } from '../api'
-import { createCardSchema, editCardSchema } from '../schemas'
-import { useLang } from '../lang'
-import { inputCls, labelCls } from '../styles'
+import { getImageUrl } from '../../api'
+import { createCardSchema, editCardSchema } from '../../schemas'
+import { useLang } from '../../lang'
+import { inputCls, labelCls } from '../../styles'
 
 interface CardModalProps {
   mode: 'create' | 'edit'
