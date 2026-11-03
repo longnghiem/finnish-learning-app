@@ -1,6 +1,6 @@
 /**
  * The recruiter chatbot's page, "Ask Himmel": Himmel the mascot, a human check, then the tabs Chat
- * and Check my fit.
+ * and Check my fit. Under them, the live stats and "How this works".
  *
  * Both tab panels stay mounted once there is a session; the one not shown is `hidden`. So an
  * answer or a fit check keeps streaming while the visitor looks at the other tab. Unmounting a
@@ -9,8 +9,8 @@
  *
  * The page has two layers:
  * - {@link AskPage} keeps what must outlive a session: the session itself, the "session ended"
- *   note, and the fit check with its draft (a running check must not stop when the visitor starts
- *   a new conversation);
+ *   note, the fit check with its draft (a running check must not stop when the visitor starts a
+ *   new conversation), and the parts under the tabs ("How this works" stays open or folded);
  * - {@link AskPageContent} is rendered with `key={sessionId}`, so a new session starts it afresh.
  *   It owns the conversation and the message being typed, as the chat's hook expects, and works
  *   out Himmel's state from both tabs while rendering.
@@ -22,6 +22,8 @@ import { type FitCheckStream, useAskSession, useChatStream, useFitCheckStream } 
 import type { AskSession } from '../schemas'
 import { pageContainerCls, tabActiveCls, tabCls, tabInactiveCls, tabListCls } from '../styles.ts'
 import { AiBadge } from '../components/EvaluationUI.tsx'
+import { AskStatsPanel } from '../components/AskStatsPanel.tsx'
+import { HowItWorks } from '../components/HowItWorks.tsx'
 import { ChatPanel } from '../components/ChatPanel.tsx'
 import { FitCheckPanel } from '../components/FitCheckPanel.tsx'
 import { HimmelMascot } from '../components/HimmelMascot.tsx'
@@ -49,17 +51,23 @@ export function AskPage() {
   }
 
   return (
-    <AskPageContent
-      key={session?.sessionId ?? 'no-session'}
-      session={session}
-      sessionEnded={sessionEnded}
-      onToken={startSession}
-      onSessionExpired={endSession}
-      onNewConversation={clear}
-      fit={fit}
-      fitDraft={fitDraft}
-      onFitDraftChange={setFitDraft}
-    />
+    <div className={pageContainerCls}>
+      <AskPageContent
+        key={session?.sessionId ?? 'no-session'}
+        session={session}
+        sessionEnded={sessionEnded}
+        onToken={startSession}
+        onSessionExpired={endSession}
+        onNewConversation={clear}
+        fit={fit}
+        fitDraft={fitDraft}
+        onFitDraftChange={setFitDraft}
+      />
+      <div className="mt-8 flex flex-col gap-4">
+        <AskStatsPanel />
+        <HowItWorks />
+      </div>
+    </div>
   )
 }
 
@@ -119,7 +127,7 @@ function AskPageContent({
       : mascotStateOf(fitActivity, chatActivity)
 
   return (
-    <div className={pageContainerCls}>
+    <>
       <header className="flex flex-col items-center gap-2 mb-6 text-center">
         <HimmelMascot state={mascotState} className="w-24 sm:w-28" />
         <div className="flex items-center gap-2">
@@ -173,7 +181,7 @@ function AskPageContent({
           </div>
         </>
       )}
-    </div>
+    </>
   )
 }
 

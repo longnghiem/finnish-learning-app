@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useLang } from '../lang'
 import type { FitCheckStream } from '../hooks'
 import { FIT_CHECKS_PER_DAY, MAX_FIT_CHECK_LENGTH } from '../api'
@@ -9,8 +10,10 @@ import {
   evalTextareaCls,
   evalWaitHintCls,
   fieldHintCls,
+  finePrintCls,
   labelCls,
   statusErrorTextCls,
+  textLinkCls,
 } from '../styles.ts'
 import { AiBadge, EvalSubmitButton } from './EvaluationUI.tsx'
 import { AskErrorView, ProgressSteps, ToolTrace } from './AskUI.tsx'
@@ -39,6 +42,7 @@ interface FitCheckPanelProps {
  * - "Up to 3 checks per day" is a hint: the backend counts per IP and answers `RATE_LIMITED`.
  * - While a check runs (up to 3 minutes), the text stays editable but the button is off.
  * - The last report stays after a reload, with the text it was made for.
+ * - The notice next to the button says the text is stored for 30 days, and links to `/privacy`.
  */
 export function FitCheckPanel({ fit, draft, onDraftChange, onSessionExpired }: FitCheckPanelProps) {
   const { L } = useLang()
@@ -92,15 +96,23 @@ export function FitCheckPanel({ fit, draft, onDraftChange, onSessionExpired }: F
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-3 flex-wrap">
-        {checking && <span className={evalWaitHintCls}>{L.askFitWaitHint}</span>}
-        <EvalSubmitButton
-          enabled={canCheck}
-          pending={checking}
-          onClick={() => void startCheck()}
-          label={L.askFitCheck}
-          pendingLabel={L.askFitChecking}
-        />
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <p className={`${finePrintCls} flex-1 min-w-[200px]`}>
+          {L.askFitNotice}{' '}
+          <Link to="/privacy" className={textLinkCls}>
+            {L.askPrivacyLink}
+          </Link>
+        </p>
+        <div className="flex items-center justify-end gap-3 flex-wrap">
+          {checking && <span className={evalWaitHintCls}>{L.askFitWaitHint}</span>}
+          <EvalSubmitButton
+            enabled={canCheck}
+            pending={checking}
+            onClick={() => void startCheck()}
+            label={L.askFitCheck}
+            pendingLabel={L.askFitChecking}
+          />
+        </div>
       </div>
 
       {checking && fit.currentSteps.length > 0 && (

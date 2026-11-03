@@ -228,6 +228,96 @@ export const I18N = {
     recruiterTech: 'Built with MCP · AWS Bedrock · Guardrails',
     peekLabel: 'Ask Himmel about Long',
     peekBubble: 'Ask me about Long!',
+    // — Ask: the fit check's notice, live stats and "How this works" —
+    askFitNotice: 'Job descriptions and reports are stored for 30 days to improve this assistant.',
+    askStatsTitle: 'Live stats',
+    askStatsAnswers: 'Answers given',
+    askStatsAnswersSub: 'chat answers and fit checks',
+    askStatsBlocked: 'Attacks blocked',
+    askStatsBlockedSub: 'messages the safety check refused',
+    askStatsBudget: 'Budget used',
+    askStatsBudgetSub: "of this month's budget",
+    howTitle: 'How this works',
+    howIntro:
+      "Himmel is an AI agent that can read Long's profile and nothing else. A question takes this path:",
+    howSteps: [
+      {
+        title: 'Cloudflare Turnstile',
+        text: "A human check, once per visit, so bots can't use up the budget.",
+      },
+      {
+        title: 'Spring Boot backend',
+        text: 'Checks the limits and the budget, then runs the agent. It is the MCP host and client.',
+      },
+      {
+        title: 'Amazon Bedrock Guardrails',
+        text: 'Checks your message for prompt attacks and harmful content before the model sees it.',
+      },
+      {
+        title: 'Claude Haiku 4.5 on Amazon Bedrock',
+        text: 'Writes the answer, in the EU. Before that, it can ask for profile entries, a few at a time.',
+      },
+      {
+        title: 'MCP server on AWS Lambda',
+        twoWay: true,
+        text: 'Lists and returns profile entries, read-only. Only the backend can call it: each request is signed with its AWS identity (IAM).',
+      },
+      {
+        title: "Long's profile",
+        text: 'Markdown entries that Long wrote and checked. The answers come only from here.',
+      },
+    ],
+    howSafetyTitle: 'Safety layers',
+    howSafety: (chatPerDay: number, fitPerDay: number) => [
+      'Input check: every message and job description goes through Bedrock Guardrails first.',
+      "Curated, read-only data: Himmel's only tools read the profile. Even a manipulated model can't change anything or reach other data.",
+      "Verified quotes: in a fit check, each quote is compared word for word with the profile. A quote that isn't there is removed.",
+      `Limits: ${chatPerDay} messages and ${fitPerDay} fit checks a day per connection, and a message limit per conversation.`,
+      'A hard daily and monthly spending cap: when it is reached, Himmel rests until the next day or month.',
+    ],
+    howSourceCode: 'Source code on GitHub',
+    howAdr: 'Architecture decision (ADR)',
+    // — Privacy page (/privacy) —
+    privacyTitle: 'Privacy',
+    privacyIntro:
+      'This page explains what the chatbot Ask Himmel stores about you, and why. Long Nghiem runs this site and decides what is stored.',
+    privacyStoredTitle: 'What is stored',
+    privacyStored: [
+      "Your chat messages and Himmel's answers.",
+      'Job descriptions you send for a fit check, and their reports.',
+      'Messages the safety check blocked, too.',
+      "For each message: which profile entries Himmel read, the safety check's result, and the tokens, cost and time it took.",
+      'A keyed hash of your IP address, never the address itself.',
+    ],
+    privacyHash:
+      "A keyed hash is a fingerprint made with a secret key. The same address always gives the same fingerprint, so the daily limits work, but without the key the fingerprint can't be turned back into the address. When the key is changed, old and new fingerprints can no longer be matched.",
+    privacyLogs:
+      "The server's logs never contain what you write. Like most websites, the web server notes the IP address and time of each request in its access log, which is deleted automatically after a short time.",
+    privacyBrowserTitle: 'In your browser',
+    privacyBrowser:
+      'No cookies. Your chat session, the conversation and your last fit report are kept in this browser tab (sessionStorage) and disappear when you close it. Your theme and language choices are kept in the browser (localStorage).',
+    privacyWhyTitle: 'Why',
+    privacyWhy:
+      'To improve Himmel: Long reads what recruiters ask and where Himmel answers badly. And to prevent abuse: the limits per connection and the blocking of attacks need the hash and the safety check results.',
+    privacyHowLongTitle: 'How long',
+    privacyHowLong: [
+      'Conversations, job descriptions and reports are deleted after 30 days, by a clean-up that runs every night. The IP hash is deleted with them.',
+      'Daily totals with no personal data (the number of answers and blocked messages, and the cost) are kept.',
+      'Database backups leave the conversations out.',
+    ],
+    privacyServicesTitle: 'Other services',
+    privacyServices: [
+      'Cloudflare Turnstile, the human check. Cloudflare sees your IP address and browser details, and the backend sends it your IP address to confirm the check.',
+      'Amazon Web Services (AWS). The website and its database run in Stockholm, and Amazon Bedrock processes your messages in EU regions.',
+    ],
+    privacyDeleteTitle: 'See or delete your data',
+    privacyDelete: 'To see or delete what you sent, email',
+    privacyDeleteHow:
+      'Say when you used the chat (the date and rough time), or quote one of your messages, so Long can find it. Long deletes it and replies.',
+    privacySensitive:
+      "Please don't share sensitive personal information in the chat, such as health details or other people's personal data.",
+    privacyBack: 'Back to Ask Himmel',
+    privacyUpdated: 'Last updated: 3 November 2026',
   },
   fi: {
     appName: 'Suomen Oppiminen',
@@ -462,6 +552,98 @@ export const I18N = {
     recruiterTech: 'Tekniikat: MCP · AWS Bedrock · Guardrails',
     peekLabel: 'Kysy Himmeliltä Longista',
     peekBubble: 'Kysy minulta Longista!',
+    // — Ask: the fit check's notice, live stats and "How this works" —
+    askFitNotice:
+      'Työpaikkailmoitukset ja raportit tallennetaan 30 päiväksi tämän avustajan parantamiseksi.',
+    askStatsTitle: 'Tilastot',
+    askStatsAnswers: 'Annetut vastaukset',
+    askStatsAnswersSub: 'chat-vastaukset ja sopivuustarkistukset',
+    askStatsBlocked: 'Torjutut hyökkäykset',
+    askStatsBlockedSub: 'turvatarkistuksen hylkäämät viestit',
+    askStatsBudget: 'Budjettia käytetty',
+    askStatsBudgetSub: 'tämän kuun budjetista',
+    howTitle: 'Näin tämä toimii',
+    howIntro:
+      'Himmel on tekoälyagentti, joka voi lukea Longin profiilia eikä mitään muuta. Kysymys kulkee näin:',
+    howSteps: [
+      {
+        title: 'Cloudflare Turnstile',
+        text: 'Ihmistarkistus kerran käynnin aikana, jotta botit eivät kuluta budjettia.',
+      },
+      {
+        title: 'Spring Boot -taustapalvelu',
+        text: 'Tarkistaa rajat ja budjetin ja ajaa agentin. Se on MCP-isäntä ja -asiakas.',
+      },
+      {
+        title: 'Amazon Bedrock Guardrails',
+        text: 'Tarkistaa viestisi kehotehyökkäysten ja haitallisen sisällön varalta ennen kuin malli näkee sen.',
+      },
+      {
+        title: 'Claude Haiku 4.5 Amazon Bedrockissa',
+        text: 'Kirjoittaa vastauksen EU:ssa. Sitä ennen se voi pyytää profiilin merkintöjä, muutaman kerrallaan.',
+      },
+      {
+        title: 'MCP-palvelin AWS Lambdassa',
+        twoWay: true,
+        text: 'Listaa ja palauttaa profiilin merkintöjä, vain lukuoikeuksin. Vain taustapalvelu voi kutsua sitä: jokainen pyyntö allekirjoitetaan sen AWS-tunnuksella (IAM).',
+      },
+      {
+        title: 'Longin profiili',
+        text: 'Longin kirjoittamia ja tarkistamia Markdown-merkintöjä. Vastaukset tulevat vain täältä.',
+      },
+    ],
+    howSafetyTitle: 'Turvakerrokset',
+    howSafety: (chatPerDay: number, fitPerDay: number) => [
+      'Syötteen tarkistus: jokainen viesti ja työpaikkailmoitus kulkee ensin Bedrock Guardrailsin läpi.',
+      'Valittu, vain luettava data: Himmelin ainoat työkalut lukevat profiilia. Manipuloitukaan malli ei voi muuttaa mitään eikä päästä muuhun dataan.',
+      'Tarkistetut lainaukset: sopivuustarkistuksessa jokaista lainausta verrataan profiiliin sana sanalta. Lainaus, jota profiilissa ei ole, poistetaan.',
+      `Rajat: ${chatPerDay} viestiä ja ${fitPerDay} sopivuustarkistusta päivässä yhteyttä kohden sekä viestiraja keskustelua kohden.`,
+      'Tiukka päivä- ja kuukausikohtainen kulukatto: kun se täyttyy, Himmel lepää seuraavaan päivään tai kuukauteen.',
+    ],
+    howSourceCode: 'Lähdekoodi GitHubissa',
+    howAdr: 'Arkkitehtuuripäätös (ADR)',
+    // — Privacy page (/privacy) —
+    privacyTitle: 'Tietosuoja',
+    privacyIntro:
+      'Tällä sivulla kerrotaan, mitä Kysy Himmeliltä -chatbot tallentaa sinusta ja miksi. Sivustoa ylläpitää Long Nghiem, joka päättää, mitä tallennetaan.',
+    privacyStoredTitle: 'Mitä tallennetaan',
+    privacyStored: [
+      'Chat-viestisi ja Himmelin vastaukset.',
+      'Sopivuustarkistukseen lähettämäsi työpaikkailmoitukset ja niiden raportit.',
+      'Myös viestit, jotka turvatarkistus esti.',
+      'Jokaisesta viestistä: mitä profiilin merkintöjä Himmel luki, turvatarkistuksen tulos sekä käytetyt tokenit, kustannus ja aika.',
+      'IP-osoitteesi avaimellinen tiiviste, ei koskaan itse osoitetta.',
+    ],
+    privacyHash:
+      'Avaimellinen tiiviste on salaisella avaimella tehty sormenjälki. Sama osoite antaa aina saman sormenjäljen, joten päivittäiset rajat toimivat, mutta ilman avainta sormenjälkeä ei voi muuttaa takaisin osoitteeksi. Kun avain vaihdetaan, vanhoja ja uusia sormenjälkiä ei voi enää yhdistää.',
+    privacyLogs:
+      'Palvelimen lokeihin ei koskaan tallennu, mitä kirjoitat. Kuten useimmilla verkkosivustoilla, verkkopalvelin kirjaa jokaisen pyynnön IP-osoitteen ja ajan käyttölokiinsa, joka poistetaan automaattisesti lyhyen ajan kuluttua.',
+    privacyBrowserTitle: 'Selaimessasi',
+    privacyBrowser:
+      'Ei evästeitä. Chat-istuntosi, keskustelu ja viimeisin sopivuusraporttisi säilyvät tässä selainvälilehdessä (sessionStorage) ja katoavat, kun suljet sen. Teema- ja kielivalintasi säilyvät selaimessa (localStorage).',
+    privacyWhyTitle: 'Miksi',
+    privacyWhy:
+      'Himmelin parantamiseksi: Long lukee, mitä rekrytoijat kysyvät ja missä Himmel vastaa huonosti. Ja väärinkäytön estämiseksi: yhteyskohtaiset rajat ja hyökkäysten torjunta tarvitsevat tiivisteen ja turvatarkistusten tulokset.',
+    privacyHowLongTitle: 'Kuinka kauan',
+    privacyHowLong: [
+      'Keskustelut, työpaikkailmoitukset ja raportit poistetaan 30 päivän jälkeen joka yö ajettavassa siivouksessa. IP-tiiviste poistetaan niiden mukana.',
+      'Päivittäiset yhteenvedot ilman henkilötietoja (vastausten ja estettyjen viestien määrät sekä kustannus) säilytetään.',
+      'Tietokannan varmuuskopioihin ei oteta keskusteluja.',
+    ],
+    privacyServicesTitle: 'Muut palvelut',
+    privacyServices: [
+      'Cloudflare Turnstile, ihmistarkistus. Cloudflare näkee IP-osoitteesi ja selaimesi tiedot, ja taustapalvelu lähettää sille IP-osoitteesi tarkistuksen vahvistamiseksi.',
+      'Amazon Web Services (AWS). Verkkosivusto ja sen tietokanta toimivat Tukholmassa, ja Amazon Bedrock käsittelee viestisi EU-alueilla.',
+    ],
+    privacyDeleteTitle: 'Tietojesi katsominen ja poistaminen',
+    privacyDelete:
+      'Jos haluat nähdä tai poistaa lähettämäsi tiedot, lähetä sähköpostia osoitteeseen',
+    privacyDeleteHow:
+      'Kerro, milloin käytit chattia (päivä ja suunnilleen kellonaika), tai lainaa jotakin viestiäsi, jotta Long löytää sen. Long poistaa sen ja vastaa sinulle.',
+    privacySensitive:
+      'Älä jaa chatissa arkaluonteisia henkilötietoja, kuten terveystietoja tai muiden ihmisten henkilötietoja.',
+    privacyBack: 'Takaisin Himmelin luo',
+    privacyUpdated: 'Päivitetty viimeksi 3.11.2026',
   },
 }
 
