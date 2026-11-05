@@ -33,6 +33,7 @@ import org.mockito.kotlin.whenever
 import org.springframework.core.io.ClassPathResource
 import software.amazon.awssdk.core.exception.SdkClientException
 import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock
 import software.amazon.awssdk.services.bedrockruntime.model.ConversationRole
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse
@@ -224,6 +225,57 @@ class ChatServiceTest {
         "TEXT" -> "text"
         "CACHE_POINT" -> "cachePoint"
         else -> type
+    }
+
+    @Test
+    fun testAnswer_NormalReply_IsNotCutOff() {
+        bedrockAnswers(textReply("Long has used Kotlin for years. He"))
+
+        val answer = answer()
+
+        assertEquals("Long has used Kotlin for years. He", answer.text)
+        assertEquals(false, answer.cutOff)
+    }
+
+    @Test
+    fun testAnswer_ReplyHitsOutputLimit_DropsTheUnfinishedSentence() {
+        bedrockAnswers(
+            reply(StopReason.MAX_TOKENS, usage(100, 700), ContentBlock.fromText("Longilla on kokemusta Kotlinista. Hän on myös")),
+        )
+
+        val answer = answer()
+
+        assertEquals("Longilla on kokemusta Kotlinista.", answer.text)
+        assertEquals(true, answer.cutOff)
+        assertEquals("Longilla on kokemusta Kotlinista.", storedTurn().answerText)
+        assertEquals(TurnStatus.ANSWERED, storedTurn().status)
+    }
+
+    @Test
+    fun testAnswer_ReplyHitsOutputLimitWithNoText_GivesNoAnswerText() {
+        bedrockAnswers(reply(StopReason.MAX_TOKENS, usage(100, 700)))
+
+        val answer = answer()
+
+        assertEquals(ChatService.NO_ANSWER, answer.text)
+        assertEquals(true, answer.cutOff)
+    }
+
+    @Test
+    fun testWithoutUnfinishedSentence_KeepsFinishedSentencesAndLines() {
+        assertEquals("Yksi. Kaksi!", ChatService.withoutUnfinishedSentence("Yksi. Kaksi! Kolm"))
+        assertEquals("Yksi. Kaksi.", ChatService.withoutUnfinishedSentence("Yksi. Kaksi."))
+        assertEquals("- Kotlin\n- Java", ChatService.withoutUnfinishedSentence("- Kotlin\n- Java\n- Spr"))
+    }
+
+    @Test
+    fun testWithoutUnfinishedSentence_ADotInANumberEndsNoSentence() {
+        assertEquals("Long uses Kotlin 2.2 and…", ChatService.withoutUnfinishedSentence("Long uses Kotlin 2.2 and"))
+    }
+
+    @Test
+    fun testWithoutUnfinishedSentence_BlankText_StaysEmpty() {
+        assertEquals("", ChatService.withoutUnfinishedSentence("  "))
     }
 
     @Test

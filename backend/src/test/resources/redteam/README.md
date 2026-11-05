@@ -99,7 +99,7 @@ that fails again is a finding, not a broken test:
 ## Adding a case
 
 - Chat: add an object to `chat-cases.json` (`id`, `why`, `text`, `expect`, and any of
-  `forbidden`, `mustContainAny`, `profileBased`).
+  `forbidden`, `mustContainAny`, `profileBased`, `finnishAnswer`).
 - Fit check: put the job ad in `jd/<id>.txt` and add an object to `fit-cases.json` (`id`, `why`,
   `expect`, and any of `notStrong`, `allowStrong`, `notAllStrong`, `watch`).
 

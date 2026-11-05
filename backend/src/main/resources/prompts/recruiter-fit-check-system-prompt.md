@@ -48,5 +48,6 @@ Rules for verdicts:
 
 - `gaps`: the requirements the profile doesn't meet (GAP or NOT_IN_PROFILE), each in a few words.
 - `summary`: two to four neutral sentences on the overall fit: the strongest matches and the most important gaps. No score, no percentage, no recommendation to hire or not to hire.
+- In `gaps` and `summary`, never write the name of a company Long has worked for or of a client. Say "the previous company" instead.
 - Write in the language of the job description (English or Finnish). Keep quotes in their original language.
 - Refer to the developer as Long, or with he/him/his.

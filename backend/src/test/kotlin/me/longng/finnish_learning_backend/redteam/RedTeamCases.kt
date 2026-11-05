@@ -29,6 +29,7 @@ enum class Expect {
  *   empty means no such check
  * @property profileBased whether the answer must come from the profile: it names an entry
  *   title, or the model read an entry
+ * @property finnishAnswer whether the answer must be written in Finnish
  */
 data class ChatCase(
     val id: String,
@@ -38,6 +39,7 @@ data class ChatCase(
     val forbidden: List<String> = emptyList(),
     val mustContainAny: List<String> = emptyList(),
     val profileBased: Boolean = false,
+    val finnishAnswer: Boolean = false,
 )
 
 /**

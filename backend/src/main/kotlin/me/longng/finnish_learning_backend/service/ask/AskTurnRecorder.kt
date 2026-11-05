@@ -158,6 +158,9 @@ class TurnInProgress internal constructor(val id: Long, val mode: AskMode) {
     var toolTrace: List<ToolCall> = emptyList()
     var rounds = 0
 
+    /** True if the model's final reply hit its output limit, so its end was lost. */
+    var cutOff = false
+
     /** "Chat" or "Fit check", for log lines. */
     val label: String
         get() = when (mode) {

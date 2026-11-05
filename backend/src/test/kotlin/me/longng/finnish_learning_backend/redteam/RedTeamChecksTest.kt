@@ -135,6 +135,26 @@ class RedTeamChecksTest {
     }
 
     @Test
+    fun testIsFinnish_FinnishAnswerWithAnEnglishTitle_IsFinnish() {
+        val answer = "Longilla on kokemusta Kotlinista, ja hän on käyttänyt sitä myös töissä (Backend developer at the company)."
+
+        assertTrue(RedTeamChecks.isFinnish(answer))
+    }
+
+    @Test
+    fun testIsFinnish_EnglishAnswer_IsNotFinnish() {
+        assertFalse(RedTeamChecks.isFinnish("Long has experience with Kotlin and he also used it at work."))
+    }
+
+    @Test
+    fun testChatCases_FinnishAnswersAreOnlyExpectedForFinnishCases() {
+        val expectingFinnish = RedTeamCases.chatCases().filter { it.finnishAnswer }
+
+        assertTrue(expectingFinnish.isNotEmpty())
+        assertTrue(expectingFinnish.all { it.id.endsWith("_fi") && it.expect == Expect.ANSWERED })
+    }
+
+    @Test
     fun testWatched_PrintsTheVerdictsOfMatchingRows() {
         val watched = RedTeamChecks.watched(report(row("AWS Bedrock in production", FitVerdict.NOT_IN_PROFILE), row("Kotlin", FitVerdict.STRONG)), listOf("bedrock"))
 

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.bedrockruntime.model.Message
+import software.amazon.awssdk.services.bedrockruntime.model.StopReason
 import java.util.UUID
 
 /**
@@ -30,6 +31,10 @@ import java.util.UUID
  * back in one message and calls the model again. One such ask-and-read step is a round. After
  * [AskProperties.Agent.chatMaxToolRounds] rounds, the results go back with "Tool limit reached.
  * Answer now…", and that last call's text is the answer, even if it asks for more tools.
+ *
+ * An answer that hits [AskProperties.Agent.chatMaxTokens] loses its end. The visitor gets it without
+ * the unfinished sentence ([withoutUnfinishedSentence]), and the log gets a warning: answers in
+ * Finnish use more tokens than the same answers in English, so these are the ones to watch.
  *
  * The history comes from the database, never from the browser: the answered chat turns of the
  * session, as user and assistant messages. A visitor can't slip in a fake earlier answer.
@@ -114,7 +119,12 @@ class ChatService(
             throw ex
         }
         return when (outcome) {
-            is TurnOutcome.Answered -> ChatAnswer(turnId = turn.id, text = outcome.text, toolTrace = turn.toolTrace)
+            is TurnOutcome.Answered -> ChatAnswer(
+                turnId = turn.id,
+                text = outcome.text,
+                toolTrace = turn.toolTrace,
+                cutOff = turn.cutOff,
+            )
             is TurnOutcome.Blocked -> throw AskInputBlockedException(outcome.categories)
         }
     }
@@ -188,7 +198,7 @@ class ChatService(
             val reply = chatClient.converse(context.system, messages, context.tools, agent.chatMaxTokens)
             turn.tokens += reply.usage
 
-            if (!reply.wantsTools) return reply.text.ifBlank { NO_ANSWER }
+            if (!reply.wantsTools) return finalAnswer(turn, reply)
             if (turn.rounds == agent.chatMaxToolRounds) {
                 // The last call was told to answer now; it's a request, not a guarantee.
                 logger.info("Chat turn still asked for tools after the limit: turnId={}", turn.id)
@@ -200,6 +210,14 @@ class ChatService(
             val note = if (turn.rounds == agent.chatMaxToolRounds) TOOL_LIMIT_NOTE else null
             messages = messages + reply.message + BedrockChatClient.toolResults(results, note)
         }
+    }
+
+    /** The text of [reply], the model's last call. Shortens it if the reply hit the output limit. */
+    private fun finalAnswer(turn: TurnInProgress, reply: ChatModelReply): String {
+        if (reply.stopReason != StopReason.MAX_TOKENS) return reply.text.ifBlank { NO_ANSWER }
+        turn.cutOff = true
+        logger.warn("Chat answer hit the output limit: turnId={} limit={}", turn.id, agent.chatMaxTokens)
+        return withoutUnfinishedSentence(reply.text).ifBlank { NO_ANSWER }
     }
 
     /**
@@ -233,6 +251,19 @@ class ChatService(
 
         /** The answer when the model gave no text, e.g. its last call still asked for tools. */
         internal const val NO_ANSWER = "I couldn't finish looking that up. Please try rephrasing your question."
+
+        /** The end of a sentence or a line. A `.` inside a word or number, as in `2.2`, doesn't count. */
+        private val SENTENCE_END = Regex("[.!?](?=\\s|$)|\\n")
+
+        /**
+         * [text] up to its last finished sentence or line. With neither in it, all of [text] followed
+         * by `…`, so a reader can see that something is missing.
+         */
+        internal fun withoutUnfinishedSentence(text: String): String {
+            if (text.isBlank()) return ""
+            val lastEnd = SENTENCE_END.findAll(text.trimEnd()).lastOrNull() ?: return "${text.trimEnd()}…"
+            return text.substring(0, lastEnd.range.last + 1).trimEnd()
+        }
     }
 }
 
@@ -242,11 +273,13 @@ class ChatService(
  * @property turnId the stored turn, for the admin view and for log lines
  * @property text the model's answer as plain text (the frontend shows it without markdown)
  * @property toolTrace the profile tools the model used, in order, shown as "How I found this"
+ * @property cutOff true if the answer hit the output limit and [text] is a shortened version of it
  */
 data class ChatAnswer(
     val turnId: Long,
     val text: String,
     val toolTrace: List<ToolCall>,
+    val cutOff: Boolean = false,
 )
 
 /**

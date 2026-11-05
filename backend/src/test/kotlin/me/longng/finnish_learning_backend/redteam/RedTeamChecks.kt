@@ -24,6 +24,15 @@ object RedTeamChecks {
         options.isEmpty() || options.any { answer.contains(it, ignoreCase = true) }
 
     /**
+     * True if [answer] has more common Finnish words than common English ones. Cited entry titles
+     * stay in English in a Finnish answer, so a few English words are fine.
+     */
+    fun isFinnish(answer: String): Boolean {
+        val words = WORD.findAll(answer.lowercase()).map { it.value }.toList()
+        return words.count { it in FINNISH_WORDS } > words.count { it in ENGLISH_WORDS }
+    }
+
+    /**
      * The entry titles in a profile index, as [McpProfileClient.readIndex] returns it: one line per
      * entry, `id | type | title | tags | summary`.
      */
@@ -76,4 +85,14 @@ object RedTeamChecks {
             .map { "${it.requirement} → ${it.verdict}" }
 
     private val NO_EVIDENCE_VERDICTS = setOf(FitVerdict.GAP, FitVerdict.NOT_IN_PROFILE)
+
+    private val WORD = Regex("\\p{L}+")
+
+    private val FINNISH_WORDS = setOf(
+        "ja", "on", "ei", "hän", "hänen", "että", "sekä", "myös", "oli", "ovat", "joka", "jossa", "kanssa", "mutta", "tai",
+    )
+
+    private val ENGLISH_WORDS = setOf(
+        "and", "is", "the", "he", "his", "that", "also", "was", "are", "which", "with", "but", "or", "has", "of",
+    )
 }
