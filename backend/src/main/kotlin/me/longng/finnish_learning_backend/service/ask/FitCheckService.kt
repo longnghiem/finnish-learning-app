@@ -8,6 +8,7 @@ import me.longng.finnish_learning_backend.domain.ask.TurnStatus
 import me.longng.finnish_learning_backend.service.ask.mcp.McpProfileClient
 import me.longng.finnish_learning_backend.service.ask.mcp.McpProfileUnavailableException
 import me.longng.finnish_learning_backend.service.ask.mcp.McpTool
+import me.longng.finnish_learning_backend.service.ask.mcp.McpToolResult
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
@@ -27,6 +28,10 @@ import java.time.Instant
  * The order of the steps is the same as in [ChatService], and for the same reason, money: free
  * checks first, then the budget reserve, then the guardrail (the first paid call), so a blocked
  * job description costs only the guardrail.
+ *
+ * The `about` entry goes to the model with the job description, read by the backend before the
+ * budget reserve so the estimate includes it. The model can skip research and answer from the
+ * index alone, and the index has no skill levels, so without this it could rate a skill too high.
  *
  * The model works in two phases:
  * 1. Research: up to [AskProperties.Agent.fitMaxToolRounds] calls with a short reply limit
@@ -128,11 +133,13 @@ class FitCheckService(
         val index = profileClient.readIndex()
         val system = "$basePrompt\n\n${ChatService.PROFILE_INDEX_HEADING}\n$index"
         val tools = profileClient.listTools()
+        val about = callGetEntry(turn, ABOUT_ENTRY_ID)?.takeUnless { it.isError }
+        if (about == null) logger.warn("Fit check runs without the about entry: turnId={}", turn.id)
         val reservation = recorder.reserve(
             turn,
             costCalculator.estimateMax(
                 AskMode.FIT_CHECK,
-                promptChars = chatClient.promptChars(system, tools + FitReportTool.TOOL),
+                promptChars = chatClient.promptChars(system, tools + FitReportTool.TOOL) + (about?.text?.length ?: 0),
                 inputChars = jobDescription.length,
                 historyChars = 0,
             ),
@@ -149,7 +156,15 @@ class FitCheckService(
         }
         listener.onStep(AskStep.GuardrailPassed)
 
-        val research = research(turn, system, tools, delimit(jobDescription), listener)
+        val aboutEntry = about?.let { ProfileEntryText.fromGetEntryResult(it.text, objectMapper) }
+        val research = research(
+            turn,
+            system,
+            tools,
+            firstMessage(jobDescription, about?.text),
+            aboutEntry?.let { mapOf(ABOUT_ENTRY_ID to it) }.orEmpty(),
+            listener,
+        )
         val draft = writeReport(turn, system, tools, research.messages, deadline, listener)
 
         listener.onStep(AskStep.Verifying)
@@ -180,16 +195,19 @@ class FitCheckService(
     /**
      * The research phase. Returns the conversation to write the report from (the job description,
      * then each tool request with its results) and the entries read, for the quote check.
+     *
+     * @param entriesRead the entries the backend already read, which the quote check can reuse
      */
     private fun research(
         turn: TurnInProgress,
         system: String,
         tools: List<McpTool>,
         jobDescriptionText: String,
+        entriesRead: Map<String, ProfileEntryText>,
         listener: AskProgressListener,
     ): Research {
         var messages = listOf(BedrockChatClient.userText(jobDescriptionText))
-        var entries = emptyMap<String, ProfileEntryText>()
+        var entries = entriesRead
         while (turn.rounds < agent.fitMaxToolRounds) {
             val reply = chatClient.converse(system, messages, tools, agent.fitStepMaxTokens)
             turn.tokens += reply.usage
@@ -300,14 +318,18 @@ class FitCheckService(
             .toMap()
 
     private fun readEntry(turn: TurnInProgress, id: String): ProfileEntryText? {
-        val result = try {
-            profileClient.callTool(GET_ENTRY, mapOf("id" to id))
-        } catch (ex: McpProfileUnavailableException) {
-            logger.warn("Fit check entry not read for the quote check: turnId={} error={}", turn.id, ex.javaClass.simpleName)
-            return null
-        }
+        val result = callGetEntry(turn, id) ?: return null
         return if (result.isError) null else ProfileEntryText.fromGetEntryResult(result.text, objectMapper)
     }
+
+    /** The profile server's answer for entry [id]; null if the server can't be reached. */
+    private fun callGetEntry(turn: TurnInProgress, id: String): McpToolResult? =
+        try {
+            profileClient.callTool(GET_ENTRY, mapOf("id" to id))
+        } catch (ex: McpProfileUnavailableException) {
+            logger.warn("Fit check entry not read: turnId={} error={}", turn.id, ex.javaClass.simpleName)
+            null
+        }
 
     /**
      * @property messages the conversation to write the report from
@@ -324,6 +346,9 @@ class FitCheckService(
     companion object {
         /** The profile tool that reads one entry; its results are the text quotes are checked against. */
         private const val GET_ENTRY = "get_entry"
+
+        /** The one entry every profile has. It holds the skill levels and the things not done. */
+        private const val ABOUT_ENTRY_ID = "about"
 
         /** Kept free after the report call for the quote check and for sending the report. */
         private val REPORT_END_MARGIN: Duration = Duration.ofSeconds(10)
@@ -344,6 +369,12 @@ class FitCheckService(
          */
         internal fun delimit(jobDescription: String): String =
             "<job_description>\n${jobDescription.replace(JOB_DESCRIPTION_TAG, "").trim()}\n</job_description>"
+
+        /** The model's first message: [jobDescription], then the `about` entry as [aboutJson], if read. */
+        internal fun firstMessage(jobDescription: String, aboutJson: String?): String {
+            val delimited = delimit(jobDescription)
+            return if (aboutJson == null) delimited else "$delimited\n\n<about_entry>\n$aboutJson\n</about_entry>"
+        }
 
         /**
          * The entry ids in [index], the profile index as [McpProfileClient.readIndex] returns it:

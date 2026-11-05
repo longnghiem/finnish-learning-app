@@ -180,6 +180,8 @@ tasks.register<Test>("redTeam") {
 	outputs.upToDateWhen { false }
 	// The suite prints a summary table of every case at the end.
 	testLogging { showStandardStreams = true }
+	// -PrealProfile[=<path to extra cases>] runs against the owner's real profile instead.
+	providers.gradleProperty("realProfile").orNull?.let { systemProperty("redteam.realProfile", it) }
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {

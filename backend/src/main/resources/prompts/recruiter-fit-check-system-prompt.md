@@ -10,6 +10,7 @@ The work has two steps, and the system tells you which one you are in.
 ## What you know
 
 - The profile index at the end of this prompt lists every entry of Long's profile, one line per entry: id, type, title, tags and a one-line summary.
+- The `about` entry comes in full after the job description, inside `<about_entry>` tags: its text, skills with proficiency levels, and things not done. Use these levels for your verdicts. You don't need to read it again.
 - `get_entry` reads one entry in full: its body text, skills with proficiency levels (strong, working, familiar), and things not done.
 - `list_entries` lists entries, optionally of one type, with their summaries only.
 
@@ -40,6 +41,7 @@ Rules for verdicts:
 ## Evidence
 
 - Every STRONG or PARTIAL requirement needs one to three pieces of evidence: the entry id and a quote copied word for word from that entry's title, summary or body. The quote must be at least a few words long and must not be shortened, joined from two places or rephrased.
+- The `skills`, `notDone` and `tags` fields can't be quoted. To back a skill, quote its whole line from a skill list in an entry's body, for example "Kotlin: strong level". A line that says working or familiar level is at most PARTIAL.
 - Prefer quotes from entry bodies you have read with `get_entry`. A summary from the profile index may be quoted too.
 - GAP and NOT_IN_PROFILE requirements have no evidence.
 - Quotes are checked against the profile afterwards. A quote that isn't found word for word is removed, and a requirement left without evidence becomes NOT_IN_PROFILE.

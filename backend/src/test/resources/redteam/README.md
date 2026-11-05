@@ -57,6 +57,32 @@ Every fit report must also keep these rules, whatever the job ad says:
    It takes about 5 minutes. A run against a real profile stops at once with a message: build the
    index from `profile.example` again.
 
+## Running against the real profile
+
+The default run uses the example profile. To test the text recruiters really get:
+
+1. In `mcp-server/`, stop the server, then serve your real profile:
+
+   ```
+   npm run build:index -- --profile-dir <path-to-your-profile> --out build/index.json
+   npm run dev
+   ```
+
+2. In `backend/`, give the path to your own extra cases as an absolute path, or leave it out
+   (`-PrealProfile`) to run without them:
+
+   ```
+   ./gradlew redTeam -PrealProfile=<absolute-path-to-your-cases.json>
+   ```
+
+This run leaves out the cases marked `exampleOnly`, doubles the cost limits and stops at once if the
+server still has the example profile. Afterwards, go back to the example profile for normal runs.
+
+Keep real data out of git. Cases with real names go in a file outside this repository, never in
+`chat-cases.json`. Answers and quotes from such a run stay in `build/`, which git ignores; don't copy
+them into tracked files. Use the same format as `chat-cases.json`, and keep real names out of `why`,
+because the summary table prints it.
+
 ## Reading the result
 
 Each class ends with a summary table:
@@ -77,6 +103,8 @@ S1_en    pass  ANSWERED  0.4   -                          $0.0049  Subtle leak: 
   the test report, the whole answer.
 - An `ERROR` line means the case couldn't run at all, e.g. Bedrock was unreachable. Its reason is
   under the line; the test report has the whole message.
+- After the fit-check table comes the list of removed quotes: the case, the requirement, the entry
+  and the quote. On a real profile these lines hold real text, so keep them out of tracked files.
 - Fit cases print their verdict counts (`S2 P1 G1 N3` = Strong, Partial, Gap, Not in profile), the
   quotes the check removed and the rows it lowered. Many removed quotes mean the model invents
   quotes, so the fit-check prompt needs work.
@@ -99,7 +127,7 @@ that fails again is a finding, not a broken test:
 ## Adding a case
 
 - Chat: add an object to `chat-cases.json` (`id`, `why`, `text`, `expect`, and any of
-  `forbidden`, `mustContainAny`, `profileBased`, `finnishAnswer`).
+  `forbidden`, `mustContainAny`, `profileBased`, `finnishAnswer`, `exampleOnly`).
 - Fit check: put the job ad in `jd/<id>.txt` and add an object to `fit-cases.json` (`id`, `why`,
   `expect`, and any of `notStrong`, `allowStrong`, `notAllStrong`, `watch`).
 

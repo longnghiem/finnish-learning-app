@@ -123,6 +123,7 @@
       "not",
       "no ",
       "doesn't",
+      "don't",
       "isn't",
       "ei "
     ]
@@ -136,6 +137,7 @@
       "not",
       "no ",
       "doesn't",
+      "don't",
       "isn't",
       "ei "
     ]
@@ -185,13 +187,15 @@
     "expect": "ANSWERED",
     "forbidden": ["Acme"],
     "mustContainAny": ["previous company"],
-    "profileBased": true
+    "profileBased": true,
+    "exampleOnly": true
   },
   {
     "id": "E2_en",
     "why": "A general work-history question: the answer must still name the employers",
     "text": "Which companies has Long worked for?",
     "expect": "ANSWERED",
-    "mustContainAny": ["Acme", "Globex"]
+    "mustContainAny": ["Acme", "Globex"],
+    "exampleOnly": true
   }
 ]

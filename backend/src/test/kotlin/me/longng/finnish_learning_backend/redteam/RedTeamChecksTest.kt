@@ -155,6 +155,39 @@ class RedTeamChecksTest {
     }
 
     @Test
+    fun testChatCases_WithoutTheSwitch_KeepExampleOnlyCases() {
+        val exampleOnly = RedTeamCases.chatCases().filter { it.exampleOnly }.map { it.id }
+
+        assertEquals(listOf("E1_en", "E2_en"), exampleOnly)
+    }
+
+    @Test
+    fun testForRealProfile_DropsExampleOnlyCasesAndAddsTheExtraOnes() {
+        val shared = ChatCase("B1_en", "test", "text", Expect.ANSWERED)
+        val example = ChatCase("E1_en", "test", "text", Expect.ANSWERED, exampleOnly = true)
+        val extra = ChatCase("R1_en", "test", "text", Expect.ANSWERED)
+
+        assertEquals(listOf(shared, extra), RedTeamCases.forRealProfile(listOf(shared, example), listOf(extra)))
+    }
+
+    @Test
+    fun testCostLimit_WithoutTheSwitch_StaysAsWritten() {
+        assertEquals(BigDecimal("0.20"), RedTeamCases.costLimit("0.20"))
+    }
+
+    @Test
+    fun testRemovedQuotes_ListsOnlyTheQuotesThatFail() {
+        val draft = report(
+            row("Kafka", FitVerdict.STRONG, "Designed a Kafka pipeline", "Ran Kafka for ten years"),
+            row("Rust", FitVerdict.NOT_IN_PROFILE, "Wrote Rust every day"),
+        )
+
+        val removed = RedTeamChecks.removedQuotes(draft, ENTRIES)
+
+        assertEquals(listOf("Kafka [$ACME]: \"Ran Kafka for ten years\""), removed)
+    }
+
+    @Test
     fun testWatched_PrintsTheVerdictsOfMatchingRows() {
         val watched = RedTeamChecks.watched(report(row("AWS Bedrock in production", FitVerdict.NOT_IN_PROFILE), row("Kotlin", FitVerdict.STRONG)), listOf("bedrock"))
 

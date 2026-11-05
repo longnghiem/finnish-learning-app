@@ -78,6 +78,18 @@ object RedTeamChecks {
         }
     }
 
+    /**
+     * The quotes of the model's [draft] that [QuoteVerifier] removes, one line each, with the
+     * requirement and the entry they were meant to prove. Shows why quotes fail on real text.
+     */
+    fun removedQuotes(draft: FitReport, entries: Map<String, ProfileEntryText>): List<String> =
+        draft.requirements
+            .filter { it.verdict !in NO_EVIDENCE_VERDICTS }
+            .flatMap { row ->
+                row.evidence.filterNot { QuoteVerifier.isVerbatim(it, entries) }
+                    .map { "${row.requirement} [${it.entryId}]: \"${it.quote}\"" }
+            }
+
     /** The verdicts of the requirements whose text contains one of [keywords], e.g. `Bedrock → NOT_IN_PROFILE`. */
     fun watched(report: FitReport, keywords: List<String>): List<String> =
         report.requirements

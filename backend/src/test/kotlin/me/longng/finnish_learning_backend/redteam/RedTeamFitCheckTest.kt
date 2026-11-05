@@ -1,18 +1,23 @@
 package me.longng.finnish_learning_backend.redteam
 
 import me.longng.finnish_learning_backend.service.ask.AskInputBlockedException
+import me.longng.finnish_learning_backend.service.ask.ChatModelReply
 import me.longng.finnish_learning_backend.service.ask.FitCheckResult
 import me.longng.finnish_learning_backend.service.ask.FitCheckService
 import me.longng.finnish_learning_backend.service.ask.FitReport
+import me.longng.finnish_learning_backend.service.ask.FitReportTool
 import me.longng.finnish_learning_backend.service.ask.FitVerdict
 import me.longng.finnish_learning_backend.service.ask.ProfileEntryText
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import tools.jackson.databind.ObjectMapper
-import java.math.BigDecimal
 import java.time.Instant
 import kotlin.test.assertTrue
 
@@ -36,6 +41,7 @@ class RedTeamFitCheckTest : RedTeamTestBase() {
     @MethodSource("cases")
     fun testRedTeam(id: String, case: FitCase) {
         val session = newSession()
+        val replies = recordModelReplies()
         val result: FitCheckResult? = try {
             fitCheckService.check(session, RedTeamCases.jobDescription(case), Instant.now().plusSeconds(STREAM_SECONDS)) { }
         } catch (ex: AskInputBlockedException) {
@@ -51,12 +57,29 @@ class RedTeamFitCheckTest : RedTeamTestBase() {
             if (result != null && case.expect == Expect.BLOCKED) add("checked, but the guardrail should have blocked it")
             if (result != null) addAll(RedTeamChecks.reportProblems(result.report, citedEntries(result.report), case))
         }
+        draftOf(replies)?.let { draft ->
+            RedTeamChecks.removedQuotes(draft, citedEntries(draft)).forEach { removedQuotes += "$id  $it" }
+        }
         val outcome = if (result == null) "BLOCKED" else "REPORTED"
         val details = result?.report?.let { detailsOf(it, case) } ?: case.why
         ledger.record(resultOf(id, outcome, turnOf(session), details, problems))
 
         assertTrue(problems.isEmpty(), "$id (${case.why}): ${problems.joinToString("; ")}\nReport: ${result?.report}")
     }
+
+    /** Collects every reply of the real model, from now until the end of the test. */
+    private fun recordModelReplies(): List<ChatModelReply> {
+        val replies = mutableListOf<ChatModelReply>()
+        doAnswer { call -> (call.callRealMethod() as ChatModelReply).also { replies += it } }
+            .whenever(chatClient).converse(any(), any(), any(), any(), anyOrNull(), any())
+        return replies
+    }
+
+    /** The report as the model wrote it, before the quote check; null if there was no report call. */
+    private fun draftOf(replies: List<ChatModelReply>): FitReport? =
+        replies.flatMap { it.toolRequests }
+            .firstOrNull { it.name == FitReportTool.NAME }
+            ?.let { FitReport.fromToolInput(it.arguments) }
 
     /** Every entry the report quotes, read from the profile server; an unknown id stays missing. */
     private fun citedEntries(report: FitReport): Map<String, ProfileEntryText> =
@@ -83,7 +106,10 @@ class RedTeamFitCheckTest : RedTeamTestBase() {
         private const val STREAM_SECONDS = 180L
 
         /** About $0.08 normally: about $0.01 per fit check. */
-        private val ledger = RedTeamLedger("fit check", costLimitUsd = BigDecimal("0.50"))
+        private val ledger = RedTeamLedger("fit check", costLimitUsd = RedTeamCases.costLimit("0.50"))
+
+        /** The quotes the check removed in this run, printed after the summary. */
+        private val removedQuotes = mutableListOf<String>()
 
         @JvmStatic
         fun cases(): List<Arguments> = RedTeamCases.fitCases().map { Arguments.of(it.id, it) }
@@ -92,6 +118,7 @@ class RedTeamFitCheckTest : RedTeamTestBase() {
         @AfterAll
         fun printSummary() {
             println(ledger.summary())
+            println("=== Removed quotes (${removedQuotes.size}) ===\n${removedQuotes.joinToString("\n")}")
             ledger.assertWithinCostLimit()
         }
     }

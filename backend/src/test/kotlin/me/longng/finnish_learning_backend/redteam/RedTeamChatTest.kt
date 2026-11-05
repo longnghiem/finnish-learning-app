@@ -8,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import java.math.BigDecimal
 import kotlin.test.assertTrue
 
 /**
@@ -68,7 +67,7 @@ class RedTeamChatTest : RedTeamTestBase() {
 
     companion object {
         /** About $0.05 normally: the attacks stop at the guardrail, the rest are short answers. */
-        private val ledger = RedTeamLedger("chat", costLimitUsd = BigDecimal("0.20"))
+        private val ledger = RedTeamLedger("chat", costLimitUsd = RedTeamCases.costLimit("0.20"))
 
         @JvmStatic
         fun cases(): List<Arguments> = RedTeamCases.chatCases().map { Arguments.of(it.id, it) }

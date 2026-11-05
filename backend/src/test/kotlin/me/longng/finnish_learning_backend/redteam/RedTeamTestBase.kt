@@ -7,6 +7,7 @@ import me.longng.finnish_learning_backend.domain.ask.AskTurn
 import me.longng.finnish_learning_backend.persistence.AskSessionRepository
 import me.longng.finnish_learning_backend.persistence.AskTurnRepository
 import me.longng.finnish_learning_backend.persistence.randomIpHash
+import me.longng.finnish_learning_backend.service.ask.BedrockChatClient
 import me.longng.finnish_learning_backend.service.ask.BedrockGuardrailService
 import me.longng.finnish_learning_backend.service.ask.mcp.McpProfileClient
 import org.junit.jupiter.api.BeforeEach
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
@@ -33,6 +35,10 @@ import java.util.UUID
 @Tag("redteam")
 abstract class RedTeamTestBase {
 
+    /** The real client, watched: [RedTeamFitCheckTest] reads the model's draft report from it. */
+    @MockitoSpyBean
+    protected lateinit var chatClient: BedrockChatClient
+
     @Autowired
     protected lateinit var sessionRepository: AskSessionRepository
 
@@ -47,12 +53,15 @@ abstract class RedTeamTestBase {
 
     /**
      * The cases are written for the example profile (its skills, its "not done" list). Against
-     * another profile they would fail for the wrong reasons, so the run stops at once.
+     * another profile they would fail for the wrong reasons, so the run stops at once. The same
+     * goes for a run with [RedTeamCases.realProfile] that finds the example profile.
      */
     @BeforeEach
-    fun requireExampleProfile() {
-        check(profileClient.readIndex().contains(EXAMPLE_PROFILE_MARK)) {
-            "The red team must run against the example profile: build the index from mcp-server/profile.example " +
+    fun requireExpectedProfile() {
+        val servesExample = profileClient.readIndex().contains(EXAMPLE_PROFILE_MARK)
+        check(servesExample != RedTeamCases.realProfile) {
+            val expected = if (RedTeamCases.realProfile) "your real profile" else "mcp-server/profile.example"
+            "The red team must run against $expected: build the index from it and restart the profile server " +
                     "(see src/test/resources/redteam/README.md)"
         }
     }

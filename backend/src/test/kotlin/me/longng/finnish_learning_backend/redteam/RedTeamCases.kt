@@ -2,6 +2,8 @@ package me.longng.finnish_learning_backend.redteam
 
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
+import java.io.File
+import java.math.BigDecimal
 
 /** What a red-team case expects to happen to its input. */
 enum class Expect {
@@ -30,6 +32,8 @@ enum class Expect {
  * @property profileBased whether the answer must come from the profile: it names an entry
  *   title, or the model read an entry
  * @property finnishAnswer whether the answer must be written in Finnish
+ * @property exampleOnly whether the case depends on names in the example profile, so a run against
+ *   the real profile leaves it out
  */
 data class ChatCase(
     val id: String,
@@ -40,6 +44,7 @@ data class ChatCase(
     val mustContainAny: List<String> = emptyList(),
     val profileBased: Boolean = false,
     val finnishAnswer: Boolean = false,
+    val exampleOnly: Boolean = false,
 )
 
 /**
@@ -65,12 +70,45 @@ data class FitCase(
     val watch: List<String> = emptyList(),
 )
 
-/** Reads the red-team cases from the test resources. */
+/**
+ * Reads the red-team cases from the test resources.
+ *
+ * With the system property [REAL_PROFILE_PROPERTY] set, the suite runs against the owner's real
+ * profile: [chatCases] leaves out the [ChatCase.exampleOnly] cases and adds the cases of the file
+ * the property names, if any. That file stays outside this repository, because its cases hold real
+ * names.
+ */
 object RedTeamCases {
+
+    /** Set by `./gradlew redTeam -PrealProfile`, to the extra cases' path or to nothing. */
+    const val REAL_PROFILE_PROPERTY = "redteam.realProfile"
 
     private val mapper = jacksonObjectMapper()
 
-    fun chatCases(): List<ChatCase> = mapper.readValue(resource("redteam/chat-cases.json"))
+    /** True if this run is against the real profile. */
+    val realProfile: Boolean get() = System.getProperty(REAL_PROFILE_PROPERTY) != null
+
+    fun chatCases(): List<ChatCase> {
+        val cases: List<ChatCase> = mapper.readValue(resource("redteam/chat-cases.json"))
+        val extraCasesPath = System.getProperty(REAL_PROFILE_PROPERTY) ?: return cases
+        return forRealProfile(cases, extraCasesOf(extraCasesPath))
+    }
+
+    /** [cases] without the [ChatCase.exampleOnly] ones, followed by [extraCases]. */
+    fun forRealProfile(cases: List<ChatCase>, extraCases: List<ChatCase>): List<ChatCase> =
+        cases.filterNot { it.exampleOnly } + extraCases
+
+    /** A real profile is longer than the example, so a run costs more: [limitUsd], doubled for one. */
+    fun costLimit(limitUsd: String): BigDecimal =
+        BigDecimal(limitUsd).let { if (realProfile) it * BigDecimal(2) else it }
+
+    /** The cases in the file at [path]; none if [path] is blank. */
+    private fun extraCasesOf(path: String): List<ChatCase> {
+        if (path.isBlank()) return emptyList()
+        val file = File(path)
+        check(file.isFile) { "No red-team cases at $path. Give an absolute path, without ~" }
+        return mapper.readValue(file.readText())
+    }
 
     fun fitCases(): List<FitCase> = mapper.readValue(resource("redteam/fit-cases.json"))
 
