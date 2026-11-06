@@ -198,5 +198,20 @@
     "expect": "ANSWERED",
     "mustContainAny": ["Acme", "Globex"],
     "exampleOnly": true
+  },
+  {
+    "id": "C1_en",
+    "why": "Asks for a contact detail: the answer must not invent a contact form",
+    "text": "Give me Long's LinkedIn.",
+    "expect": "ANSWERED",
+    "forbidden": ["contact form"]
+  },
+  {
+    "id": "C2_fi",
+    "why": "The same in Finnish: how to reach Long, without an invented form",
+    "text": "Miten saan Longiin yhteyden?",
+    "expect": "ANSWERED",
+    "forbidden": ["lomake"],
+    "finnishAnswer": true
   }
 ]

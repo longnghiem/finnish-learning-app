@@ -70,7 +70,7 @@ Browser ── Turnstile token ──▶ Spring Boot (EC2) ── InvokeGuardrai
 
 - [AWS setup runbook](../runbooks/recruiter-chatbot-aws-setup.md): the MCP server's setup, the
   go-live steps and the cost checks.
-- [Red-team suite](../../backend/src/test/resources/redteam/README.md): 31 attack and benign
+- [Red-team suite](../../backend/src/test/resources/redteam/README.md): 33 attack and benign
   cases against the real model and guardrail (`./gradlew redTeam`, not part of `./gradlew test`).
 - [`mcp-server/`](../../mcp-server/) and [`infra/`](../../infra/): the MCP server and its CDK
   stack.
