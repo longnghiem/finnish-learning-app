@@ -88,7 +88,8 @@ describe('ProfileMcpStack', () => {
     expect(policies.map((policy) => policy['Properties']['Roles'])).toEqual([[BACKEND_ROLE_NAME]])
   })
 
-  it('testBackendRole_InvokeViaUrlOnly', () => {
+  it('testBackendRole_InvokeViaUrlAndGuardrailChecksOnly', () => {
+    // The whole statement list: a new statement, or a wider action or region, fails this test.
     template.hasResourceProperties('AWS::IAM::Policy', {
       Roles: [BACKEND_ROLE_NAME],
       PolicyDocument: {
@@ -104,6 +105,13 @@ describe('ProfileMcpStack', () => {
             Effect: 'Allow',
             Condition: { Bool: { 'lambda:InvokedViaFunctionUrl': true } },
             Resource: Match.anyValue(),
+          },
+          {
+            Sid: 'AskInputGuardrailChecks',
+            Action: 'bedrock:InvokeGuardrailChecks',
+            Effect: 'Allow',
+            Condition: { StringEquals: { 'aws:RequestedRegion': 'eu-north-1' } },
+            Resource: '*',
           },
         ],
       },

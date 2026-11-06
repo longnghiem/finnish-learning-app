@@ -1,5 +1,5 @@
 import { CfnOutput, Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib'
-import { Role } from 'aws-cdk-lib/aws-iam'
+import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam'
 import {
   Architecture,
   Code,
@@ -30,7 +30,8 @@ export interface ProfileMcpStackProps extends StackProps {
   readonly bundleDir: string
   /**
    * Name of the existing IAM role the backend's EC2 instance wears. It is only referenced, not
-   * created: the stack adds a policy to it that allows calling the function URL.
+   * created: the stack adds a policy to it that allows calling the function URL and checking the
+   * chatbot's inputs with Bedrock Guardrails.
    */
   readonly backendRoleName: string
 }
@@ -41,8 +42,9 @@ export interface ProfileMcpStackProps extends StackProps {
  *   role that may only write logs, and at most {@link RESERVED_CONCURRENCY} copies at a time;
  * - its log group, kept for two weeks;
  * - a function URL that accepts only SigV4-signed requests (`AWS_IAM`), with no CORS;
- * - permission for the backend's role ({@link ProfileMcpStackProps.backendRoleName}) to call
- *   that URL, and nothing else.
+ * - permissions for the backend's role ({@link ProfileMcpStackProps.backendRoleName}): call that
+ *   URL, and run the chatbot's input checks (`bedrock:InvokeGuardrailChecks`) in the stack's
+ *   region. Nothing else.
  */
 export class ProfileMcpStack extends Stack {
   constructor(scope: Construct, id: string, props: ProfileMcpStackProps) {
@@ -77,9 +79,24 @@ export class ProfileMcpStack extends Stack {
       invokeMode: InvokeMode.BUFFERED,
     })
 
+    const backendRole = Role.fromRoleName(this, 'BackendRole', props.backendRoleName)
+
     // Adds lambda:InvokeFunctionUrl and lambda:InvokeFunction for this function to the backend's
     // role. Both are required for a function URL call.
-    url.grantInvokeUrl(Role.fromRoleName(this, 'BackendRole', props.backendRoleName))
+    url.grantInvokeUrl(backendRole)
+
+    // The chatbot screens every message and job description with Bedrock Guardrails'
+    // InvokeGuardrailChecks before the model sees it. The API has no resource of its own (the
+    // checks to run are sent with each request), so "*" is the only possible resource; the
+    // condition allows it in this stack's region only. Lands in the same policy as the grant above.
+    backendRole.addToPrincipalPolicy(
+      new PolicyStatement({
+        sid: 'AskInputGuardrailChecks',
+        actions: ['bedrock:InvokeGuardrailChecks'],
+        resources: ['*'],
+        conditions: { StringEquals: { 'aws:RequestedRegion': this.region } },
+      }),
+    )
 
     new CfnOutput(this, 'FunctionUrl', {
       value: url.url,

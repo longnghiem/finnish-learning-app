@@ -384,7 +384,26 @@ HTTP-only bootstrap vhost and will refuse with exit 3 to protect the running TLS
 config. To change the vhost, edit `finnish-tls.conf` in the repo and re-run
 `install-tls.sh`.
 
-### 5.8 Confirm dependencies
+### 5.8 Recruiter chatbot ("Ask Himmel")
+
+The chatbot needs more than this page: an AWS permission, three settings in
+`/etc/finnish-backend.env`, a Lambda function, and a check after the deploy. All of it is in
+[docs/runbooks/recruiter-chatbot-aws-setup.md](../docs/runbooks/recruiter-chatbot-aws-setup.md),
+Part B, with the cost checks in Part C. Do Part B **before** deploying a backend that contains
+the chatbot: without `ASK_IP_HASH_KEY` that backend doesn't start.
+
+Two files in this directory carry chatbot settings:
+
+- `nginx/finnish-tls.conf` (and `finnish.conf`): `/api/ask/` is rate-limited to 10 requests per
+  minute per client IP, with bursts of 6. Over the limit, nginx answers `429` with a small JSON
+  body (`"code":"BUSY"`), which the page shows as "The assistant is busy right now". It's the
+  first layer only; the backend has per-IP daily limits and a spending cap. Re-run
+  `install-tls.sh` (§5.7) to install a changed vhost.
+- `backend/finnish-backend.service`: `TimeoutStopSec=75`, so a restart lets running chats finish
+  (the backend waits up to 60 s for them). Re-run `install-backend.sh` (§5.5) to install a
+  changed unit; it never overwrites `/etc/finnish-backend.env`.
+
+### 5.9 Confirm dependencies
 
 ```bash
 systemctl is-active postgresql kafka nginx
