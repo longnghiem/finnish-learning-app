@@ -136,7 +136,7 @@ which it reads through **MCP tools**. The design is in
 
 ### Cost and abuse control
 
-- **A hard spending cap:** $0.25 a day, $5 a month (`app.ask.budget.*`). Before the first
+- **A hard spending cap:** $0.50 a day, $5 a month (`app.ask.budget.*`). Before the first
   billable call, each request reserves its worst-case cost under a database lock; afterwards it
   settles the real cost, priced from Bedrock's token counts including cache reads and writes
   (`CostCalculator`). Parallel requests can't break the cap.
