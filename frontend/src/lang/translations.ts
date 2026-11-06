@@ -127,7 +127,7 @@ export const I18N = {
     askTitle: 'Ask Himmel',
     askIntro: "Ask about Long's work, projects and skills. Answers come only from his profile.",
     askTabChat: 'Chat',
-    askTabFit: 'Check my fit',
+    askTabFit: 'Paste job description',
     askGateTitle: "Quick check that you're human",
     askGateWhy: "It keeps bots from using up the chatbot's budget. One check per visit.",
     askGateStarting: 'Starting your chat…',
@@ -139,10 +139,12 @@ export const I18N = {
     askErrTooManySessions: 'Too many new chats from your connection. Please try again in an hour.',
     askEmptyHint: "Ask anything about Long's professional background, or start with one of these:",
     askStarters: [
+      'Why should I ask you before contacting Long?',
       'What has Long built with Amazon Bedrock?',
       'Which cloud experience does Long have?',
       'Tell me about a hard bug Long solved.',
       'Is Long open to relocation?',
+      "Why did Long's former CTO recommend him without reservation?",
     ],
     askInputLabel: 'Your question',
     askPlaceholder: "Ask about Long's experience…",
@@ -518,7 +520,7 @@ export const I18N = {
     askIntro:
       'Kysy Longin työstä, projekteista ja osaamisesta. Vastaukset perustuvat vain hänen profiiliinsa.',
     askTabChat: 'Keskustelu',
-    askTabFit: 'Tarkista sopivuus',
+    askTabFit: 'Liitä työpaikkailmoitus',
     askGateTitle: 'Nopea tarkistus, että olet ihminen',
     askGateWhy:
       'Se estää botteja kuluttamasta chatbotin budjettia. Yksi tarkistus vierailua kohden.',
@@ -532,10 +534,12 @@ export const I18N = {
       'Liian monta uutta keskustelua yhteydestäsi. Yritä uudelleen tunnin kuluttua.',
     askEmptyHint: 'Kysy mitä tahansa Longin ammatillisesta taustasta tai aloita jollakin näistä:',
     askStarters: [
+      'Miksi minun kannattaa kysyä sinulta ennen kuin otan yhteyttä Longiin?',
       'Mitä Long on rakentanut Amazon Bedrockilla?',
       'Millaista pilvikokemusta Longilla on?',
       'Kerro vaikeasta bugista, jonka Long ratkaisi.',
       'Onko Long valmis muuttamaan toiselle paikkakunnalle?',
+      'Miksi Longin entinen teknologiajohtaja suosittelee häntä varauksetta?',
     ],
     askInputLabel: 'Kysymyksesi',
     askPlaceholder: 'Kysy Longin kokemuksesta…',
