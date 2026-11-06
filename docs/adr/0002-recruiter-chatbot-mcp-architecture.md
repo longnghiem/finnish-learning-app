@@ -1,6 +1,6 @@
 # ADR 0002: Recruiter chatbot ("Ask Himmel") with MCP on AWS Bedrock
 
-**Status:** Accepted, built.
+**Status:** Accepted, built and live on `opisuomea.org`.
 
 ## Context
 
@@ -49,7 +49,7 @@ Browser ── Turnstile token ──▶ Spring Boot (EC2) ── InvokeGuardrai
 | Fit check | Separate mode and endpoint (`POST /api/ask/fit-check`, SSE), job descriptions up to 6,000 characters. Research calls (≤ 6 rounds, 300 output tokens) read entries through MCP; one report call (1,500 tokens, 120 s timeout) must call a strict, forced `submit_fit_report` tool at temperature 0, so Bedrock guarantees the report's shape. Per-requirement verdicts (Strong / Partial / Gap / Not in profile), each backed by an entry id + verbatim quote (from the entry's title, summary or body) that the backend verifies; failed quotes are removed, a requirement without verified evidence becomes "Not in profile", and verdicts are never raised. A lowered requirement is added to the gaps, and the model's summary (written before the check) is replaced by a plain one built from the checked rows, so it never claims what the rows deny. No percentage score. `:keepalive` comments every 15 s keep the stream open behind nginx. |
 | Cap reached | "Resting until tomorrow" (or next month) with the owner's email and LinkedIn; the mascot sleeps. |
 | Logging | Conversations, job descriptions and fit reports stored in the existing Postgres for **30 days**, then purged every night at 03:15 Helsinki time. IPs stored only as keyed hashes (HMAC-SHA256). Per-turn tokens, cost, tool trace and guardrail scores. Daily aggregate stats (no personal data) kept. The owner reads and deletes sessions through the admin API (`/api/admin/ask/*`, `ROLE_ADMIN`). No conversation content in application logs. |
-| UI | `/ask` page with tabs Chat \| Check my fit, the mascot "Himmel" (his state follows the stream), a human check, starter questions, live progress steps, the tool-call trace, live stats (`GET /api/ask/stats`: answers, attacks blocked, % of the month's budget), a "How this works" section, EN/FI, mobile-first. A public `/privacy` page, linked from both tabs. Entry points: a recruiter banner on `/` and `/portfolio`, an "Ask Himmel" pill in the navbar, and a peeking-cat link on other pages. |
+| UI | `/ask` page with tabs Chat \| Paste job description (the fit check), the mascot "Himmel" (his state follows the stream), a human check, starter questions, live progress steps, the tool-call trace, live stats (`GET /api/ask/stats`: answers, attacks blocked, % of the month's budget), a "How this works" section, EN/FI, mobile-first. A public `/privacy` page, linked from both tabs. Entry points: a recruiter banner on `/` and `/portfolio`, an "Ask Himmel" pill in the navbar, and a peeking-cat link on other pages. |
 
 ## Consequences
 
@@ -68,9 +68,9 @@ Browser ── Turnstile token ──▶ Spring Boot (EC2) ── InvokeGuardrai
 
 ## See also
 
-- [AWS setup runbook](../runbooks/recruiter-chatbot-aws-setup.md): the one-time setup and the
-  deploy of the MCP server.
-- [Red-team suite](../../backend/src/test/resources/redteam/README.md): 28 attack and benign
+- [AWS setup runbook](../runbooks/recruiter-chatbot-aws-setup.md): the MCP server's setup, the
+  go-live steps and the cost checks.
+- [Red-team suite](../../backend/src/test/resources/redteam/README.md): 31 attack and benign
   cases against the real model and guardrail (`./gradlew redTeam`, not part of `./gradlew test`).
 - [`mcp-server/`](../../mcp-server/) and [`infra/`](../../infra/): the MCP server and its CDK
   stack.

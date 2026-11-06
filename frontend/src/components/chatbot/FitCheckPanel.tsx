@@ -33,7 +33,7 @@ interface FitCheckPanelProps {
 }
 
 /**
- * The "Check my fit" tab: a job description in, live progress, then the verified report.
+ * The fit check tab: a job description in, live progress, then the verified report.
  *
  * - The text may be pasted longer than 6,000 characters: the textarea has no `maxLength`, which
  *   would cut a paste off without a word. Instead the counter says it is too long and the button

@@ -42,7 +42,7 @@ The design was implemented by **Claude Design**
 - `/admin` — Admin page (admin only)
 - `/dashboard` — Progress dashboard (authenticated users only): per-topic stats, streaks, accuracy, due cards
 - `/essay/:topicId` — Short-essay writing page (authenticated users only): prompt dropdown, 300–2,500 character editor with live counter, and the AI evaluation result — CEFR level, on-topic flag, and per-issue fixes
-- `/ask` — "Ask Himmel", the recruiter chatbot (public, no login): Cloudflare Turnstile check -> chat about Long's professional background with live progress steps. `?tab=fit` opens "Check my fit": paste a job description (up to 6,000 characters, 3 checks per day) and get a report per requirement
+- `/ask` — "Ask Himmel", the recruiter chatbot (public, no login): Cloudflare Turnstile check -> chat about Long's professional background with live progress steps. `?tab=fit` opens the "Paste job description" tab, the fit check: paste a job description (up to 6,000 characters, 3 checks per day) and get a report per requirement
 - `/privacy` — Privacy page of the chatbot (public): what is stored, why, for how long (30 days), the other services involved and how to ask for deletion. Linked from the notices under the chat and the fit check, and from "How this works"
 
 ---
@@ -113,14 +113,14 @@ check isn't set up.
 
 ```
 src/
-├── api/          # API client (auth, cards, topics, config)
+├── api/          # API client (auth, cards, topics, config; admin/ and chatbot/ subfolders)
 ├── assets/       # Static assets (topic images, Himmel's artwork in mascot/)
 ├── auth/         # Auth context, provider, and hook
-├── components/   # Reusable UI components (Navbar, Flashcard, modals…)
-├── hooks/        # Custom React hooks (useCards, useTopics)
+├── components/   # Reusable UI components (Navbar, Flashcard, modals…; admin/ and chatbot/ subfolders)
+├── hooks/        # Custom React hooks (useCards, useTopics; admin/ and chatbot/ subfolders)
 ├── lang/         # i18n strings and LangProvider
 ├── pages/        # Route-level page components
-├── schemas/      # Zod validation schemas
+├── schemas/      # Zod validation schemas (admin/ and chatbot/ subfolders)
 ├── theme/        # Theme context, provider, and hook
 ├── types/        # Shared TypeScript types
 ├── contact.ts    # Long's email and LinkedIn (portfolio page, chatbot notices)
