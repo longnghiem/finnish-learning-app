@@ -46,7 +46,10 @@ interface ChatPanelProps {
 /**
  * The Chat tab: the conversation, the live progress of the answer being made, and the input.
  *
- * - The first view shows starter questions; clicking one sends it.
+ * - The starter questions stay under the conversation, outside its scroll box, so they are always
+ *   in view; clicking one sends it. {@link StarterQuestions} shrinks once the chat has started,
+ *   and a question already asked is greyed out, because sending it again would use up a message.
+ *   One that failed stays clickable.
  * - Enter sends, Shift+Enter adds a line. While an answer streams, the input stays editable but
  *   sending is off, so a visitor can write the next question.
  * - "x of 10 messages left" counts what the backend counts: messages that were answered,
@@ -88,6 +91,11 @@ export function ChatPanel({
   const canSend = !streaming && !limitReached
   const latestAnswerId = chat.messages.findLast((message) => message.role === 'assistant')?.id
   const latestQuestionId = chat.messages.findLast((message) => message.role === 'user')?.id
+  const askedQuestions = new Set(
+    chat.messages
+      .filter((message) => message.role === 'user' && message.status !== 'failed')
+      .map((message) => message.text),
+  )
 
   const send = async (text: string) => {
     const trimmed = text.trim()
@@ -111,11 +119,8 @@ export function ChatPanel({
         ref={listRef}
         role="log"
         aria-live="polite"
-        className="flex flex-col gap-3 max-h-[min(60vh,560px)] overflow-y-auto pr-1"
+        className="flex flex-col gap-3 max-h-[min(60vh,560px)] overflow-y-auto pr-1 empty:hidden"
       >
-        {chat.messages.length === 0 && (
-          <StarterQuestions disabled={!canSend} onPick={(question) => void send(question)} />
-        )}
         {chat.messages.map((message) => (
           <MessageBubble
             key={message.id}
@@ -134,6 +139,13 @@ export function ChatPanel({
       {limitReached && (
         <AskErrorView error={CONVERSATION_FULL} onNewConversation={onNewConversation} />
       )}
+
+      <StarterQuestions
+        compact={chat.messages.length > 0}
+        asked={askedQuestions}
+        disabled={!canSend}
+        onPick={(question) => void send(question)}
+      />
 
       <div className="flex flex-col">
         <label htmlFor="ask-chat-input" className="sr-only">
@@ -181,29 +193,44 @@ export function ChatPanel({
   )
 }
 
-/** The starter questions of an empty chat, as buttons. */
+/**
+ * The starter questions, as buttons. When compact, the intro line is left out, and on a phone the
+ * buttons sit in one row that scrolls sideways, so they leave room for the conversation.
+ */
 function StarterQuestions({
+  compact,
+  asked,
   disabled,
   onPick,
 }: {
+  compact: boolean
+  /** The questions already sent in this conversation: their buttons are off. */
+  asked: ReadonlySet<string>
   disabled: boolean
   onPick: (question: string) => void
 }) {
   const { L } = useLang()
   return (
     <div className="flex flex-col gap-2.5">
-      <p className={evalPanelIntroCls}>{L.askEmptyHint}</p>
-      <div className="flex flex-wrap gap-2">
+      {!compact && <p className={evalPanelIntroCls}>{L.askEmptyHint}</p>}
+      <div
+        className={
+          compact
+            ? 'flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0'
+            : 'flex flex-wrap gap-2'
+        }
+      >
         {L.askStarters.map((question) => (
           <button
             key={question}
             type="button"
-            disabled={disabled}
+            disabled={disabled || asked.has(question)}
             onClick={() => onPick(question)}
-            className="rounded-full border border-border bg-surface-alt px-3.5 py-1.5 text-left
+            className={`rounded-full border border-border bg-surface-alt px-3.5 py-1.5 text-left
               text-[0.82rem] font-semibold text-text-primary cursor-pointer font-[inherit]
               transition-[border-color] duration-150 hover:border-amber
-              disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled:opacity-60 disabled:cursor-not-allowed
+              ${compact ? 'shrink-0 whitespace-nowrap sm:shrink sm:whitespace-normal' : ''}`}
           >
             {question}
           </button>
