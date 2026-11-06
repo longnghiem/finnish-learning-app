@@ -11,10 +11,9 @@ const CV = {
   location: 'Helsinki, Finland',
   phone: '044 359 7091',
   summary:
-    "I'm a full-stack developer with 7 years of experience across frontend, backend, mobile and DevOps. " +
-    'I like contributing to every stage of a project — from data modelling and implementation, to deployment ' +
-    'and the long tail of maintenance. My goals are simple: keep getting better, and use that craft to make ' +
-    'something that matters.',
+    "I'm a full-stack software developer with 7.5 years of experience across backend, frontend, " +
+    'mobile and DevOps, from data modeling to deployment and support. I want to make a meaningful ' +
+    'impact through my work.',
   competencies: [
     {
       group: 'Backend',
@@ -32,39 +31,87 @@ const CV = {
     { group: 'Frontend', items: ['React', 'TypeScript', 'WebSocket', 'Semantic UI'] },
     {
       group: 'Mobile',
-      items: ['Android (Kotlin)', 'Voice-directed (EdgeVUI)', 'Zebra & Honeywell scanners'],
+      items: [
+        'Android (Kotlin)',
+        'Voice-directed (EdgeVUI, India Voice)',
+        'Zebra & Honeywell scanners',
+      ],
     },
     { group: 'Testing', items: ['Selenium (Web)', 'Appium (Mobile)', 'JUnit 5', 'Mockito'] },
-    { group: 'DevOps', items: ['GitLab CI/CD', 'Docker Compose', 'Ansible', 'AWS'] },
-    { group: 'AI', items: ['Agents', 'PR-Agent', 'MCP', 'Groq', 'AWS Bedrock'] },
+    { group: 'DevOps', items: ['AWS', 'GitLab CI/CD', 'Docker Compose', 'Ansible'] },
+    {
+      group: 'AI',
+      items: ['LLM agents', 'PR-Agent', 'MCP', 'Prompt engineering', 'Groq', 'Amazon Bedrock'],
+    },
   ],
   experience: [
+    {
+      role: 'Independent software developer',
+      company: 'opisuomea.org',
+      city: 'Helsinki',
+      period: '07/2026 — present',
+      current: true,
+      bullets: [
+        {
+          title: 'Finnish language learning platform',
+          body: 'Topic-based flashcards, adaptive-difficulty quizzes, user statistics dashboards and multi-language support.',
+        },
+        {
+          title: 'AI chatbot',
+          body: "Answers recruiters' questions and checks job descriptions against my profile.",
+        },
+        {
+          title: 'MCP & serverless',
+          body: 'Read-only TypeScript MCP server on AWS Lambda, called by a Java MCP client over IAM-signed requests and deployed with AWS CDK.',
+        },
+        {
+          title: 'AI safety & cost control',
+          body: 'Added Bedrock Guardrails, code that verifies every quote the model cites, a bot check, rate limits and hard spending caps. Wrote a red-team suite running against the real model.',
+        },
+        {
+          title: 'Backend',
+          body: 'Built a REST API with Kotlin, Spring Boot, Java 21 and PostgreSQL (jOOQ and Flyway), integrated with Apache Kafka for event-driven async messaging and progress aggregation.',
+        },
+        {
+          title: 'Frontend',
+          body: 'React, TypeScript, Vite, Tailwind CSS, TanStack Query and Zod schema validation.',
+        },
+        { title: 'AI writing evaluation', body: 'Groq and Amazon Bedrock.' },
+        {
+          title: 'Cloud deployment & DevOps',
+          body: 'AWS EC2, Nginx reverse proxy and systemd.',
+        },
+        {
+          title: 'AI-assisted development',
+          body: 'Claude Code with research, planning, implementation and review agents, and PR-Agent on pull requests through GitHub Actions. I review all generated code.',
+        },
+      ],
+    },
     {
       role: 'Software developer',
       company: 'Optiscan Oy',
       city: 'Helsinki',
       period: '04/2020 — 06/2026',
-      current: true,
       bullets: [
         {
           title: 'Warehouse Management Systems',
-          body: 'Planned, developed and maintained multiple WMS platforms and integrated mobile solutions for enterprise clients.',
+          body: 'Planned, developed and maintained multiple WMS and integrated mobile solutions for enterprise clients.',
         },
         {
           title: 'Core product development',
-          body: "Built the company's core product and shared libraries in Kotlin, Spring Boot, PostgreSQL, jOOQ and React. End-to-end coverage with Selenium and Appium; multi-modal mobile apps using voice and barcode.",
+          body: "Developed the company's core product and shared libraries, using Kotlin, Spring Boot, PostgreSQL, jOOQ and React. Built end-to-end tests with Selenium and Appium, and created multi-modal mobile apps (voice and barcode).",
         },
         {
           title: 'Legacy & integration support',
-          body: 'Fixed bugs across Java 7/8, Spring, Hibernate, PostgreSQL and JSP, and triaged incidents in Apache ServiceMix (XML integrations).',
+          body: 'Fixed bugs for legacy projects (Java 7/8, Spring, Hibernate, PostgreSQL and JSP) and troubleshot incidents in Apache ServiceMix (XML-based integrations).',
         },
         {
           title: 'Custom mobile apps',
-          body: 'Single-handedly built full barcode-scanning apps for client workflows.',
+          body: 'Single-handedly built complete mobile apps for barcode scanning.',
         },
         {
           title: 'DevOps',
-          body: 'Designed and optimised CI/CD pipelines in GitLab, containerised services with Docker, and automated infrastructure with Ansible.',
+          body: 'Designed and optimized CI/CD pipelines with GitLab, containerization with Docker, and automation with Ansible.',
         },
       ],
     },
@@ -76,7 +123,7 @@ const CV = {
       bullets: [
         {
           title: '24/7 electricity trading platform',
-          body: 'Maintained and developed Java backend microservices in Java 8, Spring Boot, MsSQL and AngularJS. Prototyped a Slickgrid-based frontend rebuild.',
+          body: 'Maintained and developed Java backend microservices built with Java 8, Spring Boot, MS SQL, AngularJS and Kubernetes. Created a prototype to rebuild the frontend with SlickGrid.',
         },
       ],
     },
@@ -88,26 +135,26 @@ const CV = {
       bullets: [
         {
           title: 'Web applications',
-          body: 'Built small web apps with JavaScript, React, MongoDB, Node and Express.',
+          body: 'Created small web applications with JavaScript, React, MongoDB, Node and Express.',
         },
       ],
     },
     {
       role: 'Back-end developer intern',
-      company: 'Combase USA, Inc',
+      company: 'Combase USA, Inc.',
       city: 'Remote',
       period: '2013',
       bullets: [
         {
           title: 'Sales forecasting',
-          body: 'Created a sales-forecast module using Java and MySQL.',
+          body: 'Created a "sales forecast" module using Java and MySQL.',
         },
       ],
     },
   ],
   education: [
     {
-      title: 'Bachelor degree in Business Information Technology',
+      title: "Bachelor's Degree in Business Information Technology",
       org: 'Lahti University of Applied Sciences',
       period: '2009 — 2014',
     },
@@ -117,6 +164,7 @@ const CV = {
       period: '09/2011 — 01/2012',
     },
   ],
+  certifications: ['AWS Certified Developer - Associate', 'AWS Certified AI Practitioner'],
   hobbies: ['Board games', 'Video games', 'Badminton'],
 } as const
 
@@ -211,7 +259,7 @@ export function PortfolioPage() {
                 Experience
               </p>
               <p className="text-xl font-bold font-mono text-text-primary mt-0.5">
-                7<span className="text-[13px] text-text-muted font-medium ml-1">yrs</span>
+                7.5<span className="text-[13px] text-text-muted font-medium ml-1">yrs</span>
               </p>
             </div>
           </div>
@@ -339,7 +387,7 @@ export function PortfolioPage() {
         </div>
       </section>
 
-      {/* EDUCATION + HOBBIES */}
+      {/* EDUCATION + CERTIFICATIONS + HOBBIES */}
       <section className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3.5 mb-10">
         <div className={cardCls}>
           <p className={sectionLabelCls}>Education</p>
@@ -351,6 +399,19 @@ export function PortfolioPage() {
                 </h3>
                 <p className="text-[13px] text-text-sub mt-[3px] mb-0.5 font-semibold">{ed.org}</p>
                 <p className="text-xs text-text-muted m-0 font-mono font-semibold">{ed.period}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={cardCls}>
+          <p className={sectionLabelCls}>Certifications</p>
+          <div className="flex flex-col gap-4 mt-3.5">
+            {CV.certifications.map((certification) => (
+              <div key={certification} className="border-l-2 border-border pl-3.5">
+                <h3 className="text-[14.5px] font-extrabold text-text-primary m-0 leading-[1.4]">
+                  {certification}
+                </h3>
               </div>
             ))}
           </div>
@@ -383,8 +444,8 @@ export function PortfolioPage() {
             Want to see what I&apos;m building?
           </h2>
           <p className="text-sm text-text-sub mt-1.5 font-medium leading-[1.5]">
-            This Finnish learning app is one of my side projects — built with Kotlin, Spring Boot
-            and React.
+            This Finnish learning app is what I&apos;m building now, with Kotlin, Spring Boot and
+            React.
           </p>
         </div>
         <Link

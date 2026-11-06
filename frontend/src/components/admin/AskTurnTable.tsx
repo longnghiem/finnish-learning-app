@@ -50,6 +50,7 @@ export function GuardrailPill({ outcome }: { outcome: GuardrailOutcome | null })
 /**
  * Stored turns as a table, in the order given (newest first from the API).
  *
+ * - The id is the turn's row id in the database, so a row here can be found with a query there.
  * - The time is a button that opens the turn's whole session (`onOpen` with its session id).
  * - The visitor's text is cut to one line: enough to recognise a conversation from a quote in a
  *   deletion request. The full text is in the session view.
@@ -71,6 +72,7 @@ export function AskTurnTable({
       <table className="w-full border-collapse">
         <thead>
           <tr>
+            <th className={`${adminThCls} text-right`}>{L.adminAskId}</th>
             <th className={adminThCls}>{L.adminAskTime}</th>
             <th className={adminThCls}>{L.adminAskMode}</th>
             <th className={adminThCls}>{L.adminAskStatus}</th>
@@ -86,6 +88,7 @@ export function AskTurnTable({
             const time = formatHelsinkiTime(turn.createdAt, lang)
             return (
               <tr key={turn.id} className={i % 2 === 1 ? 'bg-surface-alt' : ''}>
+                <td className={`${adminTdCls} text-right font-mono tabular-nums`}>{turn.id}</td>
                 <td className={`${adminTdCls} whitespace-nowrap`}>
                   <button
                     type="button"
