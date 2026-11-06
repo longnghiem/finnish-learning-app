@@ -1,4 +1,4 @@
-import {StatCard} from "../components/StatCard.tsx";
+import { StatCard } from '../components/StatCard.tsx'
 import {
   dashCardCls,
   dashEyebrowCls,
@@ -13,13 +13,13 @@ import {
   dashTableColsCls,
   dashTableHeaderCellCls,
   dashTitleCls,
-} from "../styles.ts";
-import {useDashboard} from "../hooks";
-import {useEffect} from "react";
-import {useLang} from "../lang";
-import {useNavigate} from "react-router-dom";
-import {useAuth} from "../auth/useAuth.ts";
-import type {TopicProgress} from "../api";
+} from '../styles.ts'
+import { useDashboard } from '../hooks'
+import { useEffect } from 'react'
+import { useLang } from '../lang'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth.ts'
+import type { TopicProgress } from '../api'
 
 /**
  * Linear-style progress dashboard.
@@ -28,15 +28,15 @@ import type {TopicProgress} from "../api";
  * per-topic table. All data comes from `GET /api/progress/dashboard`.
  */
 export function DashboardPage() {
-  const {L} = useLang()
-  const {isLoggedIn} = useAuth()
+  const { L } = useLang()
+  const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!isLoggedIn) navigate('/login', {replace: true})
+    if (!isLoggedIn) navigate('/login', { replace: true })
   }, [isLoggedIn, navigate])
 
-  const {data, isLoading, isError, refetch} = useDashboard(isLoggedIn)
+  const { data, isLoading, isError, refetch } = useDashboard(isLoggedIn)
 
   const accuracyPct = data ? Math.round(data.overallAccuracy * 100) : 0
 
@@ -135,15 +135,17 @@ interface TopicTableProps {
   rows: TopicProgress[]
 }
 
-function TopicTable({rows}: TopicTableProps) {
-  const {L} = useLang()
+function TopicTable({ rows }: TopicTableProps) {
+  const { L } = useLang()
   const navigate = useNavigate()
 
   return (
     <div className={`${dashCardCls} px-6 pt-5 pb-2 overflow-x-auto`}>
       <div className="flex items-baseline justify-between mb-1.5 min-w-[760px]">
         <span className={dashSectionLabelCls}>{L.masteryByTopic}</span>
-        <span className={dashMetaTextCls}>{rows.length} {L.topics}</span>
+        <span className={dashMetaTextCls}>
+          {rows.length} {L.topics}
+        </span>
       </div>
 
       <div className="min-w-[760px]">
@@ -156,8 +158,9 @@ function TopicTable({rows}: TopicTableProps) {
           <span className={`${dashTableHeaderCellCls} text-right`}>{L.colDueToday}</span>
         </div>
 
-        {rows.map(t => {
-          const learnedPct = t.totalCards > 0 ? Math.round((t.learnedCards / t.totalCards) * 100) : 0
+        {rows.map((t) => {
+          const learnedPct =
+            t.totalCards > 0 ? Math.round((t.learnedCards / t.totalCards) * 100) : 0
           const accPct = Math.round(t.accuracy * 100)
           return (
             <button
@@ -175,14 +178,16 @@ function TopicTable({rows}: TopicTableProps) {
               <div className="h-1.5 bg-surface-alt rounded-[3px] overflow-hidden">
                 <div
                   className="h-full bg-text-primary rounded-[3px] transition-[width] duration-300"
-                  style={{width: `${learnedPct}%`}}
+                  style={{ width: `${learnedPct}%` }}
                 />
               </div>
               <span className="text-[12.5px] font-mono font-semibold text-text-primary text-right tabular-nums">
                 {learnedPct}%
               </span>
               <div className="flex flex-col items-end gap-0.5 leading-tight">
-                <span className="text-[11.5px] font-mono text-text-muted tabular-nums">{accPct}%</span>
+                <span className="text-[11.5px] font-mono text-text-muted tabular-nums">
+                  {accPct}%
+                </span>
                 <span className="text-[11.5px] font-mono text-text-muted whitespace-nowrap tabular-nums">
                   {t.currentStreak}🔥
                 </span>

@@ -1,6 +1,6 @@
-import {useEffect} from 'react'
-import {createPortal} from 'react-dom'
-import {useLang} from '../lang'
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import { useLang } from '../lang'
 
 interface ConfirmModalProps {
   message: string
@@ -9,18 +9,27 @@ interface ConfirmModalProps {
   isLoading?: boolean
 }
 
-export function ConfirmModal({ message, onConfirm, onCancel, isLoading = false }: ConfirmModalProps) {
+export function ConfirmModal({
+  message,
+  onConfirm,
+  onCancel,
+  isLoading = false,
+}: ConfirmModalProps) {
   const { L } = useLang()
 
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCancel()
+    }
     document.addEventListener('keydown', fn)
     return () => document.removeEventListener('keydown', fn)
   }, [onCancel])
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      document.body.style.overflow = ''
+    }
   }, [])
 
   return createPortal(
@@ -29,12 +38,10 @@ export function ConfirmModal({ message, onConfirm, onCancel, isLoading = false }
       className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-[2px]"
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         className="modal-enter bg-surface rounded-2xl p-7 max-w-95 w-full mx-4 shadow-modal border border-border"
       >
-        <p className="text-text-primary mb-6 leading-[1.7] text-[0.95rem]">
-          {message}
-        </p>
+        <p className="text-text-primary mb-6 leading-[1.7] text-[0.95rem]">{message}</p>
         <div className="flex justify-end gap-2.5">
           <button
             type="button"
@@ -55,6 +62,6 @@ export function ConfirmModal({ message, onConfirm, onCancel, isLoading = false }
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   )
 }

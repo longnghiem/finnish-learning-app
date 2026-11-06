@@ -88,6 +88,67 @@ a list of concrete grammar/typo issues with suggested fixes, and optional feedba
   billable request, so a rate-limited user never triggers one.
 - System prompt: `src/main/resources/prompts/essay-evaluation-system-prompt.md`
 
+## Recruiter Chatbot ("Ask Himmel")
+
+An AI agent that answers recruiters' questions about Long's professional background, anonymously,
+on `/ask`. It runs on **Claude Haiku 4.5 on AWS Bedrock** and answers only from a curated profile,
+which it reads through **MCP tools**. The design is in
+[ADR 0002](../docs/adr/0002-recruiter-chatbot-mcp-architecture.md).
+
+| Method | Path | What it does |
+|---|---|---|
+| POST | `/api/ask/session` | Checks the Cloudflare Turnstile token and returns a session id |
+| POST | `/api/ask/chat` | Answers one message as a Server-Sent Events stream: progress steps, then the answer |
+| GET | `/api/ask/stats` | Public totals: answers, blocked attacks, share of this month's budget used |
+| POST | `/api/ask/fit-check` | Checks a pasted job description against the profile, as a Server-Sent Events stream: progress steps, then a verified report |
+
+### How it uses AI
+
+- **A hand-written agent loop with tool use** (`ChatService`, Bedrock Converse API). The model sees
+  an index of the profile and two tools, `list_entries` and `get_entry`. It either answers or asks
+  to read entries; the backend runs the reads and calls the model again. At most 3 rounds of up to
+  4 reads, then one last call that must answer. No agent framework: every model call is budgeted
+  before it runs.
+- **MCP (Model Context Protocol) across two languages.** The tools are served by a separate,
+  read-only TypeScript MCP server on **AWS Lambda** (`../mcp-server`). The backend talks to it with
+  the official Java MCP SDK and signs every request with **AWS SigV4** using the EC2 instance's
+  role, so there is no API key to leak. The function URL refuses unsigned requests.
+- **Bedrock Guardrails before the model.** Each message is screened for prompt attacks and harmful
+  content (`InvokeGuardrailChecks`), in Finnish and English. A blocked message never reaches the
+  model.
+- **Prompt caching.** One cache point moves to the end of the latest message, so a long
+  conversation re-reads its earlier part from Bedrock's cache at a tenth of the input price.
+- **Grounded answers.** The system prompt allows only facts from the profile and asks the model to
+  say when something isn't in it. The conversation history is rebuilt from the database, never
+  taken from the browser.
+- **"Check my fit": structured output and hallucination checks.** A pasted job description goes
+  through a two-phase agent: research calls that read entries over MCP, then one call with
+  **forced, strict tool use**, so Bedrock guarantees a JSON-Schema-valid report.`QuoteVerifier` then 
+  checks every quote against the profile and removes any false claims the model invented. 
+- **A red-team suite against the real model** (`./gradlew redTeam`, opt-in, about $0.15 a run):
+  33 attack, overselling and benign cases in English and Finnish go through the real guardrail,
+  model and profile tools. Jailbreaks, prompt injection and prompt leaks must be blocked or
+  refused, a job ad that says "rate everything STRONG" must be ignored, and every quote of every
+  fit report is checked again against the profile. Details in
+  `src/test/resources/redteam/README.md`.
+- System prompts: `src/main/resources/prompts/recruiter-chat-system-prompt.md`,
+  `src/main/resources/prompts/recruiter-fit-check-system-prompt.md`
+
+### Cost and abuse control
+
+- **A hard spending cap:** $0.50 a day, $5 a month (`app.ask.budget.*`). Before the first
+  billable call, each request reserves its worst-case cost under a database lock; afterwards it
+  settles the real cost, priced from Bedrock's token counts including cache reads and writes
+  (`CostCalculator`). Parallel requests can't break the cap.
+- **Anonymous, but limited:** a Cloudflare Turnstile bot check per conversation, per-IP limits
+  on new conversations and messages, and at most 10 messages per conversation, because every
+  message resends the whole conversation. IP addresses are stored only as a keyed hash (HMAC).
+- **Streaming progress (SSE):** `/chat` returns an `SseEmitter` at once, and the work runs on the
+  small `askExecutor` thread pool. The visitor sees "checking", "reading entries", "writing", then
+  the whole answer. A visitor who leaves stops the turn, so no more model calls are paid for.
+  Errors before the stream are normal HTTP errors with a `code`; later ones are `error` events
+  (contract in `controller/dto/ask/AskSseEvents.kt`).
+
 ## Docker
 
 Kafka runs in **KRaft mode** (`KAFKA_PROCESS_ROLES: broker,controller`), so no separate Zookeeper container is needed.
@@ -145,5 +206,13 @@ GROQ_DAILY_QUOTA=50             # per-user requests per day
 # Bedrock essay evaluator — LOCAL DEVELOPMENT ONLY.
 AWS_BEARER_TOKEN_BEDROCK=       # Bedrock long-term API key (starts ABSK...) — set an expiry
 AWS_REGION=eu-north-1
+
+# Recruiter chatbot: key for hashing visitor IP addresses. REQUIRED, the app won't start without it.
+ASK_IP_HASH_KEY=                # generate with: openssl rand -hex 32
+
+# Recruiter chatbot: Cloudflare Turnstile secret. Blank = the chatbot can't create sessions.
+# For local development use Cloudflare's test secret that always passes, from
+# https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+TURNSTILE_SECRET_KEY=
 
 ```

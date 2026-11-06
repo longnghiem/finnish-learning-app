@@ -1,4 +1,4 @@
-import {TOKEN_KEY} from "../auth/AuthProvider.tsx";
+import { TOKEN_KEY } from '../auth/AuthProvider.tsx'
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL
 
@@ -15,12 +15,14 @@ const rawBaseUrl = import.meta.env.VITE_API_BASE_URL
  * `getImageUrl` below, so both API calls and image URLs share the same origin policy.
  */
 export const API_BASE_URL =
-    rawBaseUrl === undefined ? 'http://localhost:8080'
-    : rawBaseUrl === '' ? window.location.origin
-    : rawBaseUrl
+  rawBaseUrl === undefined
+    ? 'http://localhost:8080'
+    : rawBaseUrl === ''
+      ? window.location.origin
+      : rawBaseUrl
 
 export function getImageUrl(relativeImageUrl: string): string {
-    return `${API_BASE_URL}${relativeImageUrl}`
+  return `${API_BASE_URL}${relativeImageUrl}`
 }
 
 /**
@@ -28,10 +30,10 @@ export function getImageUrl(relativeImageUrl: string): string {
  * when no token is stored.
  */
 export function getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem(TOKEN_KEY)
-    if (!token) {
-        return {}
-    } else {
-        return { 'Authorization': `Bearer ${token}` }
-    }
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (!token) {
+    return {}
+  } else {
+    return { Authorization: `Bearer ${token}` }
+  }
 }

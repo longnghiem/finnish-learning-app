@@ -1,5 +1,5 @@
-import {API_BASE_URL, getAuthHeaders} from "./config.ts";
-import type {ErrorResponse} from "../types";
+import { API_BASE_URL, getAuthHeaders } from './config.ts'
+import type { ErrorResponse } from '../types'
 
 /**
  * A card returned by `GET /api/quiz/topics/{topicId}/cards`.
@@ -45,17 +45,11 @@ export interface SubmitAnswerResponse {
  * Fetches the next batch of cards to review for the authenticated
  * user in the given topic.
  */
-export async function fetchQuizCards(
-  topicId: number,
-  limit: number = 10,
-): Promise<QuizCard[]> {
+export async function fetchQuizCards(topicId: number, limit: number = 10): Promise<QuizCard[]> {
   const url = new URL(`${API_BASE_URL}/api/quiz/topics/${topicId}/cards`)
   url.searchParams.set('limit', String(limit))
 
-  const response = await fetch(
-    url.toString(),
-    { headers: { ...getAuthHeaders() }}
-  )
+  const response = await fetch(url.toString(), { headers: { ...getAuthHeaders() } })
 
   if (!response.ok) {
     const err: ErrorResponse = await response.json()
@@ -68,20 +62,14 @@ export async function fetchQuizCards(
 /**
  * Submits a self-graded quiz answer.
  */
-export async function submitAnswer(
-  cardId: number,
-  quality: number,
-): Promise<SubmitAnswerResponse> {
+export async function submitAnswer(cardId: number, quality: number): Promise<SubmitAnswerResponse> {
   const url = `${API_BASE_URL}/api/quiz/answer`
 
-  const response = await fetch(
-    url,
-    {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', ...getAuthHeaders()},
-      body: JSON.stringify({cardId, quality}),
-    }
-  )
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ cardId, quality }),
+  })
 
   if (!response.ok) {
     const err: ErrorResponse = await response.json()

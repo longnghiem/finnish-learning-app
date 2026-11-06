@@ -125,10 +125,9 @@ export const MAX_ESSAY_LENGTH = 2_500
  * Lists the predefined essay prompts offered for one topic.
  */
 export async function fetchEssayPrompts(topicId: number): Promise<EssayPrompt[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/essays/prompts?topicId=${topicId}`,
-    { headers: { ...getAuthHeaders() } },
-  )
+  const response = await fetch(`${API_BASE_URL}/api/essays/prompts?topicId=${topicId}`, {
+    headers: { ...getAuthHeaders() },
+  })
 
   return handleResponse<EssayPrompt[]>(response)
 }

@@ -1,0 +1,44 @@
+Full-Stack Engineer, AI Products (React / TypeScript / LLMs / AWS)
+
+Aurora Insight Ltd — Espoo, Finland or remote within the EU
+
+About us
+Aurora Insight helps mid-sized companies turn their internal documents into useful, trustworthy answers. Our product combines retrieval, large language models and a clean web interface so that employees can find what they need without digging through shared drives. We are a team of 25 people, and we ship to production several times a day.
+
+About the role
+You will work across the whole stack, from React components to the serverless backend on AWS, and you will help shape how our product uses large language models. You will own features from idea to production and you will talk directly with customers to understand their needs. You must enjoy fast iteration and care about quality at the same time.
+
+Your responsibilities include:
+- Building responsive, accessible user interfaces in React and TypeScript.
+- Designing and implementing backend APIs in TypeScript on AWS Lambda, API Gateway and DynamoDB.
+- Integrating large language models into product features, including prompt design, retrieval-augmented generation and streaming responses.
+- Building evaluation pipelines to measure answer quality, latency and cost, and acting on the results.
+- Implementing guardrails, input validation and logging so that AI features stay safe and auditable.
+- Writing automated tests and keeping our CI/CD pipeline fast and reliable.
+- Monitoring production with CloudWatch and taking part in a light on-call rotation.
+- Sharing what you learn with the team through demos, documentation and code reviews.
+
+What you must have:
+- At least 3 years of professional experience as a full-stack or frontend-leaning engineer.
+- Strong TypeScript skills and solid experience with React.
+- Experience building and operating services on AWS.
+- Practical experience with LLM APIs, embeddings or vector search in a real product.
+- A good sense of user experience and attention to detail.
+- Fluent English.
+
+Nice to have:
+- Experience with Next.js, Tailwind CSS or a component library such as Radix.
+- Infrastructure as code with AWS CDK or Terraform.
+- Experience with Python for data processing or evaluation scripts.
+- An understanding of prompt injection and other risks specific to LLM applications.
+- Finnish language skills.
+
+What we offer:
+- A competitive salary and stock options.
+- Remote-friendly working with optional office days in Espoo.
+- A personal learning budget and a conference trip every year.
+- Modern equipment of your choice.
+- Occupational health care and wellbeing benefits.
+
+How to apply
+Apply through our careers page with your CV and a link to your GitHub profile or portfolio. You should include a few sentences about an AI feature you have built and how you measured whether it worked. We will reply to every applicant within two weeks.

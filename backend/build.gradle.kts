@@ -81,6 +81,11 @@ dependencies {
 		exclude(group = "software.amazon.awssdk", module = "netty-nio-client")
 	}
 	implementation(libs.aws.url.connection.client)
+
+	// MCP client (recruiter chatbot)
+	implementation(libs.mcp.core)
+	implementation(libs.mcp.json.jackson3)
+	implementation(libs.aws.http.auth.aws)
 }
 
 // Load .env at configuration time for JOOQ codegen
@@ -144,6 +149,39 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.test {
+	// Tests tagged "manual" need a running local server; run them with ./gradlew manualTest.
+	// Tests tagged "redteam" call the real Bedrock and cost money; run them with ./gradlew redTeam.
+	useJUnitPlatform { excludeTags("manual", "redteam") }
+}
+
+// Opt-in tests against real local services, e.g. the profile MCP server of `npm run dev` in
+// mcp-server/ (with ASK_MCP_SIGN=false). Not part of ./gradlew test or build.
+tasks.register<Test>("manualTest") {
+	description = "Runs the tests tagged \"manual\", which need real local services."
+	group = "verification"
+	useJUnitPlatform { includeTags("manual") }
+	testClassesDirs = sourceSets["test"].output.classesDirs
+	classpath = sourceSets["test"].runtimeClasspath
+}
+
+// Opt-in red-team suite of the recruiter chatbot: real Bedrock model and guardrail calls (about
+// $0.15 per run) against the example profile of `npm run dev` in mcp-server/. Needs AWS
+// credentials in the environment. How to run it: src/test/resources/redteam/README.md.
+tasks.register<Test>("redTeam") {
+	description = "Runs the recruiter-chatbot red-team suite against the real Bedrock (costs money)."
+	group = "verification"
+	useJUnitPlatform { includeTags("redteam") }
+	testClassesDirs = sourceSets["test"].output.classesDirs
+	classpath = sourceSets["test"].runtimeClasspath
+	// Every run must really call Bedrock, so Gradle must never skip it as "up to date".
+	outputs.upToDateWhen { false }
+	// The suite prints a summary table of every case at the end.
+	testLogging { showStandardStreams = true }
+	// -PrealProfile[=<path to extra cases>] runs against the owner's real profile instead.
+	providers.gradleProperty("realProfile").orNull?.let { systemProperty("redteam.realProfile", it) }
 }
 
 tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {

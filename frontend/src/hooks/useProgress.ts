@@ -1,5 +1,10 @@
-import {useQuery} from "@tanstack/react-query";
-import {type DashboardStats, fetchDashboard, fetchTopicProgress, type TopicProgress} from "../api/progress.ts";
+import { useQuery } from '@tanstack/react-query'
+import {
+  type DashboardStats,
+  fetchDashboard,
+  fetchTopicProgress,
+  type TopicProgress,
+} from '../api/progress.ts'
 
 const PROGRESS_QUERY_KEY = ['progress'] as const
 

@@ -1,15 +1,15 @@
-import {backNavigationBtnCls, pageContainerCls, pageTitleCls} from "../styles.ts";
-import {useNavigate, useParams} from "react-router-dom";
-import {useAuth} from "../auth/useAuth.ts";
-import {useLang} from "../lang";
-import {useEffect, useState} from "react";
-import {useTopics} from "../hooks";
-import {useQuizCards, useSubmitAnswer} from "../hooks/useQuiz.ts";
-import {type QuizAnswerLog, QuizSummary} from "../components/QuizSummary.tsx";
-import type {QuizCard} from "../api/quiz.ts";
-import {QuizFlashcard} from "../components/QuizFlashcard.tsx";
-import {GradeButtons} from "../components/GradeButton.tsx";
-import {ProgressBar} from "../components/ProgressBar.tsx";
+import { backNavigationBtnCls, pageContainerCls, pageTitleCls } from '../styles.ts'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth.ts'
+import { useLang } from '../lang'
+import { useEffect, useState } from 'react'
+import { useTopics } from '../hooks'
+import { useQuizCards, useSubmitAnswer } from '../hooks/useQuiz.ts'
+import { type QuizAnswerLog, QuizSummary } from '../components/QuizSummary.tsx'
+import type { QuizCard } from '../api/quiz.ts'
+import { QuizFlashcard } from '../components/QuizFlashcard.tsx'
+import { GradeButtons } from '../components/GradeButton.tsx'
+import { ProgressBar } from '../components/ProgressBar.tsx'
 
 /**
  * Quiz page: drives the user through a batch of due / new cards
@@ -34,7 +34,7 @@ export function QuizPage() {
   }, [isLoggedIn, navigate])
 
   const { data: topics } = useTopics()
-  const topicName = topics?.find(t => t.id === topicId)?.name ?? `Topic ${topicId}`
+  const topicName = topics?.find((t) => t.id === topicId)?.name ?? `Topic ${topicId}`
 
   const {
     data: quizCards,
@@ -50,7 +50,9 @@ export function QuizPage() {
   const [answers, setAnswers] = useState<QuizAnswerLog[]>([])
 
   // Reset local progress whenever a fresh batch arrives (e.g. after "Quiz again").
-  const [batchRef, setBatchRef] = useState<QuizCard[] | undefined>(quizCards as QuizCard[] | undefined)
+  const [batchRef, setBatchRef] = useState<QuizCard[] | undefined>(
+    quizCards as QuizCard[] | undefined,
+  )
   if (batchRef !== quizCards) {
     setBatchRef(quizCards as QuizCard[] | undefined)
     setCardIndex(0)
@@ -68,8 +70,8 @@ export function QuizPage() {
       { cardId: currentCard.cardId, quality },
       {
         onSuccess: (res) => {
-          setAnswers(prev => [...prev, { quality, correct: res.correct }])
-          setCardIndex(i => i + 1)
+          setAnswers((prev) => [...prev, { quality, correct: res.correct }])
+          setCardIndex((i) => i + 1)
           setFlipped(false)
         },
       },
@@ -129,10 +131,14 @@ export function QuizPage() {
             key={currentCard.cardId}
             card={currentCard}
             flipped={flipped}
-            onFlip={() => setFlipped(f => !f)}
+            onFlip={() => setFlipped((f) => !f)}
           />
 
-          {flipped ? <GradeButtons onGrade={handleGrade} isLoading={submitAnswer.isPending} /> : <></>}
+          {flipped ? (
+            <GradeButtons onGrade={handleGrade} isLoading={submitAnswer.isPending} />
+          ) : (
+            <></>
+          )}
 
           <span className="text-[0.8rem] text-text-muted font-semibold">
             {L.cardOf(cardIndex + 1, total)}
@@ -142,13 +148,8 @@ export function QuizPage() {
       )}
 
       {isSummary && (
-        <QuizSummary
-          answers={answers}
-          topicId={topicId}
-          onQuizAgain={handleQuizAgain}
-        />
+        <QuizSummary answers={answers} topicId={topicId} onQuizAgain={handleQuizAgain} />
       )}
-
     </div>
   )
 }

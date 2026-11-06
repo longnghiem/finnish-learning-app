@@ -1,0 +1,5 @@
+node_modules/
+# CDK's build output. It contains a copy of the deployment package, profile included.
+cdk.out/
+# The root .gitignore ignores every bin/ folder (Java build output). Here bin/ holds source code.
+!bin/

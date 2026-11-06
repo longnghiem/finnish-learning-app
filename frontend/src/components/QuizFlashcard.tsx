@@ -1,14 +1,18 @@
-import type {QuizCard} from "../api/quiz.ts";
+import type { QuizCard } from '../api/quiz.ts'
 import {
-  backCardWrapperCls, cardExampleCls, cardImgCls, cardNameCls,
+  backCardWrapperCls,
+  cardExampleCls,
+  cardImgCls,
+  cardNameCls,
   cardOverlayCls,
-  cardTranslationCls, cardWrapperCls,
+  cardTranslationCls,
+  cardWrapperCls,
   flipPromptCls,
   frontCardWrapperCls,
-  newBadgeCls
-} from "../styles.ts";
-import {useLang} from "../lang";
-import {getImageUrl} from "../api";
+  newBadgeCls,
+} from '../styles.ts'
+import { useLang } from '../lang'
+import { getImageUrl } from '../api'
 
 interface QuizFlashcardProps {
   card: QuizCard
@@ -35,50 +39,27 @@ export function QuizFlashcard({ card, flipped, onFlip }: QuizFlashcardProps) {
   const imageUrl = getImageUrl(card.imageUrl)
 
   return (
-    <div
-      className={`${cardWrapperCls} relative`}
-      onClick={onFlip}
-    >
-      {card.isNew && (
-        <span className={newBadgeCls}>
-          {L.newCard}
-        </span>
-      )}
+    <div className={`${cardWrapperCls} relative`} onClick={onFlip}>
+      {card.isNew && <span className={newBadgeCls}>{L.newCard}</span>}
       <div className={`flashcard-inner${flipped ? ' flipped' : ''}`}>
         {/* Front — English translation + prompt */}
         <div className={frontCardWrapperCls}>
-          <img
-            src={imageUrl}
-            alt={card.translation}
-            className={cardImgCls}
-          />
+          <img src={imageUrl} alt={card.translation} className={cardImgCls} />
           <div className={cardOverlayCls}>
-            <p className={cardTranslationCls}>
-              {card.translation}
-            </p>
+            <p className={cardTranslationCls}>{card.translation}</p>
             <p className="text-[0.78rem] font-semibold text-flash-front-text text-center m-0 mt-1">
               {L.whatsTheFinnishWord}
             </p>
-            <p className={flipPromptCls}>
-              {L.tapToFlip}
-            </p>
+            <p className={flipPromptCls}>{L.tapToFlip}</p>
           </div>
         </div>
 
         {/* Back — Finnish word + example sentence */}
         <div className={backCardWrapperCls}>
-          <img
-            src={imageUrl}
-            alt={card.name}
-            className={cardImgCls}
-          />
+          <img src={imageUrl} alt={card.name} className={cardImgCls} />
           <div className={cardOverlayCls}>
-            <p className={cardNameCls}>
-              {card.name}
-            </p>
-            <p className={cardExampleCls}>
-              {card.exampleSentence}
-            </p>
+            <p className={cardNameCls}>{card.name}</p>
+            <p className={cardExampleCls}>{card.exampleSentence}</p>
           </div>
         </div>
       </div>

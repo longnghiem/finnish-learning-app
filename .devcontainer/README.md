@@ -13,8 +13,8 @@ touch arbitrary hosts on the network or files outside the mounted workspace.
 - `claude-code-bashhistory-${devcontainerId}` → `/commandhistory` (volume — shell history
   survives rebuilds).
 - `~/.claude/skills` → `/home/node/.claude/skills` (bind — host skills are shared in).
-- `~/devcontainer-tmp` → `/tmp` (bind — so `/tmp/RESEARCH.md`, `/tmp/PLAN.md`, `TASK_XX_*.md`
-  written by the planner/researcher skills are visible on the host).
+- `~/devcontainer-tmp` → `/tmp` (bind — so files written to `/tmp` inside the container are
+  visible on the host).
 
 > `~/devcontainer-tmp` must exist on the host before the container starts, or the bind mount
 > fails.

@@ -7,11 +7,11 @@ import topic6 from './topic-6.png'
 import topic7 from './topic-7.png'
 
 export const topicImages: Record<number, string> = {
-    1: topic1,
-    2: topic2,
-    3: topic3,
-    4: topic4,
-    5: topic5,
-    6: topic6,
-    7: topic7,
+  1: topic1,
+  2: topic2,
+  3: topic3,
+  4: topic4,
+  5: topic5,
+  6: topic6,
+  7: topic7,
 }

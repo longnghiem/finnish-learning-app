@@ -1,4 +1,4 @@
-import {dashSectionLabelCls} from "../styles.ts";
+import { dashSectionLabelCls } from '../styles.ts'
 
 interface StatCardProps {
   label: string
@@ -18,10 +18,8 @@ interface StatCardProps {
  * - `accent` is a top-right badge (e.g. "↗ strong").
  * - `highlight = true` swaps the tile to amber (used for non-zero "due").
  */
-export function StatCard({label, value, suffix, sub, accent, highlight = false}: StatCardProps) {
-  const tileCls = highlight
-    ? 'bg-amber/10 border-amber'
-    : 'bg-surface border-border'
+export function StatCard({ label, value, suffix, sub, accent, highlight = false }: StatCardProps) {
+  const tileCls = highlight ? 'bg-amber/10 border-amber' : 'bg-surface border-border'
 
   return (
     <div className={`rounded-[10px] border ${tileCls} px-5 py-5 flex flex-col gap-3`}>
@@ -37,13 +35,9 @@ export function StatCard({label, value, suffix, sub, accent, highlight = false}:
         <span className="text-[32px] font-semibold font-mono text-text-primary leading-none tracking-[-1px] tabular-nums">
           {value}
         </span>
-        {suffix && (
-          <span className="text-sm font-medium text-text-muted font-mono">{suffix}</span>
-        )}
+        {suffix && <span className="text-sm font-medium text-text-muted font-mono">{suffix}</span>}
       </div>
-      {sub && (
-        <span className="text-[11.5px] text-text-muted font-mono tabular-nums">{sub}</span>
-      )}
+      {sub && <span className="text-[11.5px] text-text-muted font-mono tabular-nums">{sub}</span>}
     </div>
   )
 }

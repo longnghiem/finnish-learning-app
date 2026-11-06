@@ -1,7 +1,7 @@
-import type {TopicResponse} from '../types'
-import {Link} from 'react-router-dom'
-import {topicImages} from '../assets/topics'
-import {useLang} from '../lang'
+import type { TopicResponse } from '../types'
+import { Link } from 'react-router-dom'
+import { topicImages } from '../assets/topics'
+import { useLang } from '../lang'
 
 interface TopicCardProps {
   topic: TopicResponse
@@ -27,8 +27,10 @@ export function TopicCard({ topic, dueCards }: TopicCardProps) {
           className="w-full h-full object-cover block transition-transform duration-350 ease-in-out group-hover:scale-[1.06]"
         />
         {showDueBadge && (
-          <span className="absolute top-2.5 right-2.5 z-10 rounded-full bg-amber text-nav-btn-text text-[11px] font-extrabold
-            font-mono px-2.5 py-0.5 tracking-[0.2px] shadow-[0_2px_8px_rgba(0,0,0,0.18)]">
+          <span
+            className="absolute top-2.5 right-2.5 z-10 rounded-full bg-amber text-nav-btn-text text-[11px] font-extrabold
+            font-mono px-2.5 py-0.5 tracking-[0.2px] shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
+          >
             {dueCards} {L.due}
           </span>
         )}
@@ -40,9 +42,13 @@ export function TopicCard({ topic, dueCards }: TopicCardProps) {
               {topic.name}
             </p>
           </div>
-          <span className="shrink-0 inline-flex items-baseline gap-[3px] bg-surface-alt border border-border
-              rounded-lg px-2.5 py-1 font-mono">
-            <span className="text-[13px] font-bold text-text-primary leading-none tabular-nums">{totalCards}</span>
+          <span
+            className="shrink-0 inline-flex items-baseline gap-[3px] bg-surface-alt border border-border
+              rounded-lg px-2.5 py-1 font-mono"
+          >
+            <span className="text-[13px] font-bold text-text-primary leading-none tabular-nums">
+              {totalCards}
+            </span>
             <span className="text-[10px] font-semibold text-text-muted leading-none">
               {totalCards === 1 ? 'card' : 'cards'}
             </span>

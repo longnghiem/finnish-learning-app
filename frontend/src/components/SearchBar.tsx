@@ -1,5 +1,5 @@
-import type {SearchType} from '../types'
-import {useLang} from '../lang'
+import type { SearchType } from '../types'
+import { useLang } from '../lang'
 
 interface SearchBarProps {
   searchType: SearchType
@@ -13,7 +13,12 @@ const toggleClassNames = (active: boolean) =>
     active ? 'bg-amber text-nav-btn-text' : 'bg-surface-alt text-text-sub'
   }`
 
-export function SearchBar({ searchType, searchTerm, onSearchTypeChange, onSearchTermChange }: SearchBarProps) {
+export function SearchBar({
+  searchType,
+  searchTerm,
+  onSearchTypeChange,
+  onSearchTermChange,
+}: SearchBarProps) {
   const { L } = useLang()
 
   return (
@@ -37,7 +42,7 @@ export function SearchBar({ searchType, searchTerm, onSearchTypeChange, onSearch
       <input
         type="text"
         value={searchTerm}
-        onChange={e => onSearchTermChange(e.target.value)}
+        onChange={(e) => onSearchTermChange(e.target.value)}
         placeholder={searchType === 'VERB' ? L.searchByWord : L.searchBySentence}
         className="flex-1 rounded-lg border border-border-input bg-surface text-text-primary px-3.5 py-2 text-sm font-[inherit]
          outline-none transition-[border-color,box-shadow] duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20"

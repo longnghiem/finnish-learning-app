@@ -19,7 +19,7 @@ import me.longng.finnish_learning_mobile.util.runCatchingApp
  *  * Persist successful logins via [TokenStore].
  *  * Expose [session] so the rest of the app reacts to login / logout without polling.
  *
- * Lifecycle: this class is a process-wide singleton (bound in Hilt in TASK_09).
+ * Lifecycle: meant to be a process-wide singleton (one instance per app process).
  * The in-memory [_state] is hydrated from disk in the init block so a warm
  * cold-start picks up the previous session immediately — no flicker through
  * a logged-out UI state.

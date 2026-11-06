@@ -16,7 +16,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [dark])
 
   return (
-    <ThemeContext.Provider value={{ dark, toggleDark: () => setDark(d => !d) }}>
+    <ThemeContext.Provider value={{ dark, toggleDark: () => setDark((d) => !d) }}>
       {children}
     </ThemeContext.Provider>
   )

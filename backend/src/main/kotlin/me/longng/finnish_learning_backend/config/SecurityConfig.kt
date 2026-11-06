@@ -46,10 +46,15 @@ class WebSecurityConfig(
                     .requestMatchers(HttpMethod.GET, "/api/images/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
+                    // Recruiter chatbot — anonymous on purpose. Protected by Turnstile-gated
+                    // sessions, per-IP limits (database) + nginx limit_req, and the global $ cap.
+                    .requestMatchers("/api/ask/**").permitAll()
                     // Admin-only — card content management
                     .requestMatchers(HttpMethod.POST, "/api/cards/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.PUT, "/api/cards/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/api/cards/**").hasRole("ADMIN")
+                    // Admin-only — chatbot conversations and statistics
+                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     // Authenticated — quiz and progress
                     .requestMatchers("/api/quiz/**").authenticated()
                     .requestMatchers("/api/progress/**").authenticated()

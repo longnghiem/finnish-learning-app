@@ -1,6 +1,5 @@
 package me.longng.finnish_learning_backend.service.groq
 
-import me.longng.finnish_learning_backend.service.bedrock.EssayQuotaTracker.Counter
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.LocalDate

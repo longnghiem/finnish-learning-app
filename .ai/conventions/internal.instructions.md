@@ -161,63 +161,12 @@ const isPathActive = (pathname: string, linkTo: string): boolean => {
 
 ---
 
-### 6. Use createLogger Instead of console.log for Application Logging
-
-Do not use `console.log`, `console.warn`, `console.error`, or other console methods for application logging. 
-Console logs do not get persisted and cannot be submitted to AGW (Application Gateway) for debugging production issues.
-
-Instead, use the `createLogger` function from `@react-commons/utils/logging.ts` to create a logger instance. This ensures logs are:
-- Persisted to local storage
-- Available for submission to AGW
-- Properly formatted with timestamps and log levels
-- Accessible via `retrieveLastLogs()` for debugging
+### 6. Point 6 Placeholder
 
 **Example:**
 
-```tsx
-// ❌ Avoid: Using console methods for application logging
-export const useValueFormatter = () => {
-  return (value: string | undefined): string => {
-    if (!value) {
-      console.log("No value provided");
-      return "";
-    }
-
-    try {
-      // ...formatting logic...
-    } catch (error) {
-      console.error("Error formatting value:", error);
-      return "";
-    }
-  };
-};
-
-// ✅ Prefer: Using createLogger for proper logging
-import { createLogger } from "@react-commons/utils/logging.ts";
-
-const logger = createLogger("formatting");
-
-export const useValueFormatter = () => {
-  return (value: string | undefined): string => {
-    if (!value) {
-      // No need to log info level for optional parameters
-      return "";
-    }
-
-    try {
-      // ...formatting logic...
-    } catch (error) {
-      logger.error("Error formatting value", { value, error });
-      return "";
-    }
-  };
-};
-
-// Available log levels:
-// logger.debug("message", { context })  // For debugging information
-// logger.info("message", { context })   // For informational messages
-// logger.warn("message", { context })   // For warnings
-// logger.error("message", { context })  // For errors
+```kotlin
+// TODO: Add example
 ```
 
 ---

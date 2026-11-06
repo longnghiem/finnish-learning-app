@@ -176,8 +176,7 @@ You can never re-download this file. If you lose it, delete the key pair and cre
 
        Port 80 must stay open even though the site is HTTPS-only in practice: Let's Encrypt
        renews over the HTTP-01 challenge on port 80 every ~60 days, and nginx serves the
-       HTTP→HTTPS redirect there. Closing it breaks renewal silently — see
-       `HTTPS_MIGRATION_PLAN.md` §6.
+       HTTP→HTTPS redirect there. Closing it breaks renewal silently.
 7. **Configure storage**:
    - 1 × **30 GiB** **gp3** root volume.
    - Confirm "Free tier eligible storage" appears in the right panel.
@@ -269,7 +268,10 @@ EC2 Console → **Instances** → select the instance from §4.5 (`finnish-demo`
 #### 4.7.5 Local development is different
 
 Your laptop has no instance profile, so it authenticates with a **Bedrock long-term API
-key** (`AWS_BEARER_TOKEN_BEDROCK`) kept in the gitignored `backend/.env`. 
+key** (`AWS_BEARER_TOKEN_BEDROCK`) kept in the gitignored `backend/.env`. That key can't run
+the recruiter chatbot's guardrail check, so for the chatbot comment it out and use
+`eval "$(aws configure export-credentials --profile fin-learn-app --format env)"` in the same
+terminal.
 
 ---
 
@@ -385,7 +387,26 @@ HTTP-only bootstrap vhost and will refuse with exit 3 to protect the running TLS
 config. To change the vhost, edit `finnish-tls.conf` in the repo and re-run
 `install-tls.sh`.
 
-### 5.8 Confirm dependencies
+### 5.8 Recruiter chatbot ("Ask Himmel")
+
+The chatbot needs more than this page: an AWS permission, three settings in
+`/etc/finnish-backend.env`, a Lambda function, and a check after the deploy. All of it is in
+[docs/runbooks/recruiter-chatbot-aws-setup.md](../docs/runbooks/recruiter-chatbot-aws-setup.md),
+Part B, with the cost checks in Part C. Do Part B **before** deploying a backend that contains
+the chatbot: without `ASK_IP_HASH_KEY` that backend doesn't start.
+
+Two files in this directory carry chatbot settings:
+
+- `nginx/finnish-tls.conf` (and `finnish.conf`): `/api/ask/` is rate-limited to 10 requests per
+  minute per client IP, with bursts of 6. Over the limit, nginx answers `429` with a small JSON
+  body (`"code":"BUSY"`), which the page shows as "The assistant is busy right now". It's the
+  first layer only; the backend has per-IP daily limits and a spending cap. Re-run
+  `install-tls.sh` (§5.7) to install a changed vhost.
+- `backend/finnish-backend.service`: `TimeoutStopSec=75`, so a restart lets running chats finish
+  (the backend waits up to 60 s for them). Re-run `install-backend.sh` (§5.5) to install a
+  changed unit; it never overwrites `/etc/finnish-backend.env`.
+
+### 5.9 Confirm dependencies
 
 ```bash
 systemctl is-active postgresql kafka nginx
@@ -645,10 +666,8 @@ Bedrock IAM role would regress to static access keys on disk. Not worth it.
 These are valuable post-demo enhancements; this runbook deliberately omits them
 to keep the demo path short:
 
-- **HTTPS / TLS** — would require a domain name and Certbot. See https://certbot.eff.org/instructions?ws=nginx&os=snap.
-- **Custom domain** — requires Route 53 ($0.50/mo) and DNS configuration.
 - **CI / CD pipeline** — the current `build.sh` + `deploy.sh` flow is intentional for the demo.
-- **Infrastructure as Code** (Terraform, CDK) — the Console clicks above are explicit; an IaC version would mirror them.
+- **Infrastructure as Code for the instance** (Terraform, CDK) — the Console clicks above are explicit; an IaC version would mirror them. The recruiter chatbot's AWS resources are already code, in [`infra/`](../infra/README.md).
 - **Remote log aggregation** The backend now writes rolling plain-text log files to `/opt/finnish/logs/` (see `backend/src/main/resources/logback-spring.xml`) and still logs to the journal; shipping those logs off-box is the part not covered here.
 - **Multi-instance / load balancer / autoscaling** — not feasible in Free Tier and unnecessary for a single-user demo.
 - **Database backups beyond `aws ec2 create-snapshot`** — RDS managed snapshots would be the production answer.

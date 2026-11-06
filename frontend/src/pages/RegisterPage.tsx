@@ -1,8 +1,8 @@
-import {useAuth} from "../auth/useAuth.ts";
-import {Link, useNavigate} from "react-router-dom";
-import {useLang} from "../lang";
-import {useEffect, useState, type SubmitEvent} from "react";
-import {registerUser} from "../api";
+import { useAuth } from '../auth/useAuth.ts'
+import { Link, useNavigate } from 'react-router-dom'
+import { useLang } from '../lang'
+import { useEffect, useState, type SubmitEvent } from 'react'
+import { registerUser } from '../api'
 import { inputCls, labelCls, submitButtonCls } from '../styles'
 
 const MIN_PASSWORD_LENGTH = 6
@@ -75,8 +75,8 @@ export function RegisterPage() {
             <input
               type="text"
               value={username}
-              onChange={e => {
-                setUsername(e.target.value);
+              onChange={(e) => {
+                setUsername(e.target.value)
                 setError(null)
               }}
               className={inputCls}
@@ -89,7 +89,10 @@ export function RegisterPage() {
             <input
               type="password"
               value={password}
-              onChange={e => { setPassword(e.target.value); setError(null) }}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setError(null)
+              }}
               className={inputCls}
               placeholder={L.password}
               autoComplete="new-password"
@@ -100,7 +103,10 @@ export function RegisterPage() {
             <input
               type="password"
               value={confirmPassword}
-              onChange={e => { setConfirmPassword(e.target.value); setError(null) }}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value)
+                setError(null)
+              }}
               className={inputCls}
               placeholder={L.confirmPassword}
               autoComplete="new-password"
@@ -111,11 +117,7 @@ export function RegisterPage() {
               {error}
             </div>
           )}
-          <button
-            type="submit"
-            disabled={submitting}
-            className={submitButtonCls}
-          >
+          <button type="submit" disabled={submitting} className={submitButtonCls}>
             {L.register}
           </button>
           <p className="text-center text-[0.8rem] text-text-sub mt-2">

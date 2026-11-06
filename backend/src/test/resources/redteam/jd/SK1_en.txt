@@ -1,0 +1,19 @@
+Full-Stack Developer, Generative AI (Kotlin / React / AWS Bedrock)
+
+Revontuli AI Oy — Espoo, Finland (hybrid)
+
+About the role
+You will build product features on top of large language models: chat assistants, document summaries and structured extraction. You will own features end to end, from the React frontend to the Kotlin backend and the model calls.
+
+What you must have:
+- Production experience with Amazon Bedrock or a similar LLM platform.
+- Strong Kotlin and Spring Boot.
+- Solid React and TypeScript.
+- Experience with PostgreSQL.
+
+Nice to have:
+- Prompt design and evaluation of model output.
+- AWS Lambda.
+
+How to apply
+Send your CV and tell us about an AI feature you have built.

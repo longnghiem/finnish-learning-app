@@ -1,9 +1,11 @@
 # Finnish Learning App
 
-Monorepo for a full-stack Finnish vocabulary flashcard app. Two independent projects:
+Monorepo for a full-stack Finnish vocabulary flashcard app, with an AI recruiter chatbot. Independent projects:
 
 - [`backend/`](./backend/README.md) — Spring Boot REST API
 - [`frontend/`](./frontend/README.md) — React SPA
+- [`mcp-server/`](./mcp-server/README.md) — read-only MCP server for the chatbot, on AWS Lambda
+- [`infra/`](./infra/README.md) — AWS CDK app for the chatbot's AWS resources
 - [`deploy/`](./deploy/README.md) — AWS EC2 deployment (scripts, systemd units, nginx, runbook)
 
 See each subdirectory's README for full setup, env vars, and commands.
@@ -66,6 +68,8 @@ Quiz answers are written to the DB (source of truth) and published to the `quiz-
 
 **AI sentence evaluation** is LLM-backed *automated writing evaluation* (AWE): Groq chat completion (`openai/gpt-oss-120b`) returns JSON-mode structured feedback — CEFR sub-level, grammar / typo / word-usage flags, and an optional correction — behind a per-user daily quota.
 **AI short essay evaluation** is the same idea at paragraph length, on a different provider: Claude Haiku 4.5 via AWS Bedrock's Converse API, called from `eu-north-1` through the EU inference profile, with the response shape enforced by a JSON Schema rather than described in a prompt — CEFR sub-level, a topic-relevance flag, and a list of grammar/typo issues each paired with a substitutable fix. 
+
+**Ask Himmel** (`/ask`) is a recruiter chatbot: a hand-written agent loop on Claude Haiku 4.5 through AWS Bedrock answers questions about the developer's background, and checks a pasted job description against it. The backend on EC2 reads a curated profile through a read-only MCP server on AWS Lambda, behind Bedrock Guardrails and hard spending caps. The design is in [ADR 0002](./docs/adr/0002-recruiter-chatbot-mcp-architecture.md).
 
 Quick start (from `backend/`):
 ```

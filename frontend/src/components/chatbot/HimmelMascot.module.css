@@ -1,0 +1,254 @@
+/*
+ * Himmel the mascot. One class on the root; the parts are found by `data-himmel-part`, the mood by
+ * `data-state` and the pose by `data-variant`.
+ *
+ * Everything is in the `components` layer, which Tailwind puts before its utilities: a class such
+ * as `w-24` on the root wins over the default width here.
+ */
+@layer components {
+  .himmel {
+    /* Where the steam rises, as parts of the picture. Adjust them if the artwork's cup moves. */
+    --himmel-steam-left: 8%;
+    --himmel-steam-top: 12%;
+    --himmel-steam-width: 36%;
+
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    width: 6rem;
+    aspect-ratio: 1;
+    container-type: inline-size;
+    color: var(--text-sub);
+  }
+
+  .himmel[data-variant='peek'] {
+    aspect-ratio: 3 / 2;
+  }
+
+  /* The cat: the drawing or the frames, all stacked in one box. */
+  .himmel [data-himmel-part='figure'] {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 100%;
+    animation: himmel-breathe 4s ease-in-out infinite;
+  }
+
+  .himmel [data-himmel-part='figure'] > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none;
+  }
+
+  /* The blink: the closed eyes show for a moment every 5 seconds. */
+  .himmel [data-himmel-part='eyes-open'] {
+    animation: himmel-blink-open 5s infinite;
+  }
+
+  .himmel [data-himmel-part='eyes-closed'] {
+    opacity: 0;
+    animation: himmel-blink-closed 5s infinite;
+  }
+
+  /* Steam over the cup: three wisps that rise and fade one after another. */
+  .himmel [data-himmel-part='steam'] {
+    position: absolute;
+    left: var(--himmel-steam-left);
+    top: var(--himmel-steam-top);
+    width: var(--himmel-steam-width);
+    height: auto;
+    overflow: visible;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  .himmel [data-himmel-part='steam'] path {
+    opacity: 0;
+    animation: himmel-steam 3.2s ease-in-out infinite;
+  }
+
+  .himmel [data-himmel-part='steam'] path:nth-child(2) {
+    animation-delay: 1.05s;
+  }
+
+  .himmel [data-himmel-part='steam'] path:nth-child(3) {
+    animation-delay: 2.1s;
+  }
+
+  /* The "z" of a sleeping cat: hidden in every other state. */
+  .himmel [data-himmel-part='z'] {
+    position: absolute;
+    top: 0;
+    right: 4%;
+    display: none;
+    font-size: 1rem;
+    font-size: 18cqi;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  /* listening: leans in a little, still breathing. */
+  .himmel[data-state='listening'] [data-himmel-part='figure'] {
+    animation-name: himmel-lean;
+  }
+
+  /* thinking: the head tilts, the steam rises faster. */
+  .himmel[data-state='thinking'] [data-himmel-part='figure'] {
+    animation: himmel-tilt 1.6s ease-in-out infinite;
+  }
+
+  .himmel[data-state='thinking'] [data-himmel-part='steam'] path {
+    animation-duration: 1.4s;
+  }
+
+  .himmel[data-state='thinking'] [data-himmel-part='steam'] path:nth-child(2) {
+    animation-delay: 0.45s;
+  }
+
+  .himmel[data-state='thinking'] [data-himmel-part='steam'] path:nth-child(3) {
+    animation-delay: 0.9s;
+  }
+
+  /* talking: six short bobs (2.4 s) when the state starts, then breathing again. */
+  .himmel[data-state='talking'] [data-himmel-part='figure'] {
+    animation:
+      himmel-bob 0.4s ease-in-out 6,
+      himmel-breathe 4s ease-in-out 2.4s infinite;
+  }
+
+  /* sleeping: eyes closed, slow breath, no steam, a floating "z". */
+  .himmel[data-state='sleeping'] [data-himmel-part='figure'] {
+    animation-duration: 6s;
+  }
+
+  .himmel[data-state='sleeping'] [data-himmel-part='eyes-open'] {
+    opacity: 0;
+    animation: none;
+  }
+
+  .himmel[data-state='sleeping'] [data-himmel-part='eyes-closed'] {
+    opacity: 1;
+    animation: none;
+  }
+
+  .himmel[data-state='sleeping'] [data-himmel-part='steam'] {
+    display: none;
+  }
+
+  .himmel[data-state='sleeping'] [data-himmel-part='z'] {
+    display: block;
+    animation: himmel-z 2.4s ease-in-out infinite;
+  }
+
+  /*
+     * Reduced motion: nothing moves. The state still shows in the still picture: closed eyes and
+     * the "z" when sleeping, the steam as a faint still line.
+     */
+  @media (prefers-reduced-motion: reduce) {
+    .himmel,
+    .himmel * {
+      animation: none !important;
+    }
+
+    .himmel [data-himmel-part='steam'] path {
+      opacity: 0.4;
+    }
+  }
+}
+
+@keyframes himmel-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.025);
+  }
+}
+
+@keyframes himmel-lean {
+  0%,
+  100% {
+    transform: translateY(-2%) scale(1.04);
+  }
+  50% {
+    transform: translateY(-2%) scale(1.06);
+  }
+}
+
+@keyframes himmel-tilt {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes himmel-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3%);
+  }
+}
+
+@keyframes himmel-blink-open {
+  0%,
+  92%,
+  98%,
+  100% {
+    opacity: 1;
+  }
+  93%,
+  97% {
+    opacity: 0;
+  }
+}
+
+@keyframes himmel-blink-closed {
+  0%,
+  92%,
+  98%,
+  100% {
+    opacity: 0;
+  }
+  93%,
+  97% {
+    opacity: 1;
+  }
+}
+
+@keyframes himmel-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  40% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes himmel-z {
+  0% {
+    opacity: 0;
+    transform: translate(0, 20%) scale(0.8);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(30%, -40%) scale(1.15);
+  }
+}

@@ -2,7 +2,13 @@ import { useLang } from '../lang'
 import { useEffect, useRef, useState } from 'react'
 import { useSentenceEvaluation } from '../hooks'
 import type { EvaluateSentenceResponse } from '../api'
-import { evalPanelCls, evalResultCls, evalTextareaCls } from '../styles'
+import {
+  evalPanelCls,
+  evalPanelIntroCls,
+  evalPanelTitleCls,
+  evalResultCls,
+  evalTextareaCls,
+} from '../styles'
 import {
   AiBadge,
   Chip,
@@ -66,11 +72,11 @@ export function SentenceEvaluationPanel({
       <header className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <AiBadge />
-          <h2 id="eval-panel-title" className="text-[1.02rem] font-extrabold text-text-primary m-0">
+          <h2 id="eval-panel-title" className={evalPanelTitleCls}>
             {L.evalPanelTitle}
           </h2>
         </div>
-        <p className="text-[0.86rem] text-text-sub m-0 leading-[1.5]">
+        <p className={evalPanelIntroCls}>
           {L.evalPanelPrompt} <span className="font-extrabold text-accent">{word}</span>
           <span className="text-text-muted font-medium"> · {meaning}</span>
         </p>

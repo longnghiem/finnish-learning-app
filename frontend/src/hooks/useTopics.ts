@@ -1,5 +1,5 @@
-import {useQuery} from "@tanstack/react-query";
-import {fetchTopics} from "../api";
+import { useQuery } from '@tanstack/react-query'
+import { fetchTopics } from '../api'
 
 /**
  * Fetches all predefined Finnish learning topics.
@@ -10,9 +10,9 @@ import {fetchTopics} from "../api";
  * @returns A TanStack Query result containing the list of topics.
  */
 export function useTopics() {
-    return useQuery({
-        queryKey: ['topic'],
-        queryFn: fetchTopics,
-        staleTime: Infinity,
-    })
+  return useQuery({
+    queryKey: ['topic'],
+    queryFn: fetchTopics,
+    staleTime: Infinity,
+  })
 }

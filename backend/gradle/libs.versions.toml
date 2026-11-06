@@ -8,6 +8,7 @@ postgresql = "42.7.2"
 jooq-codegen = "10.1"
 jjwt = "0.12.6"
 aws-sdk = "2.53.3"
+mcp-sdk = "2.0.1"
 
 [libraries]
 # Kotlin
@@ -64,6 +65,11 @@ testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
 # aws
 aws-bedrockruntime = { module = "software.amazon.awssdk:bedrockruntime", version.ref = "aws-sdk" }
 aws-url-connection-client = { module = "software.amazon.awssdk:url-connection-client", version.ref = "aws-sdk" }
+aws-http-auth-aws = { module = "software.amazon.awssdk:http-auth-aws", version.ref = "aws-sdk" }
+
+# MCP client (recruiter chatbot)
+mcp-core = { module = "io.modelcontextprotocol.sdk:mcp-core", version.ref = "mcp-sdk" }
+mcp-json-jackson3 = { module = "io.modelcontextprotocol.sdk:mcp-json-jackson3", version.ref = "mcp-sdk" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
