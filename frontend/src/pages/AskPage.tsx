@@ -1,6 +1,6 @@
 /**
  * The recruiter chatbot's page, "Ask Himmel": Himmel the mascot, a human check, then the tabs Chat
- * and Check my fit. Under them, the live stats and "How this works".
+ * and the fit check. Under them, the live stats and "How this works".
  *
  * Both tab panels stay mounted once there is a session; the one not shown is `hidden`. So an
  * answer or a fit check keeps streaming while the visitor looks at the other tab. Unmounting a

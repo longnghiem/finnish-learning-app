@@ -268,7 +268,10 @@ EC2 Console → **Instances** → select the instance from §4.5 (`finnish-demo`
 #### 4.7.5 Local development is different
 
 Your laptop has no instance profile, so it authenticates with a **Bedrock long-term API
-key** (`AWS_BEARER_TOKEN_BEDROCK`) kept in the gitignored `backend/.env`. 
+key** (`AWS_BEARER_TOKEN_BEDROCK`) kept in the gitignored `backend/.env`. That key can't run
+the recruiter chatbot's guardrail check, so for the chatbot comment it out and use
+`eval "$(aws configure export-credentials --profile fin-learn-app --format env)"` in the same
+terminal.
 
 ---
 
@@ -663,10 +666,8 @@ Bedrock IAM role would regress to static access keys on disk. Not worth it.
 These are valuable post-demo enhancements; this runbook deliberately omits them
 to keep the demo path short:
 
-- **HTTPS / TLS** — would require a domain name and Certbot. See https://certbot.eff.org/instructions?ws=nginx&os=snap.
-- **Custom domain** — requires Route 53 ($0.50/mo) and DNS configuration.
 - **CI / CD pipeline** — the current `build.sh` + `deploy.sh` flow is intentional for the demo.
-- **Infrastructure as Code** (Terraform, CDK) — the Console clicks above are explicit; an IaC version would mirror them.
+- **Infrastructure as Code for the instance** (Terraform, CDK) — the Console clicks above are explicit; an IaC version would mirror them. The recruiter chatbot's AWS resources are already code, in [`infra/`](../infra/README.md).
 - **Remote log aggregation** The backend now writes rolling plain-text log files to `/opt/finnish/logs/` (see `backend/src/main/resources/logback-spring.xml`) and still logs to the journal; shipping those logs off-box is the part not covered here.
 - **Multi-instance / load balancer / autoscaling** — not feasible in Free Tier and unnecessary for a single-user demo.
 - **Database backups beyond `aws ec2 create-snapshot`** — RDS managed snapshots would be the production answer.

@@ -1,6 +1,6 @@
 /**
  * The verified fit report of a job description: summary, one row per requirement, gaps and a
- * note on how the quotes were checked. Used by the "Check my fit" tab.
+ * note on how the quotes were checked. Used by the fit check tab.
  */
 import { useState } from 'react'
 import { type I18nStrings, useLang } from '../../lang'
