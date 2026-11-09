@@ -9,7 +9,7 @@ const CV = {
   greetingFi: 'Moi, olen Long',
   greetingEn: "Hi, I'm Long",
   location: 'Helsinki, Finland',
-  phone: '044 359 7091',
+  phone: '+358 44 359 7091',
   summary:
     "I'm a full-stack software developer with 7.5 years of experience across backend, frontend, " +
     'mobile and DevOps, from data modeling to deployment and support. I want to make a meaningful ' +
@@ -41,7 +41,15 @@ const CV = {
     { group: 'DevOps', items: ['AWS', 'GitLab CI/CD', 'Docker Compose', 'Ansible'] },
     {
       group: 'AI',
-      items: ['LLM agents', 'PR-Agent', 'MCP', 'Prompt engineering', 'Groq', 'Amazon Bedrock'],
+      items: [
+        'LLM agents',
+        'Agent harness',
+        'PR-Agent',
+        'MCP',
+        'Prompt engineering',
+        'Groq',
+        'Amazon Bedrock',
+      ],
     },
   ],
   experience: [
@@ -79,11 +87,11 @@ const CV = {
         { title: 'AI writing evaluation', body: 'Groq and Amazon Bedrock.' },
         {
           title: 'Cloud deployment & DevOps',
-          body: 'AWS EC2, Nginx reverse proxy and systemd.',
+          body: 'Docker, AWS EC2 and CDK, Nginx reverse proxy and systemd.',
         },
         {
           title: 'AI-assisted development',
-          body: 'Claude Code with research, planning, implementation and review agents, and PR-Agent on pull requests through GitHub Actions. I review all generated code.',
+          body: 'Claude Code with research, planning, implementation and review agents running in a sandboxed devcontainer harness, and PR-Agent on pull requests through GitHub Actions. I review all generated code.',
         },
       ],
     },
@@ -140,7 +148,7 @@ const CV = {
       ],
     },
     {
-      role: 'Back-end developer intern',
+      role: 'Backend developer intern',
       company: 'Combase USA, Inc.',
       city: 'Remote',
       period: '2013',
