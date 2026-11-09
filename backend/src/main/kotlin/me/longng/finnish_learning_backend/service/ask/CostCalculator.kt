@@ -67,7 +67,7 @@ class CostCalculator(properties: AskProperties) {
      * |---|---|---|
      * | Chat, first 500-character message | ≈ $0.059 | ≈ $0.011 |
      * | Chat, 10th message (≈ 5,000 tokens of history) | ≈ $0.081 | ≈ $0.02 |
-     * | Fit check, 6,000-character job description | ≈ $0.145 | ≈ $0.03 |
+     * | Fit check, 6,000-character job description | ≈ $0.168 | ≈ $0.03 |
      *
      * @param promptChars the system prompt, the profile index and the tool specifications
      * @param inputChars the recruiter's message or job description
