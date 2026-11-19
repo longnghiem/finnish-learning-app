@@ -203,6 +203,17 @@ if [[ "$MODE" != "verify" ]]; then
     *)        fail "Internal error: unhandled mode '$MODE'" 1 ;;
   esac
 
+  # A plain patch installs only what the pinned release contains, so a fix that
+  # shipped in a newer release is silently skipped. Find the newest release that
+  # is available, to warn about it at the end. This runs before the dry-run exit
+  # so that a preview reports it too. The version is reported, never installed:
+  # moving the pin stays the operator's decision.
+  if [[ "$MODE" != "release" ]]; then
+    NEWER_RELEASE="$( { dnf check-release-update 2>&1 || true; } \
+      | grep -oE 'Version 20[0-9]{2}\.[0-9]+\.[0-9]{8}' \
+      | awk '{print $2}' | sort -V | tail -1 || true)"
+  fi
+
   # --assumeno makes dnf resolve and print the full transaction, then decline it.
   # It exits non-zero because the operation was declined, hence `|| true`.
   if (( DRY_RUN == 1 )); then
@@ -210,6 +221,11 @@ if [[ "$MODE" != "verify" ]]; then
     log "DRY RUN: dnf ${DNF_ARGS[*]}"
     dnf "${DNF_ARGS[@]}" || true
     log "Dry run complete. NOTHING was changed. Re-run without --dry-run to apply."
+    if [[ -n "$NEWER_RELEASE" ]]; then
+      warn "THIS HOST IS BEHIND: pinned to $CURRENT_RELEASE, newest release is $NEWER_RELEASE."
+      warn "This preview covers the pinned release only. Preview the newer one with:"
+      warn "    sudo bash deploy/maintenance/patch-os.sh --release=$NEWER_RELEASE --dry-run"
+    fi
     exit 0
   fi
 
@@ -237,16 +253,6 @@ if [[ "$MODE" != "verify" ]]; then
 
   warn "Kafka is NOT managed by dnf — /opt/kafka is a tarball install (pinned in"
   warn "deploy/kafka/install-kafka.sh) and was not touched by this run."
-
-  # A plain patch installs only what the pinned release contains, so a fix that
-  # shipped in a newer release is silently skipped. Find the newest release that
-  # is available, to warn about it in the final banner. The version is reported,
-  # never installed: moving the pin stays the operator's decision.
-  if [[ "$MODE" != "release" ]]; then
-    NEWER_RELEASE="$( { dnf check-release-update 2>&1 || true; } \
-      | grep -oE 'Version 20[0-9]{2}\.[0-9]+\.[0-9]{8}' \
-      | awk '{print $2}' | sort -V | tail -1 || true)"
-  fi
 fi
 
 # 10. Config-file collisions. The highest-value check here.
