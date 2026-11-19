@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# deploy/patch-os.sh — patch the Amazon Linux 2023 OS on the Finnish Learning EC2
+# deploy/maintenance/patch-os.sh — patch the Amazon Linux 2023 OS on the Finnish Learning EC2
 # host, report what changed, and verify the app is still healthy afterwards.
 #
-# Run as root:  sudo bash deploy/patch-os.sh
+# Run as root:  sudo bash deploy/maintenance/patch-os.sh
 #
 # THIS SCRIPT NEVER REBOOTS. It only detects whether a reboot is needed.
+# When no reboot is needed, it restarts nginx and finnish-backend if they still
+# run code that the transaction replaced, so a patched package takes effect.
 #
 # Configuration (override by exporting before invoking):
 #   MIN_FREE_MB      minimum free MB on / before a transaction   (default 3072)
@@ -43,10 +45,13 @@ NEW_RELEASE=""
 RUNNING_KERNEL=""
 NEWEST_KERNEL=""
 AVAIL_MB=0
+NEWER_RELEASE=""
+STALE_UNITS=""
+RESTARTED_BACKEND=0
 
 usage() {
   cat <<'USAGE'
-Usage: sudo bash deploy/patch-os.sh [MODE] [--dry-run]
+Usage: sudo bash deploy/maintenance/patch-os.sh [MODE] [--dry-run]
 
 Modes (mutually exclusive; default is --patch):
   --patch                 Upgrade all packages within the currently pinned release.
@@ -62,12 +67,18 @@ Flags:
   --help                  This message.
 
 This script NEVER reboots. When a reboot is needed it says so and stops.
+When no reboot is needed, it restarts nginx and finnish-backend if they run
+outdated code.
+
+--patch and --security-only never leave the pinned release, and fixes that
+shipped in a newer release are not installed. The script warns at the end
+when a newer release exists; move to it with --release=<version>.
 
 Typical use:
-  sudo bash deploy/patch-os.sh --dry-run     # what would change?
-  sudo bash deploy/patch-os.sh               # routine patch
+  sudo bash deploy/maintenance/patch-os.sh --dry-run     # what would change?
+  sudo bash deploy/maintenance/patch-os.sh               # routine patch
   sudo reboot                                # if the banner says to
-  sudo bash deploy/patch-os.sh --verify-only # after it comes back
+  sudo bash deploy/maintenance/patch-os.sh --verify-only # after it comes back
 USAGE
 }
 
@@ -82,7 +93,7 @@ while [[ $# -gt 0 ]]; do
     --release=*)     MODE="release"; TARGET_RELEASE="${1#*=}" ;;
     --release)
       fail "--release needs a version attached, e.g. --release=2023.12.20260914
-       To see what is available:  sudo bash deploy/patch-os.sh --list-releases" 1
+       To see what is available:  sudo bash deploy/maintenance/patch-os.sh --list-releases" 1
       ;;
     -h|--help)       usage; exit 0 ;;
     *)               usage >&2; fail "Unknown argument: $1" 1 ;;
@@ -93,7 +104,7 @@ done
 # 2. Preconditions. Root is needed even for --verify-only: reading unit state and
 #    running `nginx -t` both require it.
 if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
-  fail "Must run as root. Invoke: sudo bash deploy/patch-os.sh"
+  fail "Must run as root. Invoke: sudo bash deploy/maintenance/patch-os.sh"
 fi
 
 if ! grep -q '^ID="amzn"' /etc/os-release 2>/dev/null; then
@@ -176,12 +187,12 @@ if [[ "$MODE" != "verify" ]]; then
   if [[ "$MODE" == "release" ]]; then
     if [[ "$TARGET_RELEASE" == "latest" ]]; then
       fail "--release=latest is refused: it is not reproducible. Pick a dated
-       version from:  sudo bash deploy/patch-os.sh --list-releases" 4
+       version from:  sudo bash deploy/maintenance/patch-os.sh --list-releases" 4
     fi
 
     if [[ ! "$TARGET_RELEASE" =~ ^20[0-9]{2}\.[0-9]+\.[0-9]{8}$ ]]; then
       fail "'$TARGET_RELEASE' is not a valid release. Expected e.g. 2023.12.20260914.
-       See:  sudo bash deploy/patch-os.sh --list-releases" 4
+       See:  sudo bash deploy/maintenance/patch-os.sh --list-releases" 4
     fi
   fi
 
@@ -226,6 +237,16 @@ if [[ "$MODE" != "verify" ]]; then
 
   warn "Kafka is NOT managed by dnf — /opt/kafka is a tarball install (pinned in"
   warn "deploy/kafka/install-kafka.sh) and was not touched by this run."
+
+  # A plain patch installs only what the pinned release contains, so a fix that
+  # shipped in a newer release is silently skipped. Find the newest release that
+  # is available, to warn about it in the final banner. The version is reported,
+  # never installed: moving the pin stays the operator's decision.
+  if [[ "$MODE" != "release" ]]; then
+    NEWER_RELEASE="$( { dnf check-release-update 2>&1 || true; } \
+      | grep -oE 'Version 20[0-9]{2}\.[0-9]+\.[0-9]{8}' \
+      | awk '{print $2}' | sort -V | tail -1 || true)"
+  fi
 fi
 
 # 10. Config-file collisions. The highest-value check here.
@@ -272,12 +293,47 @@ fi
 
 if command -v needs-restarting >/dev/null 2>&1; then
   needs-restarting -r >/dev/null 2>&1 || REBOOT_REQUIRED=1
+  STALE_UNITS="$(needs-restarting -s 2>/dev/null || true)"
   log "Services running outdated libraries:"
-  needs-restarting -s 2>/dev/null || true
+  printf '         %s\n' "${STALE_UNITS:-(none)}"
 else
   warn "needs-restarting is not installed, so only the kernel was checked."
   warn "Userspace services may still be running pre-patch code in memory."
+  warn "Restart them yourself:  sudo systemctl restart nginx finnish-backend"
   warn "For a fuller picture:  sudo dnf install -y dnf-utils"
+fi
+
+# dnf replaces files on disk but restarts nothing, so a patched nginx or JDK
+# does not protect the host until its service restarts. A pending reboot will
+# do that for every service; otherwise restart the two that serve traffic here.
+# `restart`, not `reload`: a reload keeps the old nginx master process, which
+# still runs the replaced binary. Postgres and Kafka are only reported: a
+# database restart is better timed by the operator.
+if [[ "$MODE" != "verify" ]] && (( REBOOT_REQUIRED == 0 )) && [[ -n "$STALE_UNITS" ]]; then
+  if grep -qx 'nginx\(\.service\)\?' <<<"$STALE_UNITS"; then
+    if nginx -t >/dev/null 2>&1; then
+      log "Restarting nginx (it runs code the transaction replaced)"
+      systemctl restart nginx || { warn "nginx failed to restart."; VERIFY_FAILED=1; }
+    else
+      warn "nginx runs outdated code, but nginx -t fails, so it was NOT restarted."
+      warn "Fix the config (sudo nginx -t), then:  sudo systemctl restart nginx"
+      VERIFY_FAILED=1
+    fi
+  fi
+
+  if grep -qx 'finnish-backend\(\.service\)\?' <<<"$STALE_UNITS"; then
+    log "Restarting finnish-backend (it runs code the transaction replaced)"
+    systemctl restart finnish-backend \
+      || { warn "finnish-backend failed to restart."; VERIFY_FAILED=1; }
+    RESTARTED_BACKEND=1
+  fi
+
+  for unit in postgresql kafka; do
+    if grep -qx "${unit}\(\.service\)\?" <<<"$STALE_UNITS"; then
+      warn "$unit runs outdated code. Restart it when convenient:"
+      warn "    sudo systemctl restart $unit"
+    fi
+  done
 fi
 
 # 12. Verify services.
@@ -302,13 +358,13 @@ done
 
 BACKEND_CODE="$(check_backend)"
 
-# Retry ONLY after a reboot: finnish-backend legitimately takes up to ~180s to come
-# up (migrations at startup, and kafka.service is Type=simple so systemd marks it
-# active ~30s before the broker listens; the backend restart-loops across that gap
-# by design). On the post-patch path nothing was stopped, so a failure is real
-# immediately and must not be masked by a retry.
-if [[ "$MODE" == "verify" && "$BACKEND_CODE" != "200" ]]; then
-  log "  backend: HTTP $BACKEND_CODE — retrying, it can take ~180s after a reboot"
+# Retry ONLY after a reboot or a backend restart: finnish-backend legitimately
+# takes up to ~180s to come up (migrations at startup, and kafka.service is
+# Type=simple so systemd marks it active ~30s before the broker listens; the
+# backend restart-loops across that gap by design). When the backend was not
+# stopped, a failure is real immediately and must not be masked by a retry.
+if [[ ( "$MODE" == "verify" || "$RESTARTED_BACKEND" == "1" ) && "$BACKEND_CODE" != "200" ]]; then
+  log "  backend: HTTP $BACKEND_CODE — retrying, it can take ~180s after a start"
   for attempt in {1..12}; do
     sleep 10
     BACKEND_CODE="$(check_backend)"
@@ -365,7 +421,7 @@ The new kernel is on disk but NOT running.
     sudo reboot          # you decide when
 
 Then wait ~2 minutes and verify:
-    sudo bash deploy/patch-os.sh --verify-only
+    sudo bash deploy/maintenance/patch-os.sh --verify-only
 
 Expect 1-3 minutes of 502s on /api/ after the reboot — the backend retries
 until Kafka is listening. That is normal.
@@ -385,7 +441,19 @@ Transcript: $PATCH_LOG
 EOF
 fi
 
-if [[ "$NEW_RELEASE" == "$CURRENT_RELEASE" && "$MODE" != "verify" ]]; then
+if [[ -n "$NEWER_RELEASE" ]]; then
+  cat <<EOF
+
+============================================================
+  WARNING: THIS HOST IS BEHIND. Newest release: $NEWER_RELEASE
+============================================================
+  Pinned to $NEW_RELEASE. Security fixes published after it were
+  NOT installed by this run. Preview and apply the newer release:
+
+    sudo bash deploy/maintenance/patch-os.sh --release=$NEWER_RELEASE --dry-run
+    sudo bash deploy/maintenance/patch-os.sh --release=$NEWER_RELEASE
+EOF
+elif [[ "$NEW_RELEASE" == "$CURRENT_RELEASE" && "$MODE" != "verify" ]]; then
   log "The release pin did not move — a plain patch only installs updates from"
   log "inside the pinned snapshot. Check for newer ones:  --list-releases"
 fi
